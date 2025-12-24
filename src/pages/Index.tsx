@@ -1,13 +1,51 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { Helmet } from "react-helmet-async";
+import Navbar from "@/components/Navbar";
+import HeroSection from "@/components/HeroSection";
+import TrustBar from "@/components/TrustBar";
+import ThreePathSection from "@/components/ThreePathSection";
+import AIDiscoverySection from "@/components/AIDiscoverySection";
+import BusinessSupportHub from "@/components/BusinessSupportHub";
+import WorldCupSection from "@/components/WorldCupSection";
+import HowItWorksSection from "@/components/HowItWorksSection";
+import SuccessStoriesSection from "@/components/SuccessStoriesSection";
+import FeaturedBusinesses from "@/components/FeaturedBusinesses";
+import ImmigrantHubSection from "@/components/ImmigrantHubSection";
+import StatsSection from "@/components/StatsSection";
+import FinalCTASection from "@/components/FinalCTASection";
+import Footer from "@/components/Footer";
 
 const Index = () => {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
+    <>
+      <Helmet>
+        <title>LaunchPad Canada - Where Canadian Businesses Take Off</title>
+        <meta 
+          name="description" 
+          content="Discover 50,000+ verified Canadian businesses, access $2.3B+ in grants, and get AI-powered support to grow your business faster. Your launchpad to success." 
+        />
+        <meta name="keywords" content="Canadian businesses, grants, funding, business support, AI search, World Cup 2026" />
+        <link rel="canonical" href="https://launchpadcanada.com" />
+      </Helmet>
+
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <main>
+          <HeroSection />
+          <TrustBar />
+          <ThreePathSection />
+          <AIDiscoverySection />
+          <BusinessSupportHub />
+          <WorldCupSection />
+          <HowItWorksSection />
+          <SuccessStoriesSection />
+          <FeaturedBusinesses />
+          <ImmigrantHubSection />
+          <StatsSection />
+          <FinalCTASection />
+        </main>
+        <Footer />
       </div>
-    </div>
+    </>
   );
 };
 
