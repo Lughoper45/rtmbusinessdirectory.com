@@ -13,6 +13,9 @@ import ImmigrantHubSection from "@/components/ImmigrantHubSection";
 import StatsSection from "@/components/StatsSection";
 import FinalCTASection from "@/components/FinalCTASection";
 import Footer from "@/components/Footer";
+import ProgressVisualization from "@/components/ProgressVisualization";
+import StickyFloatingCTA from "@/components/StickyFloatingCTA";
+import LiveActivityFeed from "@/components/LiveActivityFeed";
 
 const Index = () => {
   return (
@@ -33,6 +36,7 @@ const Index = () => {
           <HeroSection />
           <TrustBar />
           <ThreePathSection />
+          <ProgressVisualization />
           <AIDiscoverySection />
           <BusinessSupportHub />
           <WorldCupSection />
@@ -44,6 +48,10 @@ const Index = () => {
           <FinalCTASection />
         </main>
         <Footer />
+        
+        {/* Floating Elements */}
+        <StickyFloatingCTA />
+        <LiveActivityFeed />
       </div>
     </>
   );
