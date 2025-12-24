@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Search, Building2, DollarSign, Bot, Trophy, Check, Sparkles, TrendingUp, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import SuccessSimulator from "./SuccessSimulator";
+import heroBackground from "@/assets/hero-background.jpg";
 
 const HeroSection = () => {
   const [businessesLaunched, setBusinessesLaunched] = useState(127);
@@ -58,8 +59,13 @@ const HeroSection = () => {
       ref={heroRef}
       className="relative min-h-[750px] md:min-h-[700px] lg:min-h-[800px] overflow-hidden"
     >
-      {/* Animated gradient background */}
-      <div className="absolute inset-0 bg-gradient-to-b from-surface-light via-background to-background" />
+      {/* Background Image */}
+      <div 
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: `url(${heroBackground})` }}
+      />
+      {/* Overlay gradient for readability */}
+      <div className="absolute inset-0 bg-gradient-to-b from-background/80 via-background/60 to-background" />
       
       {/* Animated particles */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
