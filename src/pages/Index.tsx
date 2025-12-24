@@ -16,6 +16,8 @@ import Footer from "@/components/Footer";
 import ProgressVisualization from "@/components/ProgressVisualization";
 import StickyFloatingCTA from "@/components/StickyFloatingCTA";
 import LiveActivityFeed from "@/components/LiveActivityFeed";
+import AIChatAssistant from "@/components/AIChatAssistant";
+import CanadaMap from "@/components/CanadaMap";
 
 const Index = () => {
   return (
@@ -36,6 +38,7 @@ const Index = () => {
           <HeroSection />
           <TrustBar />
           <ThreePathSection />
+          <CanadaMap />
           <ProgressVisualization />
           <AIDiscoverySection />
           <BusinessSupportHub />
@@ -52,6 +55,7 @@ const Index = () => {
         {/* Floating Elements */}
         <StickyFloatingCTA />
         <LiveActivityFeed />
+        <AIChatAssistant />
       </div>
     </>
   );
