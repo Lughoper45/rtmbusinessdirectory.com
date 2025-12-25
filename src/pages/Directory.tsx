@@ -1,5 +1,6 @@
-import { useState, useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Helmet } from "react-helmet-async";
+import { useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import DirectorySearchBar from "@/components/directory/DirectorySearchBar";
@@ -10,9 +11,9 @@ import BusinessMap from "@/components/directory/BusinessMap";
 import DiscoverySwipe from "@/components/directory/DiscoverySwipe";
 import StoryMode from "@/components/directory/StoryMode";
 import BusinessList from "@/components/directory/BusinessList";
-import QuickViewModal from "@/components/directory/QuickViewModal";
 import { Business, DiscoveryMode, FilterState } from "@/types/directory";
 import { getPaginatedBusinesses, allBusinesses } from "@/data/index";
+import { businessProfilePath } from "@/lib/slug";
 import {
   Pagination,
   PaginationContent,
@@ -26,6 +27,8 @@ import {
 const PAGE_SIZE = 24;
 
 const Directory = () => {
+  const navigate = useNavigate();
+
   const [mode, setMode] = useState<DiscoveryMode>("mission");
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -38,9 +41,12 @@ const Directory = () => {
     ownership: [],
     openNow: false,
   });
-  const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(null);
   const [savedBusinesses, setSavedBusinesses] = useState<string[]>([]);
   const [viewType, setViewType] = useState<"grid" | "list">("grid");
+
+  const openBusinessProfile = (business: Business) => {
+    navigate(businessProfilePath(business));
+  };
 
   const handleSaveBusiness = (id: string) => {
     setSavedBusinesses(prev => 
@@ -94,16 +100,16 @@ const Directory = () => {
     switch (mode) {
       case "map":
         return (
-          <BusinessMap 
+          <BusinessMap
             businesses={paginatedBusinesses}
-            onSelectBusiness={setSelectedBusiness}
+            onSelectBusiness={openBusinessProfile}
             savedBusinesses={savedBusinesses}
             onSave={handleSaveBusiness}
           />
         );
       case "discovery":
         return (
-          <DiscoverySwipe 
+          <DiscoverySwipe
             businesses={paginatedBusinesses}
             onSave={handleSaveBusiness}
             savedBusinesses={savedBusinesses}
@@ -111,26 +117,26 @@ const Directory = () => {
         );
       case "story":
         return (
-          <StoryMode 
+          <StoryMode
             businesses={paginatedBusinesses}
-            onSelectBusiness={setSelectedBusiness}
+            onSelectBusiness={openBusinessProfile}
             savedBusinesses={savedBusinesses}
             onSave={handleSaveBusiness}
           />
         );
       case "saved":
-        const saved = allBusinesses.filter(b => savedBusinesses.includes(b.id));
+        const saved = allBusinesses.filter((b) => savedBusinesses.includes(b.id));
         return viewType === "grid" ? (
-          <BusinessGrid 
+          <BusinessGrid
             businesses={saved}
-            onSelectBusiness={setSelectedBusiness}
+            onSelectBusiness={openBusinessProfile}
             savedBusinesses={savedBusinesses}
             onSave={handleSaveBusiness}
           />
         ) : (
-          <BusinessList 
+          <BusinessList
             businesses={saved}
-            onSelectBusiness={setSelectedBusiness}
+            onSelectBusiness={openBusinessProfile}
             savedBusinesses={savedBusinesses}
             onSave={handleSaveBusiness}
           />
@@ -138,16 +144,16 @@ const Directory = () => {
       case "best":
         const bestBusinesses = [...paginatedBusinesses].sort((a, b) => b.rating - a.rating);
         return viewType === "grid" ? (
-          <BusinessGrid 
+          <BusinessGrid
             businesses={bestBusinesses}
-            onSelectBusiness={setSelectedBusiness}
+            onSelectBusiness={openBusinessProfile}
             savedBusinesses={savedBusinesses}
             onSave={handleSaveBusiness}
           />
         ) : (
-          <BusinessList 
+          <BusinessList
             businesses={bestBusinesses}
-            onSelectBusiness={setSelectedBusiness}
+            onSelectBusiness={openBusinessProfile}
             savedBusinesses={savedBusinesses}
             onSave={handleSaveBusiness}
           />
@@ -155,32 +161,32 @@ const Directory = () => {
       case "trending":
         const trending = [...paginatedBusinesses].sort((a, b) => b.reviewCount - a.reviewCount);
         return viewType === "grid" ? (
-          <BusinessGrid 
+          <BusinessGrid
             businesses={trending}
-            onSelectBusiness={setSelectedBusiness}
+            onSelectBusiness={openBusinessProfile}
             savedBusinesses={savedBusinesses}
             onSave={handleSaveBusiness}
           />
         ) : (
-          <BusinessList 
+          <BusinessList
             businesses={trending}
-            onSelectBusiness={setSelectedBusiness}
+            onSelectBusiness={openBusinessProfile}
             savedBusinesses={savedBusinesses}
             onSave={handleSaveBusiness}
           />
         );
       default:
         return viewType === "grid" ? (
-          <BusinessGrid 
+          <BusinessGrid
             businesses={paginatedBusinesses}
-            onSelectBusiness={setSelectedBusiness}
+            onSelectBusiness={openBusinessProfile}
             savedBusinesses={savedBusinesses}
             onSave={handleSaveBusiness}
           />
         ) : (
-          <BusinessList 
+          <BusinessList
             businesses={paginatedBusinesses}
-            onSelectBusiness={setSelectedBusiness}
+            onSelectBusiness={openBusinessProfile}
             savedBusinesses={savedBusinesses}
             onSave={handleSaveBusiness}
           />
@@ -276,16 +282,6 @@ const Directory = () => {
         </main>
 
         <Footer />
-
-        {/* Quick View Modal */}
-        {selectedBusiness && (
-          <QuickViewModal 
-            business={selectedBusiness}
-            onClose={() => setSelectedBusiness(null)}
-            isSaved={savedBusinesses.includes(selectedBusiness.id)}
-            onSave={() => handleSaveBusiness(selectedBusiness.id)}
-          />
-        )}
       </div>
     </>
   );

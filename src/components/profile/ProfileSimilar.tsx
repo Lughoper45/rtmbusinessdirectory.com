@@ -1,16 +1,15 @@
 import { Business } from "@/types/directory";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Star, MapPin, ChevronRight, Sparkles } from "lucide-react";
+import { Star, MapPin, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
+import { businessProfilePath } from "@/lib/slug";
 
 interface ProfileSimilarProps {
   businesses: Business[];
 }
 
 const ProfileSimilar = ({ businesses }: ProfileSimilarProps) => {
-  const generateSlug = (name: string) => 
-    name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
 
   if (businesses.length === 0) {
     return null;
@@ -31,7 +30,7 @@ const ProfileSimilar = ({ businesses }: ProfileSimilarProps) => {
           {businesses.map((business) => (
             <Link
               key={business.id}
-              to={`/directory/${business.category.toLowerCase().replace(/\s+/g, '-')}/${business.city.toLowerCase()}/${generateSlug(business.name)}`}
+              to={businessProfilePath(business)}
               className="group flex flex-col rounded-xl border border-border overflow-hidden hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
             >
               {/* Image */}

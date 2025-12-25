@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Star, MapPin, TrendingUp, ChevronRight, BarChart3 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { businessProfilePath } from "@/lib/slug";
 
 interface ProfileCompetitorsProps {
   business: Business;
@@ -11,8 +12,6 @@ interface ProfileCompetitorsProps {
 }
 
 const ProfileCompetitors = ({ business, competitors }: ProfileCompetitorsProps) => {
-  const generateSlug = (name: string) => 
-    name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
 
   // Calculate market position
   const avgCompetitorRating = competitors.length > 0 
@@ -109,7 +108,7 @@ const ProfileCompetitors = ({ business, competitors }: ProfileCompetitorsProps) 
             {competitors.slice(0, 3).map((competitor) => (
               <Link
                 key={competitor.id}
-                to={`/directory/${competitor.category.toLowerCase().replace(/\s+/g, '-')}/${competitor.city.toLowerCase()}/${generateSlug(competitor.name)}`}
+                to={businessProfilePath(competitor)}
                 className="flex items-center gap-4 p-3 rounded-lg border border-border hover:bg-muted/50 transition-colors group"
               >
                 <img 
