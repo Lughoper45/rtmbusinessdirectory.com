@@ -103,6 +103,19 @@ const BusinessListingWizard = ({ isOpen, onClose }: BusinessListingWizardProps) 
     setAutoFillSuccess(false);
     
     try {
+      // Check if user is authenticated before calling the edge function
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        toast({
+          title: "Authentication required",
+          description: "Please sign in to use the AI auto-fill feature.",
+          variant: "destructive",
+        });
+        setIsAutoFilling(false);
+        return;
+      }
+
       const { data, error } = await supabase.functions.invoke('analyze-website', {
         body: { websiteUrl: formData.website }
       });
