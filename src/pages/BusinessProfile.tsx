@@ -1,11 +1,13 @@
 import { useParams, Link } from "react-router-dom";
+import { useState, useEffect } from "react";
 import { Helmet } from "react-helmet-async";
-import { mockBusinesses } from "@/data/mockBusinesses";
+import { getBusinessBySlug, allBusinesses } from "@/data/index";
 import { Business } from "@/types/directory";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
 import { 
   ArrowLeft, Phone, Globe, MapPin, Clock, Star, Share2, Heart, 
   Navigation, CheckCircle2, Trophy, Sparkles, Users, TrendingUp,
@@ -23,14 +25,58 @@ import ProfileSimilar from "@/components/profile/ProfileSimilar";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 const BusinessProfile = () => {
   const { category, city, slug } = useParams();
+  const [aiDescription, setAiDescription] = useState<string | null>(null);
+  const [isLoadingDescription, setIsLoadingDescription] = useState(false);
   
-  // Find business by slug (in real app, fetch from API)
-  const business = mockBusinesses.find(b => 
-    b.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') === slug
-  ) || mockBusinesses[0];
+  // Find business by slug using new data functions
+  const business = getBusinessBySlug(slug || '') || allBusinesses[0];
+
+  // Fetch AI-generated description on mount
+  useEffect(() => {
+    const fetchAiDescription = async () => {
+      if (!business) return;
+      
+      setIsLoadingDescription(true);
+      try {
+        const { data, error } = await supabase.functions.invoke('generate-business-description', {
+          body: { 
+            business: {
+              name: business.name,
+              category: business.category,
+              city: business.city,
+              province: business.province,
+              rating: business.rating,
+              reviewCount: business.reviewCount,
+              priceRange: business.priceRange,
+              features: business.features,
+              ownership: business.ownership,
+              isWorldCupReady: business.isWorldCupReady,
+              isVerified: business.isVerified,
+            }
+          }
+        });
+
+        if (error) {
+          console.error('Error fetching AI description:', error);
+          return;
+        }
+
+        if (data?.description) {
+          setAiDescription(data.description);
+        }
+      } catch (err) {
+        console.error('Failed to fetch AI description:', err);
+      } finally {
+        setIsLoadingDescription(false);
+      }
+    };
+
+    fetchAiDescription();
+  }, [business?.id]);
 
   const generateSlug = (name: string) => 
     name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
@@ -42,7 +88,7 @@ const BusinessProfile = () => {
     if (navigator.share) {
       await navigator.share({
         title: business.name,
-        text: business.description,
+        text: aiDescription || business.description,
         url: window.location.href
       });
     } else {
@@ -55,13 +101,19 @@ const BusinessProfile = () => {
     toast.success(`${business.name} saved to your list!`);
   };
 
+  // Create enhanced business object with AI description
+  const enhancedBusiness: Business = {
+    ...business,
+    description: aiDescription || business.description,
+  };
+
   // Find similar businesses
-  const similarBusinesses = mockBusinesses
+  const similarBusinesses = allBusinesses
     .filter(b => b.id !== business.id && b.category === business.category)
     .slice(0, 4);
 
   // Find competitors (same category, same city)
-  const competitors = mockBusinesses
+  const competitors = allBusinesses
     .filter(b => b.id !== business.id && b.category === business.category && b.city === business.city)
     .slice(0, 5);
 
@@ -69,9 +121,9 @@ const BusinessProfile = () => {
     <>
       <Helmet>
         <title>{business.name} | {business.category} in {business.city} | LaunchPad Canada</title>
-        <meta name="description" content={business.description} />
+        <meta name="description" content={aiDescription || business.description} />
         <meta property="og:title" content={`${business.name} - ${business.category} in ${business.city}`} />
-        <meta property="og:description" content={business.description} />
+        <meta property="og:description" content={aiDescription || business.description} />
         <meta property="og:image" content={business.image} />
         <meta property="og:type" content="business.business" />
         <link rel="canonical" href={`https://launchpad.ca/directory/${category}/${city}/${slug}`} />
@@ -81,7 +133,7 @@ const BusinessProfile = () => {
             "@type": "LocalBusiness",
             "name": business.name,
             "image": business.image,
-            "description": business.description,
+            "description": aiDescription || business.description,
             "address": {
               "@type": "PostalAddress",
               "streetAddress": business.address,
@@ -194,7 +246,22 @@ const BusinessProfile = () => {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Main Content Column */}
             <div className="lg:col-span-2 space-y-8">
-              <ProfileAbout business={business} />
+              {isLoadingDescription ? (
+                <Card>
+                  <CardHeader>
+                    <Skeleton className="h-6 w-32" />
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-3/4" />
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-5/6" />
+                  </CardContent>
+                </Card>
+              ) : (
+                <ProfileAbout business={enhancedBusiness} />
+              )}
               <ProfileGallery photos={business.photos || [business.image]} />
               <ProfileReviews business={business} />
               <ProfileReputation business={business} />
