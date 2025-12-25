@@ -12,7 +12,7 @@ import StoryMode from "@/components/directory/StoryMode";
 import BusinessList from "@/components/directory/BusinessList";
 import QuickViewModal from "@/components/directory/QuickViewModal";
 import { Business, DiscoveryMode, FilterState } from "@/types/directory";
-import { mockBusinesses } from "@/data/mockBusinesses";
+import { allBusinesses as mockBusinesses } from "@/data/index";
 
 const Directory = () => {
   const [mode, setMode] = useState<DiscoveryMode>("mission");
