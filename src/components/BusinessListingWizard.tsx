@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { X, ChevronRight, ChevronLeft, Check, Building2, MapPin, Globe, Sparkles, Loader2, Palette, ExternalLink, AlertCircle } from "lucide-react";
+import { Link } from "react-router-dom";
+import { X, ChevronRight, ChevronLeft, Check, Building2, MapPin, Globe, Sparkles, Loader2, Palette, AlertCircle, LogIn } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -101,30 +102,34 @@ const BusinessListingWizard = ({ isOpen, onClose }: BusinessListingWizardProps) 
     if (!formData.website || isAutoFilling) return;
     setIsAutoFilling(true);
     setAutoFillSuccess(false);
-    
+
     try {
       // Check if user is authenticated before calling the edge function
       const { data: { session } } = await supabase.auth.getSession();
-      
+
       if (!session) {
         toast({
-          title: "Authentication required",
-          description: "Please sign in to use the AI auto-fill feature.",
+          title: "Sign in required",
+          description: (
+            <span>
+              Please <Link to="/auth" className="underline font-medium text-primary">sign in</Link> to use AI auto-fill.
+            </span>
+          ) as unknown as string,
           variant: "destructive",
         });
         setIsAutoFilling(false);
         return;
       }
 
-      const { data, error } = await supabase.functions.invoke('analyze-website', {
-        body: { websiteUrl: formData.website }
+      const { data, error } = await supabase.functions.invoke("analyze-website", {
+        body: { websiteUrl: formData.website },
       });
 
       if (error) throw error;
 
       if (data?.success && data?.data) {
         const businessInfo = data.data;
-        setFormData(prev => ({
+        setFormData((prev) => ({
           ...prev,
           businessName: businessInfo.businessName || prev.businessName,
           description: businessInfo.description || prev.description,
@@ -139,7 +144,7 @@ const BusinessListingWizard = ({ isOpen, onClose }: BusinessListingWizardProps) 
         });
       }
     } catch (error) {
-      console.error('Error auto-filling:', error);
+      console.error("Error auto-filling:", error);
       toast({
         title: "Auto-fill unavailable",
         description: "Please fill in the details manually.",
