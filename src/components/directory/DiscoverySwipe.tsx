@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 
 interface DiscoverySwipeProps {
   businesses: Business[];
-  onSave: (id: string) => void;
+  onSave: (business: Business) => void;
   savedBusinesses: string[];
 }
 
@@ -21,7 +21,7 @@ const DiscoverySwipe = ({ businesses, onSave, savedBusinesses }: DiscoverySwipeP
   const handleSwipe = (dir: "left" | "right") => {
     setDirection(dir);
     if (dir === "right" && currentBusiness) {
-      onSave(currentBusiness.id);
+      onSave(currentBusiness);
     }
     setTimeout(() => {
       setDirection(null);

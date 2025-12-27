@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Helmet } from "react-helmet-async";
 import { useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
@@ -14,6 +14,9 @@ import BusinessList from "@/components/directory/BusinessList";
 import { Business, DiscoveryMode, FilterState } from "@/types/directory";
 import { getPaginatedBusinesses, allBusinesses } from "@/data/index";
 import { businessProfilePath } from "@/lib/slug";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import type { User } from "@supabase/supabase-js";
 import {
   Pagination,
   PaginationContent,
@@ -41,17 +44,95 @@ const Directory = () => {
     ownership: [],
     openNow: false,
   });
-  const [savedBusinesses, setSavedBusinesses] = useState<string[]>([]);
+  const [savedBusinessIds, setSavedBusinessIds] = useState<string[]>([]);
   const [viewType, setViewType] = useState<"grid" | "list">("grid");
+  const [user, setUser] = useState<User | null>(null);
+
+  // Load user and saved businesses
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  // Fetch saved businesses when user changes
+  useEffect(() => {
+    if (user) {
+      fetchSavedBusinesses();
+    } else {
+      setSavedBusinessIds([]);
+    }
+  }, [user]);
+
+  const fetchSavedBusinesses = async () => {
+    if (!user) return;
+    
+    const { data, error } = await supabase
+      .from("saved_businesses")
+      .select("business_id")
+      .eq("user_id", user.id);
+
+    if (!error && data) {
+      setSavedBusinessIds(data.map(d => d.business_id));
+    }
+  };
 
   const openBusinessProfile = (business: Business) => {
     navigate(businessProfilePath(business));
   };
 
-  const handleSaveBusiness = (id: string) => {
-    setSavedBusinesses(prev => 
-      prev.includes(id) ? prev.filter(b => b !== id) : [...prev, id]
-    );
+  const handleSaveBusiness = async (business: Business) => {
+    if (!user) {
+      toast.error("Please sign in to save businesses", {
+        action: {
+          label: "Sign In",
+          onClick: () => navigate("/auth"),
+        },
+      });
+      return;
+    }
+
+    const isSaved = savedBusinessIds.includes(business.id);
+
+    if (isSaved) {
+      // Remove from saved
+      const { error } = await supabase
+        .from("saved_businesses")
+        .delete()
+        .eq("user_id", user.id)
+        .eq("business_id", business.id);
+
+      if (error) {
+        toast.error("Failed to remove business");
+      } else {
+        setSavedBusinessIds(prev => prev.filter(id => id !== business.id));
+        toast.success("Removed from saved");
+      }
+    } else {
+      // Add to saved
+      const { error } = await supabase
+        .from("saved_businesses")
+        .insert({
+          user_id: user.id,
+          business_id: business.id,
+          business_name: business.name,
+          business_category: business.category,
+          business_city: business.city,
+        });
+
+      if (error) {
+        toast.error("Failed to save business");
+      } else {
+        setSavedBusinessIds(prev => [...prev, business.id]);
+        toast.success("Business saved!");
+      }
+    }
   };
 
   // Paginated data - only loads PAGE_SIZE businesses at a time
@@ -103,7 +184,7 @@ const Directory = () => {
           <BusinessMap
             businesses={paginatedBusinesses}
             onSelectBusiness={openBusinessProfile}
-            savedBusinesses={savedBusinesses}
+            savedBusinesses={savedBusinessIds}
             onSave={handleSaveBusiness}
           />
         );
@@ -112,7 +193,7 @@ const Directory = () => {
           <DiscoverySwipe
             businesses={paginatedBusinesses}
             onSave={handleSaveBusiness}
-            savedBusinesses={savedBusinesses}
+            savedBusinesses={savedBusinessIds}
           />
         );
       case "story":
@@ -120,24 +201,24 @@ const Directory = () => {
           <StoryMode
             businesses={paginatedBusinesses}
             onSelectBusiness={openBusinessProfile}
-            savedBusinesses={savedBusinesses}
+            savedBusinesses={savedBusinessIds}
             onSave={handleSaveBusiness}
           />
         );
       case "saved":
-        const saved = allBusinesses.filter((b) => savedBusinesses.includes(b.id));
+        const saved = allBusinesses.filter((b) => savedBusinessIds.includes(b.id));
         return viewType === "grid" ? (
           <BusinessGrid
             businesses={saved}
             onSelectBusiness={openBusinessProfile}
-            savedBusinesses={savedBusinesses}
+            savedBusinesses={savedBusinessIds}
             onSave={handleSaveBusiness}
           />
         ) : (
           <BusinessList
             businesses={saved}
             onSelectBusiness={openBusinessProfile}
-            savedBusinesses={savedBusinesses}
+            savedBusinesses={savedBusinessIds}
             onSave={handleSaveBusiness}
           />
         );
@@ -147,14 +228,14 @@ const Directory = () => {
           <BusinessGrid
             businesses={bestBusinesses}
             onSelectBusiness={openBusinessProfile}
-            savedBusinesses={savedBusinesses}
+            savedBusinesses={savedBusinessIds}
             onSave={handleSaveBusiness}
           />
         ) : (
           <BusinessList
             businesses={bestBusinesses}
             onSelectBusiness={openBusinessProfile}
-            savedBusinesses={savedBusinesses}
+            savedBusinesses={savedBusinessIds}
             onSave={handleSaveBusiness}
           />
         );
@@ -164,14 +245,14 @@ const Directory = () => {
           <BusinessGrid
             businesses={trending}
             onSelectBusiness={openBusinessProfile}
-            savedBusinesses={savedBusinesses}
+            savedBusinesses={savedBusinessIds}
             onSave={handleSaveBusiness}
           />
         ) : (
           <BusinessList
             businesses={trending}
             onSelectBusiness={openBusinessProfile}
-            savedBusinesses={savedBusinesses}
+            savedBusinesses={savedBusinessIds}
             onSave={handleSaveBusiness}
           />
         );
@@ -180,14 +261,14 @@ const Directory = () => {
           <BusinessGrid
             businesses={paginatedBusinesses}
             onSelectBusiness={openBusinessProfile}
-            savedBusinesses={savedBusinesses}
+            savedBusinesses={savedBusinessIds}
             onSave={handleSaveBusiness}
           />
         ) : (
           <BusinessList
             businesses={paginatedBusinesses}
             onSelectBusiness={openBusinessProfile}
-            savedBusinesses={savedBusinesses}
+            savedBusinesses={savedBusinessIds}
             onSave={handleSaveBusiness}
           />
         );

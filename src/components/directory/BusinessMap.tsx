@@ -5,7 +5,7 @@ interface BusinessMapProps {
   businesses: Business[];
   onSelectBusiness: (business: Business) => void;
   savedBusinesses: string[];
-  onSave: (id: string) => void;
+  onSave: (business: Business) => void;
 }
 
 const BusinessMap = ({ businesses, onSelectBusiness }: BusinessMapProps) => {

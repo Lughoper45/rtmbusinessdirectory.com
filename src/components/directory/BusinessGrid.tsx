@@ -5,7 +5,7 @@ interface BusinessGridProps {
   businesses: Business[];
   onSelectBusiness: (business: Business) => void;
   savedBusinesses: string[];
-  onSave: (id: string) => void;
+  onSave: (business: Business) => void;
 }
 
 const BusinessGrid = ({ businesses, onSelectBusiness, savedBusinesses, onSave }: BusinessGridProps) => {
@@ -26,7 +26,7 @@ const BusinessGrid = ({ businesses, onSelectBusiness, savedBusinesses, onSave }:
           business={business}
           onSelect={() => onSelectBusiness(business)}
           isSaved={savedBusinesses.includes(business.id)}
-          onSave={() => onSave(business.id)}
+          onSave={() => onSave(business)}
         />
       ))}
     </div>
