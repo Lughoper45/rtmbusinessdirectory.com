@@ -6,7 +6,7 @@ interface StoryModeProps {
   businesses: Business[];
   onSelectBusiness: (business: Business) => void;
   savedBusinesses: string[];
-  onSave: (id: string) => void;
+  onSave: (business: Business) => void;
 }
 
 const sections = [
@@ -40,7 +40,7 @@ const StoryMode = ({ businesses, onSelectBusiness, savedBusinesses, onSave }: St
                     business={business}
                     onSelect={() => onSelectBusiness(business)}
                     isSaved={savedBusinesses.includes(business.id)}
-                    onSave={() => onSave(business.id)}
+                    onSave={() => onSave(business)}
                   />
                 </div>
               ))}

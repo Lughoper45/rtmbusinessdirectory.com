@@ -8,7 +8,7 @@ interface BusinessListProps {
   businesses: Business[];
   onSelectBusiness: (business: Business) => void;
   savedBusinesses: string[];
-  onSave: (id: string) => void;
+  onSave: (business: Business) => void;
 }
 
 const BusinessList = ({ businesses, onSelectBusiness, savedBusinesses, onSave }: BusinessListProps) => {
@@ -75,7 +75,7 @@ const BusinessList = ({ businesses, onSelectBusiness, savedBusinesses, onSave }:
               variant="outline"
               size="sm"
               className={cn(savedBusinesses.includes(business.id) && "text-primary")}
-              onClick={(e) => { e.stopPropagation(); onSave(business.id); }}
+              onClick={(e) => { e.stopPropagation(); onSave(business); }}
             >
               <Heart size={14} fill={savedBusinesses.includes(business.id) ? "currentColor" : "none"} />
             </Button>
