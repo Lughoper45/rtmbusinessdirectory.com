@@ -15,7 +15,7 @@ import { Link } from "react-router-dom";
 const emailSchema = z.string().trim().email({ message: "Please enter a valid email" }).max(255);
 const passwordSchema = z.string().min(6, { message: "Password must be at least 6 characters" }).max(72);
 
-type AuthMode = "login" | "signup" | "forgot";
+type AuthMode = "login" | "signup" | "forgot" | "reset";
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -23,23 +23,38 @@ const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
 
   useEffect(() => {
+    // Check if this is a password reset callback
+    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+    const accessToken = hashParams.get("access_token");
+    const type = hashParams.get("type");
+    
+    if (accessToken && type === "recovery") {
+      setMode("reset");
+      return;
+    }
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (session) {
+      if (event === "PASSWORD_RECOVERY") {
+        setMode("reset");
+        return;
+      }
+      if (session && mode !== "reset") {
         navigate("/");
       }
     });
 
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
+      if (session && mode !== "reset") {
         navigate("/");
       }
     });
 
     return () => subscription.unsubscribe();
-  }, [navigate]);
+  }, [navigate, mode]);
 
   const validateEmail = () => {
     const result = emailSchema.safeParse(email);
@@ -126,6 +141,89 @@ const Auth = () => {
     }
     setIsLoading(false);
   };
+
+  const handleUpdatePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const passwordResult = passwordSchema.safeParse(newPassword);
+    if (!passwordResult.success) {
+      setErrors({ password: passwordResult.error.errors[0].message });
+      return;
+    }
+    setErrors({});
+
+    setIsLoading(true);
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+
+    if (error) {
+      toast.error(error.message);
+    } else {
+      toast.success("Password updated successfully!");
+      navigate("/");
+    }
+    setIsLoading(false);
+  };
+
+  if (mode === "reset") {
+    return (
+      <>
+        <Helmet>
+          <title>Set New Password | LaunchPad Canada</title>
+          <meta name="description" content="Set a new password for your LaunchPad Canada account." />
+        </Helmet>
+
+        <div className="min-h-screen bg-gradient-to-br from-muted/50 to-background flex flex-col items-center justify-center p-4">
+          <div className="w-full max-w-md animate-fade-up">
+            <div className="flex items-center justify-center gap-2 mb-8">
+              <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center shadow-lg">
+                <Rocket className="w-7 h-7 text-primary-foreground" />
+              </div>
+              <span className="text-2xl font-bold text-foreground">
+                LaunchPad <span className="font-medium text-muted-foreground">Canada</span>
+              </span>
+            </div>
+
+            <Card className="shadow-heavy">
+              <CardHeader className="text-center">
+                <CardTitle className="text-2xl">Set New Password</CardTitle>
+                <CardDescription>Enter your new password below</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleUpdatePassword} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="new-password">New Password</Label>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <Input
+                        id="new-password"
+                        type="password"
+                        placeholder="Minimum 6 characters"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        className="pl-10"
+                        disabled={isLoading}
+                      />
+                    </div>
+                    {errors.password && <p className="text-xs text-destructive">{errors.password}</p>}
+                  </div>
+
+                  <Button type="submit" className="w-full" disabled={isLoading}>
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Updating...
+                      </>
+                    ) : (
+                      "Update Password"
+                    )}
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </>
+    );
+  }
 
   if (mode === "forgot") {
     return (
