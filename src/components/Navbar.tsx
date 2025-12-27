@@ -78,10 +78,13 @@ const Navbar = () => {
           <div className="hidden md:flex items-center gap-4">
             {user ? (
               <>
-                <span className="text-sm text-muted-foreground flex items-center gap-1.5">
+                <Link 
+                  to="/profile" 
+                  className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1.5 transition-colors"
+                >
                   <User className="w-4 h-4" />
                   {user.email?.split("@")[0]}
-                </span>
+                </Link>
                 <Button variant="ghost" size="sm" onClick={handleLogout}>
                   <LogOut className="w-4 h-4 mr-1.5" />
                   Sign Out
@@ -136,7 +139,13 @@ const Navbar = () => {
               <hr className="border-border" />
               {user ? (
                 <>
-                  <p className="text-muted-foreground text-sm">Signed in as {user.email}</p>
+                  <Link 
+                    to="/profile" 
+                    className="text-lg font-medium text-foreground hover:text-primary transition-colors py-2"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    My Profile
+                  </Link>
                   <Button variant="outline" onClick={() => { handleLogout(); setIsOpen(false); }}>
                     <LogOut className="w-4 h-4 mr-2" />
                     Sign Out
