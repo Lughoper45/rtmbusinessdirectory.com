@@ -10,9 +10,10 @@ interface ProfileHeroProps {
   business: Business;
   onShare: () => void;
   onSave: () => void;
+  isSaved?: boolean;
 }
 
-const ProfileHero = ({ business, onShare, onSave }: ProfileHeroProps) => {
+const ProfileHero = ({ business, onShare, onSave, isSaved = false }: ProfileHeroProps) => {
   const renderStars = (rating: number) => {
     return Array.from({ length: 5 }).map((_, i) => (
       <Star 
@@ -121,9 +122,14 @@ const ProfileHero = ({ business, onShare, onSave }: ProfileHeroProps) => {
                   <Navigation className="w-4 h-4" />
                   Directions
                 </Button>
-                <Button size="lg" variant="ghost" onClick={onSave} className="gap-2">
-                  <Heart className="w-4 h-4" />
-                  Save
+                <Button 
+                  size="lg" 
+                  variant={isSaved ? "default" : "ghost"} 
+                  onClick={onSave} 
+                  className={`gap-2 ${isSaved ? 'bg-primary text-primary-foreground' : ''}`}
+                >
+                  <Heart className="w-4 h-4" fill={isSaved ? "currentColor" : "none"} />
+                  {isSaved ? "Saved" : "Save"}
                 </Button>
                 <Button size="lg" variant="ghost" onClick={onShare} className="gap-2">
                   <Share2 className="w-4 h-4" />
