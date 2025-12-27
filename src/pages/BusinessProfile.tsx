@@ -1,4 +1,4 @@
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { Helmet } from "react-helmet-async";
 import { getBusinessBySlug, allBusinesses } from "@/data/index";
@@ -26,14 +26,49 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import type { User } from "@supabase/supabase-js";
 
 const BusinessProfile = () => {
   const { category, city, slug } = useParams();
+  const navigate = useNavigate();
   const [aiDescription, setAiDescription] = useState<string | null>(null);
   const [isLoadingDescription, setIsLoadingDescription] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+  const [isSaved, setIsSaved] = useState(false);
   
   // Find business by slug using new data functions
   const business = getBusinessBySlug(slug || '') || allBusinesses[0];
+
+  // Load user and check if saved
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  // Check if business is saved
+  useEffect(() => {
+    const checkIfSaved = async () => {
+      if (!user || !business) return;
+      
+      const { data } = await supabase
+        .from("saved_businesses")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("business_id", business.id)
+        .maybeSingle();
+      
+      setIsSaved(!!data);
+    };
+
+    checkIfSaved();
+  }, [user, business?.id]);
 
   // Fetch AI-generated description on mount
   useEffect(() => {
@@ -97,8 +132,50 @@ const BusinessProfile = () => {
     }
   };
 
-  const handleSave = () => {
-    toast.success(`${business.name} saved to your list!`);
+  const handleSave = async () => {
+    if (!user) {
+      toast.error("Please sign in to save businesses", {
+        action: {
+          label: "Sign In",
+          onClick: () => navigate("/auth"),
+        },
+      });
+      return;
+    }
+
+    if (isSaved) {
+      // Remove from saved
+      const { error } = await supabase
+        .from("saved_businesses")
+        .delete()
+        .eq("user_id", user.id)
+        .eq("business_id", business.id);
+
+      if (error) {
+        toast.error("Failed to remove business");
+      } else {
+        setIsSaved(false);
+        toast.success("Removed from saved");
+      }
+    } else {
+      // Add to saved
+      const { error } = await supabase
+        .from("saved_businesses")
+        .insert({
+          user_id: user.id,
+          business_id: business.id,
+          business_name: business.name,
+          business_category: business.category,
+          business_city: business.city,
+        });
+
+      if (error) {
+        toast.error("Failed to save business");
+      } else {
+        setIsSaved(true);
+        toast.success("Business saved!");
+      }
+    }
   };
 
   // Create enhanced business object with AI description
@@ -196,7 +273,8 @@ const BusinessProfile = () => {
         <ProfileHero 
           business={business} 
           onShare={handleShare} 
-          onSave={handleSave} 
+          onSave={handleSave}
+          isSaved={isSaved}
         />
 
         {/* Badges Bar */}
