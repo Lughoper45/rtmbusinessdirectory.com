@@ -81,7 +81,7 @@ const StatsSection = () => {
     <section ref={sectionRef} className="py-24 md:py-28 bg-navy">
       <div className="container mx-auto max-w-[1280px] px-6">
         <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-center text-primary-foreground mb-16">
-          LaunchPad by the Numbers
+          RTM Directory by the Numbers
         </h2>
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-12">

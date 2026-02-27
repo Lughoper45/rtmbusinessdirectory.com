@@ -6,7 +6,7 @@ const SuccessStoriesSection = () => {
 
   const testimonials = [
     {
-      quote: "LaunchPad helped us secure $127K in grants we didn't even know we qualified for. The AI matching was incredibly accurate.",
+      quote: "RTM Business Directory helped us secure $127K in grants we didn't even know we qualified for. The AI matching was incredibly accurate.",
       business: "Maple Tech Solutions",
       owner: "Sarah Chen",
       location: "Toronto, ON",
@@ -14,7 +14,7 @@ const SuccessStoriesSection = () => {
       rating: 5,
     },
     {
-      quote: "As a new immigrant, finding local suppliers was challenging. LaunchPad connected us with verified businesses that understood our needs.",
+      quote: "As a new immigrant, finding local suppliers was challenging. RTM Directory connected us with verified businesses that understood our needs.",
       business: "Sunset Bakery",
       owner: "Ahmed Hassan",
       location: "Vancouver, BC",
@@ -55,7 +55,7 @@ const SuccessStoriesSection = () => {
             Success Stories
           </h2>
           <p className="text-lg text-muted-foreground">
-            See how Canadian businesses are growing with LaunchPad
+            See how businesses are growing with RTM Business Directory
           </p>
         </div>
 

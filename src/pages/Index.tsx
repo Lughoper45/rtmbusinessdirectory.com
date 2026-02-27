@@ -23,13 +23,13 @@ const Index = () => {
   return (
     <>
       <Helmet>
-        <title>LaunchPad Canada - Where Canadian Businesses Take Off</title>
+        <title>RTM Business Directory - Discover & List Businesses</title>
         <meta 
           name="description" 
-          content="Discover 50,000+ verified Canadian businesses, access $2.3B+ in grants, and get AI-powered support to grow your business faster. Your launchpad to success." 
+          content="Discover verified businesses, access exclusive deals, and get AI-powered support to grow your business. Your trusted business directory." 
         />
-        <meta name="keywords" content="Canadian businesses, grants, funding, business support, AI search, World Cup 2026" />
-        <link rel="canonical" href="https://launchpadcanada.com" />
+        <meta name="keywords" content="business directory, find businesses, list business, verified listings, business support" />
+        <link rel="canonical" href="https://rtmbusinessdirectory.com" />
       </Helmet>
 
       <div className="min-h-screen bg-background">

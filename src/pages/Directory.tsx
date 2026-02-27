@@ -323,7 +323,7 @@ const Directory = () => {
   return (
     <>
       <Helmet>
-        <title>Discover Canadian Businesses | LaunchPad Canada Directory</title>
+        <title>Discover Businesses | RTM Business Directory</title>
         <meta 
           name="description" 
           content="Explore 50,000+ verified Canadian businesses. AI-powered search, multiple discovery modes, and personalized recommendations." 

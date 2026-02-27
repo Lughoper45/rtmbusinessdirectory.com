@@ -167,8 +167,8 @@ const Auth = () => {
     return (
       <>
         <Helmet>
-          <title>Set New Password | LaunchPad Canada</title>
-          <meta name="description" content="Set a new password for your LaunchPad Canada account." />
+          <title>Set New Password | RTM Business Directory</title>
+          <meta name="description" content="Set a new password for your RTM Business Directory account." />
         </Helmet>
 
         <div className="min-h-screen bg-gradient-to-br from-muted/50 to-background flex flex-col items-center justify-center p-4">
@@ -178,7 +178,7 @@ const Auth = () => {
                 <Rocket className="w-7 h-7 text-primary-foreground" />
               </div>
               <span className="text-2xl font-bold text-foreground">
-                LaunchPad <span className="font-medium text-muted-foreground">Canada</span>
+                RTM <span className="font-medium text-muted-foreground">Business Directory</span>
               </span>
             </div>
 
@@ -229,8 +229,8 @@ const Auth = () => {
     return (
       <>
         <Helmet>
-          <title>Reset Password | LaunchPad Canada</title>
-          <meta name="description" content="Reset your LaunchPad Canada account password." />
+          <title>Reset Password | RTM Business Directory</title>
+          <meta name="description" content="Reset your RTM Business Directory account password." />
         </Helmet>
 
         <div className="min-h-screen bg-gradient-to-br from-muted/50 to-background flex flex-col items-center justify-center p-4">
@@ -245,7 +245,7 @@ const Auth = () => {
                 <Rocket className="w-7 h-7 text-primary-foreground" />
               </div>
               <span className="text-2xl font-bold text-foreground">
-                LaunchPad <span className="font-medium text-muted-foreground">Canada</span>
+                RTM <span className="font-medium text-muted-foreground">Business Directory</span>
               </span>
             </div>
 
@@ -304,8 +304,8 @@ const Auth = () => {
   return (
     <>
       <Helmet>
-        <title>Sign In | LaunchPad Canada</title>
-        <meta name="description" content="Sign in or create an account to access AI-powered business tools on LaunchPad Canada." />
+        <title>Sign In | RTM Business Directory</title>
+        <meta name="description" content="Sign in or create an account to access AI-powered business tools on RTM Business Directory." />
       </Helmet>
 
       <div className="min-h-screen bg-gradient-to-br from-muted/50 to-background flex flex-col items-center justify-center p-4">
@@ -320,7 +320,7 @@ const Auth = () => {
               <Rocket className="w-7 h-7 text-primary-foreground" />
             </div>
             <span className="text-2xl font-bold text-foreground">
-              LaunchPad <span className="font-medium text-muted-foreground">Canada</span>
+              RTM <span className="font-medium text-muted-foreground">Business Directory</span>
             </span>
           </div>
 

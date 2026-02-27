@@ -16,7 +16,7 @@ const FinalCTASection = () => {
           Ready to Take Your Business to the Next Level?
         </h2>
         <p className="text-lg md:text-xl text-primary-foreground/90 mb-10">
-          Join 50,000+ Canadian businesses growing with LaunchPad
+          Join thousands of businesses growing with RTM Business Directory
         </p>
 
         <div className="flex flex-col sm:flex-row justify-center gap-4 mb-6">

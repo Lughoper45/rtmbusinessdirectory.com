@@ -47,7 +47,7 @@ const Navbar = () => {
               <Rocket className="w-6 h-6 text-primary-foreground" />
             </div>
             <span className="text-xl font-bold text-foreground">
-              LaunchPad <span className="font-medium text-muted-foreground">Canada</span>
+              RTM <span className="font-medium text-muted-foreground">Business Directory</span>
             </span>
           </Link>
 
