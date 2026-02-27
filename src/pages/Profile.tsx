@@ -157,8 +157,8 @@ const Profile = () => {
   return (
     <>
       <Helmet>
-        <title>My Profile | LaunchPad Canada</title>
-        <meta name="description" content="Manage your LaunchPad Canada profile, saved businesses, and account settings." />
+        <title>My Profile | RTM Business Directory</title>
+        <meta name="description" content="Manage your RTM Business Directory profile, saved businesses, and account settings." />
       </Helmet>
 
       <Navbar />

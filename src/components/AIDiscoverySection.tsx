@@ -31,7 +31,7 @@ const AIDiscoverySection = () => {
                   <div className="w-3 h-3 rounded-full bg-green-500/60" />
                 </div>
                 <div className="flex-1 bg-muted rounded-lg px-4 py-2 text-sm text-muted-foreground ml-4">
-                  launchpadcanada.com/search
+                  rtmbusinessdirectory.com/search
                 </div>
               </div>
 

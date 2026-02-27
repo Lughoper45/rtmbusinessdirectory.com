@@ -32,7 +32,7 @@ const HowItWorksSection = () => {
     <section className="py-24 md:py-28 bg-background">
       <div className="container mx-auto max-w-[1280px] px-6">
         <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-center text-foreground mb-16">
-          How LaunchPad Works
+          How It Works
         </h2>
 
         <div className="relative">

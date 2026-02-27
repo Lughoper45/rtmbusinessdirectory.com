@@ -23,7 +23,7 @@ const AIChatAssistant = () => {
     {
       id: "1",
       role: "assistant",
-      content: "Hi! I'm your LaunchPad AI assistant. I can help you find businesses, discover grants, or answer any questions about growing your business in Canada. How can I help you today?",
+      content: "Hi! I'm your RTM Directory AI assistant. I can help you find businesses, discover grants, or answer any questions about growing your business. How can I help you today?",
       timestamp: new Date(),
     },
   ]);
@@ -57,9 +57,9 @@ const AIChatAssistant = () => {
     setTimeout(() => {
       const responses: Record<string, string> = {
         grant: "Great question! Canada offers numerous grants for small businesses. Based on your query, here are some options:\n\n• **Canada Small Business Financing Program** - Up to $1M\n• **CanExport SME** - Up to $75K for export development\n• **IRAP** - R&D funding for tech companies\n\nWould you like me to check your eligibility for any of these?",
-        list: "Listing your business on LaunchPad is easy! Here's how:\n\n1. Click 'List Your Business' in the navigation\n2. Complete the 4-step wizard (takes ~2 minutes)\n3. Our AI can auto-fill details from your website\n4. Submit for review (approved within 24 hours)\n\nWant me to open the listing wizard for you?",
+        list: "Listing your business on RTM Directory is easy! Here's how:\n\n1. Click 'List Your Business' in the navigation\n2. Complete the 4-step wizard (takes ~2 minutes)\n3. Our AI can auto-fill details from your website\n4. Submit for review (approved within 24 hours)\n\nWant me to open the listing wizard for you?",
         world: "The FIFA World Cup 2026 is a massive opportunity! Canada is hosting matches in Toronto and Vancouver.\n\n**Opportunities for your business:**\n• Tourism surge - 5M+ visitors expected\n• Hospitality demand increase\n• Local supplier opportunities\n• International exposure\n\nWe have a dedicated World Cup readiness program. Want to learn more?",
-        default: "I can help you with that! Here are some things I can assist with:\n\n• Finding local businesses and services\n• Discovering grants and funding opportunities\n• Listing your business on LaunchPad\n• Business growth strategies\n• World Cup 2026 preparation\n\nWhat would you like to explore?",
+        default: "I can help you with that! Here are some things I can assist with:\n\n• Finding local businesses and services\n• Discovering grants and funding opportunities\n• Listing your business on RTM Directory\n• Business growth strategies\n• Exploring featured businesses\n\nWhat would you like to explore?",
       };
 
       let response = responses.default;
@@ -134,7 +134,7 @@ const AIChatAssistant = () => {
                 <Bot className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="font-bold">LaunchPad AI</h3>
+                <h3 className="font-bold">RTM Directory AI</h3>
                 <p className="text-xs text-white/80 flex items-center gap-1">
                   {isLoading ? (
                     <>

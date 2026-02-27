@@ -46,11 +46,11 @@ const Footer = () => {
                 <Rocket className="w-6 h-6 text-primary-foreground" />
               </div>
               <span className="text-xl font-bold text-primary-foreground">
-                LaunchPad <span className="font-medium text-primary-foreground/70">Canada</span>
+                RTM <span className="font-medium text-primary-foreground/70">Business Directory</span>
               </span>
             </a>
             <p className="text-primary-foreground/60 mb-6 leading-relaxed">
-              Where Canadian Businesses Take Off
+              Your Trusted Business Directory
             </p>
             <div className="flex gap-4">
               {socialLinks.map((social) => (
@@ -121,7 +121,7 @@ const Footer = () => {
         {/* Bottom bar */}
         <div className="border-t border-primary-foreground/10 pt-8 flex flex-col sm:flex-row justify-between items-center gap-4">
           <p className="text-primary-foreground/50 text-sm">
-            © 2025 LaunchPad Canada. All rights reserved.
+            © 2025 RTM Business Directory. All rights reserved.
           </p>
           <div className="flex gap-4 text-sm">
             <a href="#" className="text-primary-foreground/60 hover:text-primary-foreground transition-colors">

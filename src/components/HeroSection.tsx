@@ -115,9 +115,9 @@ const HeroSection = () => {
 
           {/* Main Headline with kinetic typography */}
           <h1 className="text-4xl md:text-5xl lg:text-7xl font-extrabold text-foreground leading-[1.1] mb-6 animate-fade-up">
-            Where Canadian Businesses{" "}
+            Discover & List{" "}
             <span className="text-gradient relative inline-block">
-              Take Off
+              Businesses
               <Sparkles className="absolute -right-8 -top-4 w-6 h-6 text-accent animate-pulse" />
             </span>
           </h1>

@@ -168,7 +168,7 @@ const SuccessSimulator = ({ isOpen, onClose }: SuccessSimulatorProps) => {
                   Here's what businesses like yours achieve
                 </h2>
                 <p className="text-muted-foreground">
-                  Based on {data?.successRate}% of similar businesses on LaunchPad
+                  Based on {data?.successRate}% of similar businesses on RTM Directory
                 </p>
               </div>
 
