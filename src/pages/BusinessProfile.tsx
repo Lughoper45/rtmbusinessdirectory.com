@@ -1,7 +1,7 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { Helmet } from "react-helmet-async";
-import { getBusinessBySlug, allBusinesses } from "@/data/index";
+import { fetchBusinessBySlug, fetchSimilarBusinesses, fetchCompetitors } from "@/data/database";
 import { Business } from "@/types/directory";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -35,9 +35,29 @@ const BusinessProfile = () => {
   const [isLoadingDescription, setIsLoadingDescription] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [isSaved, setIsSaved] = useState(false);
-  
-  // Find business by slug using new data functions
-  const business = getBusinessBySlug(slug || '') || allBusinesses[0];
+  const [business, setBusiness] = useState<Business | null>(null);
+  const [similarBusinesses, setSimilarBusinesses] = useState<Business[]>([]);
+  const [competitors, setCompetitors] = useState<Business[]>([]);
+  const [isLoadingBusiness, setIsLoadingBusiness] = useState(true);
+
+  // Fetch business from database
+  useEffect(() => {
+    const loadBusiness = async () => {
+      setIsLoadingBusiness(true);
+      const biz = await fetchBusinessBySlug(slug || "");
+      setBusiness(biz);
+      if (biz) {
+        const [similar, comps] = await Promise.all([
+          fetchSimilarBusinesses(biz.id, biz.category, 4),
+          fetchCompetitors(biz.id, biz.category, biz.city, 5),
+        ]);
+        setSimilarBusinesses(similar);
+        setCompetitors(comps);
+      }
+      setIsLoadingBusiness(false);
+    };
+    loadBusiness();
+  }, [slug]);
 
   // Load user and check if saved
   useEffect(() => {
@@ -116,8 +136,8 @@ const BusinessProfile = () => {
   const generateSlug = (name: string) => 
     name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
 
-  const breadcrumbCategory = category?.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) || business.category;
-  const breadcrumbCity = city?.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) || business.city;
+  const breadcrumbCategory = category?.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) || business?.category || '';
+  const breadcrumbCity = city?.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) || business?.city || '';
 
   const handleShare = async () => {
     if (navigator.share) {
@@ -178,21 +198,22 @@ const BusinessProfile = () => {
     }
   };
 
+  if (isLoadingBusiness || !business) {
+    return (
+      <>
+        <Navbar />
+        <main className="min-h-screen bg-background pt-20 flex items-center justify-center">
+          <p className="text-muted-foreground">{isLoadingBusiness ? "Loading..." : "Business not found"}</p>
+        </main>
+      </>
+    );
+  }
+
   // Create enhanced business object with AI description
   const enhancedBusiness: Business = {
     ...business,
     description: aiDescription || business.description,
   };
-
-  // Find similar businesses
-  const similarBusinesses = allBusinesses
-    .filter(b => b.id !== business.id && b.category === business.category)
-    .slice(0, 4);
-
-  // Find competitors (same category, same city)
-  const competitors = allBusinesses
-    .filter(b => b.id !== business.id && b.category === business.category && b.city === business.city)
-    .slice(0, 5);
 
   return (
     <>
