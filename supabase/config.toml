@@ -1,7 +1,7 @@
 project_id = "jhuhztcmxfhbyvckmhkk"
 
 [functions.analyze-website]
-verify_jwt = true
+verify_jwt = false
 
 [functions.generate-business-description]
 verify_jwt = false
