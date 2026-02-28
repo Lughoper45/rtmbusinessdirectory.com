@@ -14,6 +14,120 @@ export type Database = {
   }
   public: {
     Tables: {
+      businesses: {
+        Row: {
+          address: string
+          business_id: string
+          category: string
+          city: string
+          closing_time: string | null
+          created_at: string
+          cuisine: string | null
+          description: string
+          distance: number | null
+          features: string[]
+          id: string
+          image: string
+          is_award_winner: boolean
+          is_new: boolean
+          is_open: boolean
+          is_trending: boolean
+          is_verified: boolean
+          is_world_cup_ready: boolean
+          lat: number | null
+          lng: number | null
+          logo: string | null
+          name: string
+          ownership: string[]
+          phone: string | null
+          photos: string[]
+          price_range: string
+          province: string
+          rating: number
+          recent_review_author: string | null
+          recent_review_rating: number | null
+          recent_review_text: string | null
+          review_count: number
+          subcategory: string | null
+          updated_at: string
+          website: string | null
+        }
+        Insert: {
+          address?: string
+          business_id: string
+          category: string
+          city: string
+          closing_time?: string | null
+          created_at?: string
+          cuisine?: string | null
+          description?: string
+          distance?: number | null
+          features?: string[]
+          id?: string
+          image?: string
+          is_award_winner?: boolean
+          is_new?: boolean
+          is_open?: boolean
+          is_trending?: boolean
+          is_verified?: boolean
+          is_world_cup_ready?: boolean
+          lat?: number | null
+          lng?: number | null
+          logo?: string | null
+          name: string
+          ownership?: string[]
+          phone?: string | null
+          photos?: string[]
+          price_range?: string
+          province: string
+          rating?: number
+          recent_review_author?: string | null
+          recent_review_rating?: number | null
+          recent_review_text?: string | null
+          review_count?: number
+          subcategory?: string | null
+          updated_at?: string
+          website?: string | null
+        }
+        Update: {
+          address?: string
+          business_id?: string
+          category?: string
+          city?: string
+          closing_time?: string | null
+          created_at?: string
+          cuisine?: string | null
+          description?: string
+          distance?: number | null
+          features?: string[]
+          id?: string
+          image?: string
+          is_award_winner?: boolean
+          is_new?: boolean
+          is_open?: boolean
+          is_trending?: boolean
+          is_verified?: boolean
+          is_world_cup_ready?: boolean
+          lat?: number | null
+          lng?: number | null
+          logo?: string | null
+          name?: string
+          ownership?: string[]
+          phone?: string | null
+          photos?: string[]
+          price_range?: string
+          province?: string
+          rating?: number
+          recent_review_author?: string | null
+          recent_review_rating?: number | null
+          recent_review_text?: string | null
+          review_count?: number
+          subcategory?: string | null
+          updated_at?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
