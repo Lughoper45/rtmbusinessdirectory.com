@@ -1,10 +1,13 @@
 import { useState, useEffect, useRef } from "react";
 import { Search, Building2, DollarSign, Bot, Trophy, Check, Sparkles, TrendingUp, MapPin } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import SuccessSimulator from "./SuccessSimulator";
 import heroBackground from "@/assets/hero-background.jpg";
 
 const HeroSection = () => {
+  const navigate = useNavigate();
+  const [searchQuery, setSearchQuery] = useState("");
   const [businessesLaunched, setBusinessesLaunched] = useState(127);
   const [isSimulatorOpen, setIsSimulatorOpen] = useState(false);
   const [activeProvince, setActiveProvince] = useState<string | null>(null);
@@ -34,11 +37,23 @@ const HeroSection = () => {
     return () => window.removeEventListener("mousemove", handleMouseMove);
   }, []);
 
+  const handleSearch = () => {
+    if (searchQuery.trim()) {
+      navigate(`/directory?search=${encodeURIComponent(searchQuery.trim())}`);
+    } else {
+      navigate("/directory");
+    }
+  };
+
+  const handleSearchKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") handleSearch();
+  };
+
   const valuePills = [
-    { icon: Building2, text: "50,000+ Businesses", color: "text-primary" },
-    { icon: DollarSign, text: "$2.3B+ in Grants", color: "text-accent" },
-    { icon: Bot, text: "AI Support Tools", color: "text-primary" },
-    { icon: Trophy, text: "World Cup Ready", color: "text-accent" },
+    { icon: Building2, text: "50,000+ Businesses", color: "text-primary", action: () => navigate("/directory") },
+    { icon: DollarSign, text: "$2.3B+ in Grants", color: "text-accent", action: () => navigate("/directory?category=Financial+Services") },
+    { icon: Bot, text: "AI Support Tools", color: "text-primary", action: () => navigate("/directory") },
+    { icon: Trophy, text: "World Cup Ready", color: "text-accent", action: () => navigate("/directory?filter=world-cup") },
   ];
 
   const popularSearches = [
@@ -113,7 +128,7 @@ const HeroSection = () => {
             <TrendingUp className="w-4 h-4 text-primary" />
           </div>
 
-          {/* Main Headline with kinetic typography */}
+          {/* Main Headline */}
           <h1 className="text-4xl md:text-5xl lg:text-7xl font-extrabold text-foreground leading-[1.1] mb-6 animate-fade-up">
             Discover & List{" "}
             <span className="text-gradient relative inline-block">
@@ -138,10 +153,9 @@ const HeroSection = () => {
             <span className="text-xs bg-accent text-accent-foreground px-2 py-0.5 rounded-full">Interactive</span>
           </button>
 
-          {/* Search Bar with 3D effect */}
+          {/* Search Bar */}
           <div className="max-w-[800px] mx-auto mb-6 animate-fade-up" style={{ animationDelay: "0.2s" }}>
             <div className="relative group">
-              {/* Glow effect */}
               <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 via-accent/20 to-primary/20 rounded-2xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
               
               <div className="relative bg-background border-2 border-border rounded-2xl shadow-heavy p-2 flex items-center gap-2 hover:border-primary/30 transition-all duration-300 focus-within:border-primary focus-within:shadow-glow transform hover:scale-[1.01]">
@@ -149,9 +163,12 @@ const HeroSection = () => {
                 <input
                   type="text"
                   placeholder="Search businesses, grants, or ask anything..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyDown={handleSearchKeyDown}
                   className="flex-1 bg-transparent text-lg text-foreground placeholder:text-muted-foreground outline-none py-3"
                 />
-                <Button variant="hero" size="lg" className="shrink-0 group">
+                <Button variant="hero" size="lg" className="shrink-0 group" onClick={handleSearch}>
                   <span>Search</span>
                   <Sparkles className="w-4 h-4 ml-2 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </Button>
@@ -164,19 +181,23 @@ const HeroSection = () => {
             Popular:{" "}
             {popularSearches.map((search, index) => (
               <span key={search}>
-                <a href="#" className="text-primary hover:underline hover:text-primary/80 transition-colors">
+                <button
+                  onClick={() => navigate(`/directory?search=${encodeURIComponent(search)}`)}
+                  className="text-primary hover:underline hover:text-primary/80 transition-colors"
+                >
                   {search}
-                </a>
+                </button>
                 {index < popularSearches.length - 1 && " • "}
               </span>
             ))}
           </p>
 
-          {/* Value Proposition Pills with 3D hover */}
+          {/* Value Proposition Pills */}
           <div className="flex flex-wrap justify-center gap-4 animate-fade-up" style={{ animationDelay: "0.4s" }}>
             {valuePills.map((pill, index) => (
-              <div
+              <button
                 key={pill.text}
+                onClick={pill.action}
                 className="group flex items-center gap-2 bg-background border border-border rounded-full px-5 py-3 shadow-soft hover:shadow-medium hover:border-primary/30 transition-all duration-300 hover:-translate-y-1 cursor-pointer"
                 style={{ animationDelay: `${0.4 + index * 0.1}s` }}
               >
@@ -186,7 +207,7 @@ const HeroSection = () => {
                 <span className="text-sm md:text-base font-medium text-foreground">
                   {pill.text}
                 </span>
-              </div>
+              </button>
             ))}
           </div>
 
@@ -202,6 +223,7 @@ const HeroSection = () => {
                   key={province}
                   onMouseEnter={() => setActiveProvince(province)}
                   onMouseLeave={() => setActiveProvince(null)}
+                  onClick={() => navigate(`/directory?province=${province}`)}
                   className={`relative px-4 py-2 rounded-lg border transition-all duration-300 ${
                     activeProvince === province
                       ? "bg-primary text-primary-foreground border-primary scale-105"

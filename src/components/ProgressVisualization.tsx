@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { Check, Lock, Sparkles, FileText, Building2, CreditCard, Rocket, Trophy, ArrowRight } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
 const ProgressVisualization = () => {
+  const navigate = useNavigate();
   const [activeStep, setActiveStep] = useState(0);
   const [hoveredStep, setHoveredStep] = useState<number | null>(null);
 
@@ -12,18 +14,20 @@ const ProgressVisualization = () => {
       title: "Choose Your Path",
       description: "Tell us about your business idea",
       icon: Sparkles,
-      completed: true,
+      completed: false,
       badge: "Quick Start",
       details: "2-minute questionnaire to understand your needs",
+      action: () => navigate("/auth"),
     },
     {
       id: 2,
       title: "Business Registration",
       description: "Get your official business number",
       icon: FileText,
-      completed: true,
+      completed: false,
       badge: "Most Popular",
       details: "Federal and provincial registration handled for you",
+      action: () => navigate("/auth"),
     },
     {
       id: 3,
@@ -33,6 +37,7 @@ const ProgressVisualization = () => {
       completed: false,
       badge: null,
       details: "Expert guidance on the best structure for your goals",
+      action: () => navigate("/auth"),
     },
     {
       id: 4,
@@ -42,6 +47,7 @@ const ProgressVisualization = () => {
       completed: false,
       badge: null,
       details: "Ensure compliance from day one",
+      action: () => navigate("/auth"),
     },
     {
       id: 5,
@@ -51,10 +57,11 @@ const ProgressVisualization = () => {
       completed: false,
       badge: "Goal",
       details: "Receive your complete business package",
+      action: () => navigate("/auth"),
     },
   ];
 
-  const progressPercentage = (steps.filter(s => s.completed).length / steps.length) * 100;
+  const progressPercentage = 0;
 
   return (
     <section className="py-20 px-6 bg-gradient-to-b from-background to-surface-light overflow-hidden">
@@ -70,7 +77,7 @@ const ProgressVisualization = () => {
             <span className="text-gradient">Success</span>
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Every step brings you closer to launching your Canadian business. We handle the complexity, you focus on your dream.
+            Every step brings you closer to launching your Canadian business. Sign up to start tracking your journey.
           </p>
         </div>
 
@@ -86,20 +93,14 @@ const ProgressVisualization = () => {
           </div>
           <div className="flex justify-between mt-2">
             <span className="text-sm text-muted-foreground">Start</span>
-            <span className="text-sm font-medium text-primary">{Math.round(progressPercentage)}% Complete</span>
+            <span className="text-sm font-medium text-primary">Sign up to begin</span>
             <span className="text-sm text-muted-foreground">Launch!</span>
           </div>
         </div>
 
         {/* Steps Grid */}
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4 md:gap-0 relative">
-          {/* Connecting line (desktop only) */}
-          <div className="hidden md:block absolute top-12 left-[10%] right-[10%] h-1 bg-border z-0">
-            <div 
-              className="h-full bg-gradient-to-r from-primary to-accent transition-all duration-1000"
-              style={{ width: `${progressPercentage}%` }}
-            />
-          </div>
+          <div className="hidden md:block absolute top-12 left-[10%] right-[10%] h-1 bg-border z-0" />
 
           {steps.map((step, index) => {
             const StepIcon = step.icon;
@@ -114,13 +115,11 @@ const ProgressVisualization = () => {
                 onMouseLeave={() => setHoveredStep(null)}
                 onClick={() => setActiveStep(index)}
               >
-                {/* Step Card */}
                 <div 
                   className={`relative flex flex-col items-center text-center cursor-pointer transition-all duration-300 ${
                     isActive || isHovered ? "transform -translate-y-2" : ""
                   }`}
                 >
-                  {/* Badge */}
                   {step.badge && (
                     <div className={`absolute -top-3 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide ${
                       step.badge === "Goal" 
@@ -133,35 +132,26 @@ const ProgressVisualization = () => {
                     </div>
                   )}
 
-                  {/* Icon Circle */}
                   <div 
                     className={`relative w-20 h-20 md:w-24 md:h-24 rounded-2xl flex items-center justify-center mb-4 transition-all duration-300 ${
-                      step.completed
-                        ? "bg-gradient-to-br from-primary to-accent shadow-glow"
-                        : isActive || isHovered
+                      isActive || isHovered
                         ? "bg-gradient-to-br from-primary/20 to-accent/20 border-2 border-primary"
                         : "bg-muted border-2 border-border"
                     }`}
                   >
-                    {step.completed ? (
-                      <Check className="w-8 h-8 md:w-10 md:h-10 text-primary-foreground" />
-                    ) : (
-                      <StepIcon className={`w-8 h-8 md:w-10 md:h-10 ${
-                        isActive || isHovered ? "text-primary" : "text-muted-foreground"
-                      }`} />
-                    )}
+                    <StepIcon className={`w-8 h-8 md:w-10 md:h-10 ${
+                      isActive || isHovered ? "text-primary" : "text-muted-foreground"
+                    }`} />
                     
-                    {/* Lock overlay for future steps */}
-                    {!step.completed && index > activeStep + 1 && (
-                      <div className="absolute inset-0 bg-background/60 rounded-2xl flex items-center justify-center">
+                    {index > 0 && (
+                      <div className="absolute inset-0 bg-background/40 rounded-2xl flex items-center justify-center">
                         <Lock className="w-5 h-5 text-muted-foreground" />
                       </div>
                     )}
                   </div>
 
-                  {/* Step Info */}
                   <h3 className={`font-bold mb-1 transition-colors ${
-                    step.completed || isActive || isHovered ? "text-foreground" : "text-muted-foreground"
+                    isActive || isHovered ? "text-foreground" : "text-muted-foreground"
                   }`}>
                     {step.title}
                   </h3>
@@ -169,22 +159,13 @@ const ProgressVisualization = () => {
                     {step.description}
                   </p>
 
-                  {/* Expanded details on hover */}
                   {(isActive || isHovered) && (
                     <div className="absolute top-full mt-4 bg-background border border-border rounded-xl p-4 shadow-lg w-64 text-left animate-fade-up z-20">
                       <p className="text-sm text-muted-foreground mb-3">{step.details}</p>
-                      {!step.completed && (
-                        <Button variant="outline" size="sm" className="w-full group">
-                          <span>Start Step</span>
-                          <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                        </Button>
-                      )}
-                      {step.completed && (
-                        <div className="flex items-center gap-2 text-green-600 text-sm font-medium">
-                          <Check className="w-4 h-4" />
-                          Completed
-                        </div>
-                      )}
+                      <Button variant="outline" size="sm" className="w-full group" onClick={(e) => { e.stopPropagation(); step.action(); }}>
+                        <span>{index === 0 ? "Sign Up to Start" : "Sign Up to Unlock"}</span>
+                        <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                      </Button>
                     </div>
                   )}
                 </div>
@@ -195,13 +176,13 @@ const ProgressVisualization = () => {
 
         {/* CTA */}
         <div className="text-center mt-16">
-          <Button variant="hero" size="lg" className="group">
+          <Button variant="hero" size="lg" className="group" onClick={() => navigate("/auth")}>
             <Rocket className="w-5 h-5 mr-2" />
-            Continue Your Journey
+            Start Your Journey
             <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
           </Button>
           <p className="text-sm text-muted-foreground mt-4">
-            Average completion time: <span className="font-medium text-foreground">2-3 weeks</span>
+            Free to get started • No credit card required
           </p>
         </div>
       </div>

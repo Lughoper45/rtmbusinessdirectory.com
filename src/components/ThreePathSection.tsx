@@ -1,28 +1,31 @@
 import { Search, DollarSign, TrendingUp, ArrowRight } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
 const ThreePathSection = () => {
+  const navigate = useNavigate();
+
   const paths = [
     {
       icon: Search,
       title: "Find a Business",
       description: "Search 50,000+ verified Canadian businesses with AI-powered discovery",
       cta: "Start Searching",
-      href: "#search",
+      action: () => navigate("/directory"),
     },
     {
       icon: DollarSign,
       title: "Access Grants & Funding",
       description: "Discover $2.3B+ in available grants matched to your business",
       cta: "Find Funding",
-      href: "#grants",
+      action: () => navigate("/directory?category=Financial+Services"),
     },
     {
       icon: TrendingUp,
       title: "Grow My Business",
       description: "Get AI-powered support, tools, and insights to scale faster",
       cta: "Get Support",
-      href: "#grow",
+      action: () => navigate("/directory"),
     },
   ];
 
@@ -37,6 +40,7 @@ const ThreePathSection = () => {
           {paths.map((path, index) => (
             <div
               key={path.title}
+              onClick={path.action}
               className="group bg-background border-2 border-border rounded-2xl p-8 md:p-10 text-center hover:border-primary hover:shadow-heavy transition-all duration-300 cursor-pointer animate-fade-up"
               style={{ animationDelay: `${index * 0.1}s` }}
             >

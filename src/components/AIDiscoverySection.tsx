@@ -1,7 +1,10 @@
 import { Check, Sparkles, ArrowRight } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
 const AIDiscoverySection = () => {
+  const navigate = useNavigate();
+
   const features = [
     "Natural language search - ask like you're talking to a friend",
     "Verified results only - no fake listings or reviews",
@@ -38,14 +41,15 @@ const AIDiscoverySection = () => {
               {/* Search interface */}
               <div className="space-y-4">
                 {exampleQueries.map((query, index) => (
-                  <div
+                  <button
                     key={query}
-                    className="flex items-start gap-3 p-4 bg-surface-light rounded-xl animate-fade-up"
+                    onClick={() => navigate(`/directory?search=${encodeURIComponent(query)}`)}
+                    className="flex items-start gap-3 p-4 bg-surface-light rounded-xl animate-fade-up w-full text-left hover:bg-primary/5 transition-colors"
                     style={{ animationDelay: `${index * 0.2}s` }}
                   >
                     <Sparkles className="w-5 h-5 text-primary mt-0.5 shrink-0" />
                     <p className="text-foreground font-medium">{query}</p>
-                  </div>
+                  </button>
                 ))}
               </div>
 
@@ -84,7 +88,7 @@ const AIDiscoverySection = () => {
               ))}
             </ul>
 
-            <Button variant="hero" size="xl">
+            <Button variant="hero" size="xl" onClick={() => navigate("/directory")}>
               Try AI Search
               <ArrowRight className="w-5 h-5" />
             </Button>

@@ -1,7 +1,10 @@
 import { ArrowRight } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
 const FinalCTASection = () => {
+  const navigate = useNavigate();
+
   return (
     <section className="py-24 md:py-32 gradient-cta relative overflow-hidden">
       {/* Background pattern */}
@@ -20,12 +23,12 @@ const FinalCTASection = () => {
         </p>
 
         <div className="flex flex-col sm:flex-row justify-center gap-4 mb-6">
-          <Button variant="heroWhite" size="xl">
+          <Button variant="heroWhite" size="xl" onClick={() => navigate("/auth")}>
             Get Started Free
             <ArrowRight className="w-5 h-5" />
           </Button>
-          <Button variant="heroOutline" size="xl">
-            List Your Business
+          <Button variant="heroOutline" size="xl" onClick={() => navigate("/directory")}>
+            Browse Directory
           </Button>
         </div>
 
