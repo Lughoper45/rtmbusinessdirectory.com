@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Building2, DollarSign, TrendingUp, Users, X } from "lucide-react";
 
 interface ProvinceStats {
@@ -41,7 +42,8 @@ const provinces = [
   { code: "NL", d: "M850,280 L920,250 L970,300 L950,380 L900,350 L850,330 Z", tx: 900, ty: 310, fontSize: "text-xs" },
 ];
 
-const CanadaMap = () => {
+  const navigate = useNavigate();
+const CanadaMapComponent = () => {
   const [activeProvince, setActiveProvince] = useState<string | null>(null);
   const [selectedProvince, setSelectedProvince] = useState<string | null>(null);
 
@@ -179,7 +181,10 @@ const CanadaMap = () => {
                     </div>
                   </div>
 
-                  <button className="w-full mt-4 bg-destructive hover:bg-destructive/90 text-white py-3 rounded-xl font-medium transition-colors">
+                  <button 
+                    className="w-full mt-4 bg-destructive hover:bg-destructive/90 text-white py-3 rounded-xl font-medium transition-colors"
+                    onClick={() => navigate(`/directory?province=${selectedProvince}`)}
+                  >
                     Explore {selectedData.name} Businesses →
                   </button>
                 </div>
@@ -214,4 +219,4 @@ const CanadaMap = () => {
   );
 };
 
-export default CanadaMap;
+export default CanadaMapComponent;

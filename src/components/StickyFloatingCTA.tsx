@@ -1,37 +1,32 @@
 import { useState, useEffect } from "react";
 import { Rocket, X, ArrowRight, Sparkles, Clock } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
 const StickyFloatingCTA = () => {
+  const navigate = useNavigate();
   const [isVisible, setIsVisible] = useState(false);
   const [isDismissed, setIsDismissed] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [timeLeft, setTimeLeft] = useState({ minutes: 14, seconds: 59 });
 
-  // Show after scrolling past hero
   useEffect(() => {
     const handleScroll = () => {
       const scrollY = window.scrollY;
       setIsVisible(scrollY > 500 && !isDismissed);
     };
-    
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, [isDismissed]);
 
-  // Countdown timer
   useEffect(() => {
     const timer = setInterval(() => {
       setTimeLeft(prev => {
-        if (prev.seconds > 0) {
-          return { ...prev, seconds: prev.seconds - 1 };
-        } else if (prev.minutes > 0) {
-          return { minutes: prev.minutes - 1, seconds: 59 };
-        }
+        if (prev.seconds > 0) return { ...prev, seconds: prev.seconds - 1 };
+        if (prev.minutes > 0) return { minutes: prev.minutes - 1, seconds: 59 };
         return prev;
       });
     }, 1000);
-    
     return () => clearInterval(timer);
   }, []);
 
@@ -39,7 +34,6 @@ const StickyFloatingCTA = () => {
 
   return (
     <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-2">
-      {/* Expanded panel */}
       {isExpanded && (
         <div className="bg-background border border-border rounded-2xl shadow-xl p-4 w-80 animate-scale-up origin-bottom-right">
           <button
@@ -80,7 +74,7 @@ const StickyFloatingCTA = () => {
             </p>
           </div>
           
-          <Button variant="hero" className="w-full group">
+          <Button variant="hero" className="w-full group" onClick={() => navigate("/auth")}>
             <span>Start Now</span>
             <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
           </Button>
@@ -91,11 +85,8 @@ const StickyFloatingCTA = () => {
         </div>
       )}
 
-      {/* Main floating button */}
       <div className="relative group">
-        {/* Pulse ring */}
         <div className="absolute inset-0 bg-primary rounded-full animate-ping opacity-20" />
-        
         <button
           onClick={() => setIsExpanded(!isExpanded)}
           className="relative flex items-center gap-3 bg-gradient-to-r from-primary to-accent text-primary-foreground px-6 py-4 rounded-full shadow-glow hover:shadow-glow-lg transition-all duration-300 hover:scale-105"
@@ -110,7 +101,6 @@ const StickyFloatingCTA = () => {
         </button>
       </div>
 
-      {/* Dismiss button */}
       <button
         onClick={() => setIsDismissed(true)}
         className="text-xs text-muted-foreground hover:text-foreground transition-colors"

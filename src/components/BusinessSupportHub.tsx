@@ -1,31 +1,34 @@
 import { DollarSign, BarChart3, ClipboardCheck, Bot, ArrowRight } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
 const BusinessSupportHub = () => {
+  const navigate = useNavigate();
+
   const features = [
     {
       icon: DollarSign,
       title: "AI Grants & Funding Finder",
       description: "Match with $2.3B+ in grants. Get instant eligibility scores and application support.",
-      link: "#grants",
+      action: () => navigate("/directory?category=Financial+Services"),
     },
     {
       icon: BarChart3,
       title: "Business Health Dashboard",
       description: "Track funding opportunities, compliance status, and growth metrics in real-time.",
-      link: "#dashboard",
+      action: () => navigate("/auth"),
     },
     {
       icon: ClipboardCheck,
       title: "Compliance & Licensing Hub",
       description: "Never miss a deadline. Automated reminders for licenses, permits, and renewals.",
-      link: "#compliance",
+      action: () => navigate("/auth"),
     },
     {
       icon: Bot,
       title: "24/7 AI Business Coach",
       description: "Get instant answers to business questions, strategy advice, and personalized recommendations.",
-      link: "#coach",
+      action: () => navigate("/directory"),
     },
   ];
 
@@ -51,7 +54,8 @@ const BusinessSupportHub = () => {
           {features.map((feature, index) => (
             <div
               key={feature.title}
-              className="glass-card rounded-xl p-6 hover:bg-white/10 transition-all duration-300 group animate-fade-up"
+              onClick={feature.action}
+              className="glass-card rounded-xl p-6 hover:bg-white/10 transition-all duration-300 group cursor-pointer animate-fade-up"
               style={{ animationDelay: `${index * 0.1}s` }}
             >
               <feature.icon className="w-12 h-12 text-accent mb-5" />
@@ -61,19 +65,16 @@ const BusinessSupportHub = () => {
               <p className="text-primary-foreground/70 text-sm leading-relaxed mb-4">
                 {feature.description}
               </p>
-              <a
-                href={feature.link}
-                className="inline-flex items-center gap-1 text-accent font-medium text-sm hover:underline group-hover:gap-2 transition-all"
-              >
+              <span className="inline-flex items-center gap-1 text-accent font-medium text-sm group-hover:gap-2 transition-all">
                 Learn more
                 <ArrowRight className="w-4 h-4" />
-              </a>
+              </span>
             </div>
           ))}
         </div>
 
         <div className="text-center">
-          <Button variant="hero" size="xl" className="shadow-glow-lg">
+          <Button variant="hero" size="xl" className="shadow-glow-lg" onClick={() => navigate("/auth")}>
             Access Your Support Hub
             <ArrowRight className="w-5 h-5" />
           </Button>
