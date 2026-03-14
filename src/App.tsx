@@ -27,6 +27,7 @@ const App = () => (
             <Route path="/profile" element={<Profile />} />
             <Route path="/directory" element={<Directory />} />
             <Route path="/directory/:category/:city/:slug" element={<BusinessProfile />} />
+            <Route path="/admin/import" element={<AdminImport />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
