@@ -51,9 +51,12 @@ export async function fetchPaginatedBusinesses(
   pageSize: number = 24,
   filters?: {
     city?: string;
+    province?: string;
     category?: string;
     search?: string;
     minRating?: number;
+    ownership?: string;
+    worldCupReady?: boolean;
   }
 ): Promise<{ businesses: Business[]; total: number; pages: number }> {
   let query = supabase
@@ -62,6 +65,9 @@ export async function fetchPaginatedBusinesses(
 
   if (filters?.city) {
     query = query.ilike("city", filters.city);
+  }
+  if (filters?.province) {
+    query = query.ilike("province", filters.province);
   }
   if (filters?.category) {
     query = query.ilike("category", `%${filters.category}%`);
@@ -73,6 +79,12 @@ export async function fetchPaginatedBusinesses(
   }
   if (filters?.minRating) {
     query = query.gte("rating", filters.minRating);
+  }
+  if (filters?.ownership) {
+    query = query.contains("ownership", [filters.ownership]);
+  }
+  if (filters?.worldCupReady) {
+    query = query.eq("is_world_cup_ready", true);
   }
 
   const from = (page - 1) * pageSize;
