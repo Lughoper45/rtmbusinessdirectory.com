@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
 import { Helmet } from "react-helmet-async";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import DirectorySearchBar from "@/components/directory/DirectorySearchBar";
@@ -32,16 +32,25 @@ const PAGE_SIZE = 24;
 const Directory = () => {
   const navigate = useNavigate();
 
+  const [searchParams] = useSearchParams();
+
+  // Read URL query params on mount
+  const urlSearch = searchParams.get("search") || "";
+  const urlProvince = searchParams.get("province") || "";
+  const urlCategory = searchParams.get("category") || "";
+  const urlOwnership = searchParams.get("ownership") || "";
+  const urlFilter = searchParams.get("filter") || "";
+
   const [mode, setMode] = useState<DiscoveryMode>("mission");
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState(urlSearch);
   const [currentPage, setCurrentPage] = useState(1);
   const [filters, setFilters] = useState<FilterState>({
-    location: "",
-    categories: [],
+    location: urlProvince,
+    categories: urlCategory ? [urlCategory] : [],
     rating: 0,
     priceRange: [],
     features: [],
-    ownership: [],
+    ownership: urlOwnership ? [urlOwnership] : [],
     openNow: false,
   });
   const [savedBusinessIds, setSavedBusinessIds] = useState<string[]>([]);
@@ -95,12 +104,15 @@ const Directory = () => {
       search: searchQuery || undefined,
       category: filters.categories.length === 1 ? filters.categories[0] : undefined,
       minRating: filters.rating > 0 ? filters.rating : undefined,
+      province: filters.location || undefined,
+      ownership: filters.ownership.length === 1 ? filters.ownership[0] : undefined,
+      worldCupReady: urlFilter === "world-cup" ? true : undefined,
     });
     setBusinesses(result.businesses);
     setTotalCount(result.total);
     setTotalPages(result.pages);
     setIsLoading(false);
-  }, [currentPage, searchQuery, filters.categories, filters.rating]);
+  }, [currentPage, searchQuery, filters.categories, filters.rating, filters.location, filters.ownership, urlFilter]);
 
   useEffect(() => {
     loadBusinesses();
