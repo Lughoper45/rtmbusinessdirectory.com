@@ -104,12 +104,15 @@ const Directory = () => {
       search: searchQuery || undefined,
       category: filters.categories.length === 1 ? filters.categories[0] : undefined,
       minRating: filters.rating > 0 ? filters.rating : undefined,
+      province: filters.location || undefined,
+      ownership: filters.ownership.length === 1 ? filters.ownership[0] : undefined,
+      worldCupReady: urlFilter === "world-cup" ? true : undefined,
     });
     setBusinesses(result.businesses);
     setTotalCount(result.total);
     setTotalPages(result.pages);
     setIsLoading(false);
-  }, [currentPage, searchQuery, filters.categories, filters.rating]);
+  }, [currentPage, searchQuery, filters.categories, filters.rating, filters.location, filters.ownership, urlFilter]);
 
   useEffect(() => {
     loadBusinesses();
