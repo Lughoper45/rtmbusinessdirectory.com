@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.generate-business-description]
 verify_jwt = false
+
+[functions.import-businesses]
+verify_jwt = false
