@@ -42,8 +42,8 @@ const provinces = [
   { code: "NL", d: "M850,280 L920,250 L970,300 L950,380 L900,350 L850,330 Z", tx: 900, ty: 310, fontSize: "text-xs" },
 ];
 
-  const navigate = useNavigate();
 const CanadaMapComponent = () => {
+  const navigate = useNavigate();
   const [activeProvince, setActiveProvince] = useState<string | null>(null);
   const [selectedProvince, setSelectedProvince] = useState<string | null>(null);
 
