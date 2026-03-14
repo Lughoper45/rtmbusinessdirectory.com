@@ -32,16 +32,25 @@ const PAGE_SIZE = 24;
 const Directory = () => {
   const navigate = useNavigate();
 
+  const [searchParams] = useSearchParams();
+
+  // Read URL query params on mount
+  const urlSearch = searchParams.get("search") || "";
+  const urlProvince = searchParams.get("province") || "";
+  const urlCategory = searchParams.get("category") || "";
+  const urlOwnership = searchParams.get("ownership") || "";
+  const urlFilter = searchParams.get("filter") || "";
+
   const [mode, setMode] = useState<DiscoveryMode>("mission");
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState(urlSearch);
   const [currentPage, setCurrentPage] = useState(1);
   const [filters, setFilters] = useState<FilterState>({
-    location: "",
-    categories: [],
+    location: urlProvince,
+    categories: urlCategory ? [urlCategory] : [],
     rating: 0,
     priceRange: [],
     features: [],
-    ownership: [],
+    ownership: urlOwnership ? [urlOwnership] : [],
     openNow: false,
   });
   const [savedBusinessIds, setSavedBusinessIds] = useState<string[]>([]);
