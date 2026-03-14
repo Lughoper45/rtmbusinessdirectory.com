@@ -9,6 +9,7 @@ import Directory from "./pages/Directory";
 import BusinessProfile from "./pages/BusinessProfile";
 import Auth from "./pages/Auth";
 import Profile from "./pages/Profile";
+import AdminImport from "./pages/AdminImport";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
