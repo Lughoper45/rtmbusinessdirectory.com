@@ -119,11 +119,18 @@ export async function fetchBusinessById(businessId: string): Promise<Business | 
   return mapRowToBusiness(data);
 }
 
-// Fetch business by slug (extract digits from slug)
+// Fetch business by slug - extract business_id after "--" separator
 export async function fetchBusinessBySlug(slug: string): Promise<Business | null> {
+  // New format: "business-name--wp-123" or "business-name--biz-00001"
+  const separatorIdx = slug.indexOf("--");
+  if (separatorIdx !== -1) {
+    const businessId = slug.substring(separatorIdx + 2);
+    return fetchBusinessById(businessId);
+  }
+  // Legacy format: "business-name-00001" (5-digit suffix)
   const match = slug.match(/(\d{5})$/);
-  if (!match) return null;
-  return fetchBusinessById(`biz-${match[1]}`);
+  if (match) return fetchBusinessById(`biz-${match[1]}`);
+  return null;
 }
 
 // Fetch similar businesses (same category, exclude current)
