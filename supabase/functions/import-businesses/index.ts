@@ -8,6 +8,7 @@ const corsHeaders = {
 };
 
 function stripHtml(html: string): string {
+  if (!html) return "";
   return html
     .replace(/<[^>]*>/g, " ")
     .replace(/&amp;/g, "&")
@@ -23,7 +24,6 @@ function stripHtml(html: string): string {
 
 function parseCategory(raw: string): { category: string; subcategory?: string } {
   if (!raw) return { category: "General" };
-  // Format: "Home Services>HVAC|Home Services>Repairs" or "Shopping>Electronics"
   const first = raw.split("|")[0].trim();
   const parts = first.split(">");
   return {
@@ -34,21 +34,22 @@ function parseCategory(raw: string): { category: string; subcategory?: string } 
 
 function parseLocation(raw: string): { city: string; province: string } {
   if (!raw) return { city: "Toronto", province: "Ontario" };
-  // Format: "Ontario|Toronto" or "Toronto" or "Alberta"
   const parts = raw.split("|").map((s) => s.trim()).filter(Boolean);
 
-  const provinces = [
-    "Ontario", "Quebec", "British Columbia", "Alberta", "Manitoba",
-    "Saskatchewan", "Nova Scotia", "New Brunswick",
-    "Newfoundland and Labrador", "Prince Edward Island",
-    "Northwest Territories", "Yukon", "Nunavut",
-  ];
+  const provinces: Record<string, string> = {
+    "Ontario": "Ontario", "Quebec": "Quebec", "British Columbia": "British Columbia",
+    "Alberta": "Alberta", "Manitoba": "Manitoba", "Saskatchewan": "Saskatchewan",
+    "Nova Scotia": "Nova Scotia", "New Brunswick": "New Brunswick",
+    "Newfoundland and Labrador": "Newfoundland and Labrador",
+    "Prince Edward Island": "Prince Edward Island",
+    "Northwest Territories": "Northwest Territories", "Yukon": "Yukon", "Nunavut": "Nunavut",
+  };
 
   let city = "Toronto";
   let province = "Ontario";
 
   for (const part of parts) {
-    if (provinces.includes(part)) {
+    if (provinces[part]) {
       province = part;
     } else {
       city = part;
@@ -74,6 +75,16 @@ function extractRating(raw: string): number {
   return num;
 }
 
+// Get field value from a record object, trying multiple possible key formats
+function getField(record: Record<string, string>, ...keys: string[]): string {
+  for (const key of keys) {
+    if (record[key] !== undefined && record[key] !== null) return record[key];
+    // Try with BOM prefix
+    if (record[`\uFEFF${key}`] !== undefined) return record[`\uFEFF${key}`];
+  }
+  return "";
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -93,81 +104,94 @@ Deno.serve(async (req) => {
       );
     }
 
-    console.log("Parsing CSV...");
-    // Parse CSV
-    const records = parse(csvText, {
-      skipFirstRow: true,
-      columns: undefined,
-    });
+    // Strip BOM character
+    const cleanCsv = csvText.replace(/^\uFEFF/, "");
+
+    console.log("Parsing CSV, length:", cleanCsv.length);
+
+    // Parse CSV with named columns
+    let records: Record<string, string>[];
+    try {
+      records = parse(cleanCsv, {
+        skipFirstRow: true,
+        lazyQuotes: true,
+      }) as unknown as Record<string, string>[];
+    } catch (parseErr) {
+      console.error("CSV parse error:", parseErr.message);
+      // Fallback: try with fieldsPerRecord option
+      records = parse(cleanCsv, {
+        skipFirstRow: true,
+        lazyQuotes: true,
+        fieldsPerRecord: 0,
+      }) as unknown as Record<string, string>[];
+    }
 
     console.log(`Parsed ${records.length} rows`);
-
-    // Get header to find column indices
-    const headerLine = csvText.split("\n")[0];
-    const headers = parse(headerLine)[0] as string[];
-
-    const colIdx = (name: string) => headers.findIndex(
-      (h) => h.trim().toLowerCase() === name.toLowerCase()
-    );
-
-    const iID = colIdx("ID");
-    const iTitle = colIdx("Title");
-    const iImageURL = colIdx("Image URL");
-    const iBusinessLocation = colIdx("Business Location");
-    const iBusinessType = colIdx("Business Type");
-    const iAddress = colIdx("address");
-    const iDescription = colIdx("business-description");
-    const iPhone = colIdx("phone-numbe");
-    const iWebsite = colIdx("website");
-    const iRatings = colIdx("ratings");
-    const iBusinessLogo = colIdx("business-logo");
-    const iSlug = colIdx("Slug");
-    const iPostType = colIdx("Post Type");
-    const iStatus = colIdx("Status");
-    const iFacebook = colIdx("facebook");
-    const iInstagram = colIdx("instagram");
-
-    console.log("Column indices:", { iID, iTitle, iBusinessType, iBusinessLocation, iAddress, iDescription, iPhone, iWebsite, iRatings });
+    if (records.length > 0) {
+      const firstKeys = Object.keys(records[0]);
+      console.log("First record keys (first 10):", firstKeys.slice(0, 10));
+      console.log("Post Type value:", getField(records[0], "Post Type"));
+      console.log("Title value:", getField(records[0], "Title"));
+      console.log("Status value:", getField(records[0], "Status"));
+    }
 
     const businesses: any[] = [];
     let skipped = 0;
+    const skipReasons: Record<string, number> = {};
 
     for (const row of records) {
-      const cols = row as unknown as string[];
+      const postType = getField(row, "Post Type").trim();
+      const status = getField(row, "Status").trim();
 
-      // Only import published business posts
-      const postType = cols[iPostType]?.trim();
-      const status = cols[iStatus]?.trim();
-      if (postType !== "business") { skipped++; continue; }
-      if (status !== "publish") { skipped++; continue; }
+      if (postType !== "business") {
+        skipped++;
+        skipReasons[`postType:${postType || "empty"}`] = (skipReasons[`postType:${postType || "empty"}`] || 0) + 1;
+        continue;
+      }
+      if (status !== "publish") {
+        skipped++;
+        skipReasons[`status:${status || "empty"}`] = (skipReasons[`status:${status || "empty"}`] || 0) + 1;
+        continue;
+      }
 
-      const wpId = cols[iID]?.trim();
-      const title = cols[iTitle]?.trim()?.replace(/&amp;/g, "&");
-      if (!title || !wpId) { skipped++; continue; }
+      const wpId = getField(row, "ID").trim();
+      const title = getField(row, "Title").trim().replace(/&amp;/g, "&");
+      if (!title || !wpId) {
+        skipped++;
+        skipReasons["no-title-or-id"] = (skipReasons["no-title-or-id"] || 0) + 1;
+        continue;
+      }
 
-      const businessId = `biz-${wpId.padStart(5, "0")}`;
-      const { category, subcategory } = parseCategory(cols[iBusinessType] || "");
-      const { city, province } = parseLocation(cols[iBusinessLocation] || "");
-      const description = stripHtml(cols[iDescription] || "");
+      const businessId = `wp-${wpId}`;
+      const { category, subcategory } = parseCategory(getField(row, "Business Type"));
+      const { city, province } = parseLocation(getField(row, "Business Location"));
+      const description = stripHtml(getField(row, "business-description"));
 
-      // Images: pipe-separated URLs, take first as main
-      const imageUrls = (cols[iImageURL] || "").split("|").map((s) => s.trim()).filter(Boolean);
+      // Extract address from the address field or jet_tax location
+      const addressRaw = getField(row, "address").trim();
+
+      // Images: pipe-separated URLs
+      const imageUrls = getField(row, "Image URL").split("|").map((s) => s.trim()).filter(Boolean);
       const image = imageUrls[0] || "";
       const photos = imageUrls.slice(0, 6);
 
-      // Logo
-      const logoRaw = cols[iBusinessLogo]?.trim();
+      // Logo from business-logo field
+      const logoRaw = getField(row, "business-logo").trim();
       const logo = logoRaw && logoRaw.startsWith("http") ? logoRaw : null;
 
-      const phone = cleanPhone(cols[iPhone] || "");
-      const website = cols[iWebsite]?.trim() || null;
-      const rating = extractRating(cols[iRatings] || "");
-      const address = cols[iAddress]?.trim() || "";
+      const phone = cleanPhone(getField(row, "phone-numbe"));
+      const websiteRaw = getField(row, "website").trim();
+      const website = websiteRaw && websiteRaw.startsWith("http")
+        ? websiteRaw
+        : websiteRaw
+          ? `https://${websiteRaw}`
+          : null;
+      const rating = extractRating(getField(row, "ratings"));
 
       // Features from social media presence
       const features: string[] = [];
-      if (cols[iFacebook]?.trim()) features.push("Social Media");
-      if (cols[iInstagram]?.trim()) features.push("Instagram");
+      if (getField(row, "facebook").trim()) features.push("Social Media");
+      if (getField(row, "instagram").trim()) features.push("Instagram");
       if (website) features.push("Website");
       if (phone) features.push("Phone Support");
 
@@ -182,7 +206,7 @@ Deno.serve(async (req) => {
         rating,
         review_count: Math.floor(Math.random() * 50) + 5,
         price_range: "$$",
-        address,
+        address: addressRaw,
         city,
         province,
         phone,
@@ -200,6 +224,7 @@ Deno.serve(async (req) => {
     }
 
     console.log(`Prepared ${businesses.length} businesses, skipped ${skipped} rows`);
+    console.log("Skip reasons:", JSON.stringify(skipReasons));
 
     if (dryRun) {
       return new Response(
@@ -208,16 +233,18 @@ Deno.serve(async (req) => {
           dryRun: true,
           count: businesses.length,
           skipped,
+          skipReasons,
           sample: businesses.slice(0, 3),
         }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Batch upsert in chunks of 100
-    const BATCH_SIZE = 100;
+    // Batch upsert in chunks of 50
+    const BATCH_SIZE = 50;
     let inserted = 0;
     let errors = 0;
+    const errorMessages: string[] = [];
 
     for (let i = 0; i < businesses.length; i += BATCH_SIZE) {
       const batch = businesses.slice(i, i + BATCH_SIZE);
@@ -227,6 +254,7 @@ Deno.serve(async (req) => {
 
       if (error) {
         console.error(`Batch ${i / BATCH_SIZE} error:`, error.message);
+        errorMessages.push(error.message);
         errors++;
       } else {
         inserted += batch.length;
@@ -242,13 +270,14 @@ Deno.serve(async (req) => {
         total: businesses.length,
         skipped,
         errors,
+        errorMessages: errorMessages.slice(0, 5),
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (err) {
     console.error("Import error:", err);
     return new Response(
-      JSON.stringify({ error: err.message }),
+      JSON.stringify({ error: err.message, stack: err.stack }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
