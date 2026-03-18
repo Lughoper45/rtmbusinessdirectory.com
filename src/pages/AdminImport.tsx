@@ -8,6 +8,25 @@ const AdminImport = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
 
+  const clearOldData = async () => {
+    setIsLoading(true);
+    setStatus("Clearing old mock data (biz-* IDs)...");
+    try {
+      const { error } = await supabase
+        .from("businesses")
+        .delete()
+        .like("business_id", "biz-%");
+      if (error) throw error;
+      setStatus("Old mock data cleared!");
+      toast.success("Old mock data cleared");
+    } catch (err: any) {
+      setStatus(`Error: ${err.message}`);
+      toast.error(err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const runImport = async (dryRun = false) => {
     setIsLoading(true);
     setStatus(dryRun ? "Running dry run..." : "Fetching CSV...");
@@ -15,7 +34,8 @@ const AdminImport = () => {
     try {
       const res = await fetch("/data/business-export.csv");
       const csvText = await res.text();
-      setStatus(`CSV loaded (${(csvText.length / 1024).toFixed(0)} KB). ${dryRun ? "Parsing..." : "Importing..."}`);
+      const sizeMB = (csvText.length / (1024 * 1024)).toFixed(1);
+      setStatus(`CSV loaded (${sizeMB} MB). ${dryRun ? "Parsing..." : "Importing..."}`);
 
       const { data, error } = await supabase.functions.invoke("import-businesses", {
         body: { csvText, dryRun },
@@ -27,7 +47,7 @@ const AdminImport = () => {
       setStatus(
         dryRun
           ? `Dry run: ${data.count} businesses found, ${data.skipped} skipped`
-          : `Done! Imported ${data.imported} businesses (${data.errors} errors, ${data.skipped} skipped)`
+          : `Done! Imported ${data.imported}/${data.total} businesses (${data.errors} errors, ${data.skipped} skipped)`
       );
       toast.success(dryRun ? "Dry run complete" : "Import complete!");
     } catch (err: any) {
@@ -44,7 +64,10 @@ const AdminImport = () => {
         <h1 className="text-3xl font-bold text-foreground">Business Import</h1>
         <p className="text-muted-foreground">Import businesses from the WordPress CSV export.</p>
 
-        <div className="flex gap-4">
+        <div className="flex gap-4 flex-wrap">
+          <Button variant="destructive" onClick={clearOldData} disabled={isLoading}>
+            Clear Old Mock Data
+          </Button>
           <Button variant="outline" onClick={() => runImport(true)} disabled={isLoading}>
             Dry Run (Preview)
           </Button>
