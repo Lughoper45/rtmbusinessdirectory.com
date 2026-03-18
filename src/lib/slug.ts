@@ -12,9 +12,9 @@ export function businessProfilePath(business: {
   category: string;
   city: string;
 }): string {
-  const digits = business.id.match(/(\d{5})$/)?.[1];
   const nameSlug = slugifySegment(business.name);
-  const slug = digits ? `${nameSlug}-${digits}` : nameSlug;
+  // Encode the full business_id into the slug for reliable lookup
+  const slug = `${nameSlug}--${business.id}`;
 
   return `/directory/${slugifySegment(business.category)}/${slugifySegment(business.city)}/${slug}`;
 }
