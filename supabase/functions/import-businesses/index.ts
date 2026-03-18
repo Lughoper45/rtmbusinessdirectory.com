@@ -109,21 +109,34 @@ Deno.serve(async (req) => {
 
     console.log("Parsing CSV, length:", cleanCsv.length);
 
-    // Parse CSV with named columns
-    let records: Record<string, string>[];
-    try {
-      records = parse(cleanCsv, {
-        skipFirstRow: true,
-        lazyQuotes: true,
-      }) as unknown as Record<string, string>[];
-    } catch (parseErr) {
-      console.error("CSV parse error:", parseErr.message);
-      // Fallback: try with fieldsPerRecord option
-      records = parse(cleanCsv, {
-        skipFirstRow: true,
-        lazyQuotes: true,
-        fieldsPerRecord: 0,
-      }) as unknown as Record<string, string>[];
+    // Parse CSV - use array mode first, then map to headers manually
+    const allRows = parse(cleanCsv, {
+      lazyQuotes: true,
+    }) as string[][];
+
+    if (allRows.length < 2) {
+      return new Response(
+        JSON.stringify({ error: "CSV has no data rows" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const headers = allRows[0].map((h) => h.replace(/^\uFEFF/, "").trim());
+    console.log("Headers found:", headers.length, "First 10:", headers.slice(0, 10));
+
+    // Build header index map
+    const hIdx: Record<string, number> = {};
+    headers.forEach((h, i) => { hIdx[h] = i; });
+
+    // Convert rows to named records
+    const records: Record<string, string>[] = [];
+    for (let r = 1; r < allRows.length; r++) {
+      const row = allRows[r];
+      const record: Record<string, string> = {};
+      for (let c = 0; c < headers.length; c++) {
+        record[headers[c]] = row[c] || "";
+      }
+      records.push(record);
     }
 
     console.log(`Parsed ${records.length} rows`);
