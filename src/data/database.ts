@@ -1,6 +1,66 @@
 // Database-backed data layer - replaces mock data with real Supabase queries
 import { supabase } from "@/integrations/supabase/client";
 import type { Business } from "@/types/directory";
+import { rtmBusinesses } from "./rtmBusinesses";
+import { generateAllBusinesses } from "./businessGenerator";
+
+const RTM_DATA = rtmBusinesses.filter(b => b.name && b.name.length > 2);
+const GENERATED_DATA = generateAllBusinesses(5000, 42);
+const LOCAL_DATA: Business[] = [...RTM_DATA, ...GENERATED_DATA];
+
+function getLocalPaginatedBusinesses(
+  page: number = 1,
+  pageSize: number = 24,
+  filters?: {
+    city?: string;
+    province?: string;
+    category?: string;
+    search?: string;
+    minRating?: number;
+    ownership?: string;
+    worldCupReady?: boolean;
+  }
+): { businesses: Business[]; total: number; pages: number } {
+  let filtered = LOCAL_DATA;
+
+  if (filters?.city) {
+    filtered = filtered.filter(b => b.city.toLowerCase() === filters.city!.toLowerCase());
+  }
+  if (filters?.province) {
+    filtered = filtered.filter(b => b.province === filters.province);
+  }
+  if (filters?.category) {
+    filtered = filtered.filter(b =>
+      b.category.toLowerCase().includes(filters.category!.toLowerCase())
+    );
+  }
+  if (filters?.search) {
+    const search = filters.search.toLowerCase();
+    filtered = filtered.filter(b =>
+      b.name.toLowerCase().includes(search) ||
+      b.category.toLowerCase().includes(search) ||
+      b.city.toLowerCase().includes(search)
+    );
+  }
+  if (filters?.minRating) {
+    filtered = filtered.filter(b => b.rating >= filters.minRating!);
+  }
+  if (filters?.ownership) {
+    filtered = filtered.filter(b => b.ownership.includes(filters.ownership!));
+  }
+  if (filters?.worldCupReady) {
+    filtered = filtered.filter(b => b.isWorldCupReady);
+  }
+
+  const start = (page - 1) * pageSize;
+  const businesses = filtered.slice(start, start + pageSize);
+
+  return {
+    businesses,
+    total: filtered.length,
+    pages: Math.ceil(filtered.length / pageSize),
+  };
+}
 
 // Map database row to Business type
 function mapRowToBusiness(row: any): Business {
@@ -95,8 +155,14 @@ export async function fetchPaginatedBusinesses(
     .range(from, to);
 
   if (error) {
-    console.error("Error fetching businesses:", error);
-    return { businesses: [], total: 0, pages: 0 };
+    console.warn("Supabase error, falling back to local data:", error.message);
+    return getLocalPaginatedBusinesses(page, pageSize, filters);
+  }
+
+  // If no data from Supabase, use local data
+  if (!data || data.length === 0) {
+    console.log("No businesses in database, using local data");
+    return getLocalPaginatedBusinesses(page, pageSize, filters);
   }
 
   const total = count || 0;
@@ -115,7 +181,14 @@ export async function fetchBusinessById(businessId: string): Promise<Business | 
     .eq("business_id", businessId)
     .maybeSingle();
 
-  if (error || !data) return null;
+  if (error) {
+    console.warn("Supabase error, looking locally:", error.message);
+  }
+  
+  if (error || !data) {
+    // Fallback to local data
+    return LOCAL_DATA.find(b => b.id === businessId) || null;
+  }
   return mapRowToBusiness(data);
 }
 
@@ -130,7 +203,11 @@ export async function fetchBusinessBySlug(slug: string): Promise<Business | null
   // Legacy format: "business-name-00001" (5-digit suffix)
   const match = slug.match(/(\d{5})$/);
   if (match) return fetchBusinessById(`biz-${match[1]}`);
-  return null;
+  // Fallback to local search
+  const q = slug.toLowerCase();
+  return LOCAL_DATA.find(b => 
+    b.name.toLowerCase().includes(q) || b.id.includes(q)
+  ) || null;
 }
 
 // Fetch similar businesses (same category, exclude current)

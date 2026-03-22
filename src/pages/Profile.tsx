@@ -2,13 +2,14 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
+import type { User } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { User, BookmarkIcon, Settings, Loader2, Trash2, ArrowLeft, LayoutDashboard } from "lucide-react";
+import { User as UserIcon, BookmarkIcon, Settings, Loader2, Trash2, ArrowLeft, LayoutDashboard } from "lucide-react";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
 import { businessProfilePath } from "@/lib/slug";
@@ -33,7 +34,7 @@ interface SavedBusiness {
 
 const Profile = () => {
   const navigate = useNavigate();
-  const [user, setUser] = useState<SupabaseUser | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [savedBusinesses, setSavedBusinesses] = useState<SavedBusiness[]>([]);
   const [isLoading, setIsLoading] = useState(true);
