@@ -9,12 +9,8 @@ import Directory from "./pages/Directory";
 import BusinessProfile from "./pages/BusinessProfile";
 import Auth from "./pages/Auth";
 import Profile from "./pages/Profile";
-<<<<<<< Updated upstream
-import AdminImport from "./pages/AdminImport";
-=======
 import Dashboard from "./pages/Dashboard";
 import GrantPilot from "./pages/GrantPilot";
->>>>>>> Stashed changes
 import NotFound from "./pages/NotFound";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminBusinesses from "./pages/admin/AdminBusinesses";
@@ -32,23 +28,18 @@ const App = () => (
           <Toaster />
           <Sonner />
           <Routes>
-<Route path="/" element={<Index />} />
+            <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/grants" element={<GrantPilot />} />
-<Route path="/directory" element={<Directory />} />
+            <Route path="/directory" element={<Directory />} />
             <Route path="/directory/:category/:city/:slug" element={<BusinessProfile />} />
-<<<<<<< Updated upstream
-            <Route path="/admin/import" element={<AdminImport />} />
-=======
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/admin/businesses" element={<AdminBusinesses />} />
             <Route path="/admin/users" element={<AdminUsers />} />
             <Route path="/admin/analytics" element={<AdminAnalytics />} />
             <Route path="/admin/settings" element={<AdminSettings />} />
->>>>>>> Stashed changes
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
