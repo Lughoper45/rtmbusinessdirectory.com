@@ -26,22 +26,6 @@ const provinceData: Record<string, ProvinceStats> = {
   NU: { name: "Nunavut", businesses: "120+", grants: "$8M", growth: "+2%", topCategories: ["Mining", "Indigenous", "Arts"] },
 };
 
-const provinces = [
-  { code: "YT", d: "M80,100 L180,100 L180,200 L120,250 L80,200 Z", tx: 130, ty: 170, fontSize: "text-xs" },
-  { code: "NT", d: "M180,80 L380,80 L380,200 L180,200 Z", tx: 280, ty: 140, fontSize: "text-xs" },
-  { code: "NU", d: "M380,60 L600,60 L650,150 L600,250 L380,200 Z", tx: 500, ty: 140, fontSize: "text-xs" },
-  { code: "BC", d: "M80,200 L180,200 L200,380 L100,400 L80,320 Z", tx: 130, ty: 300, fontSize: "text-sm font-bold" },
-  { code: "AB", d: "M180,200 L280,200 L280,380 L200,380 Z", tx: 230, ty: 290, fontSize: "text-sm font-bold" },
-  { code: "SK", d: "M280,200 L380,200 L380,380 L280,380 Z", tx: 330, ty: 290, fontSize: "text-sm font-bold" },
-  { code: "MB", d: "M380,200 L480,200 L500,380 L380,380 Z", tx: 430, ty: 290, fontSize: "text-sm font-bold" },
-  { code: "ON", d: "M480,200 L600,250 L650,350 L600,450 L480,420 L500,380 Z", tx: 550, ty: 340, fontSize: "text-lg font-bold" },
-  { code: "QC", d: "M600,250 L750,200 L850,280 L800,400 L650,420 L600,450 L650,350 Z", tx: 720, ty: 320, fontSize: "text-lg font-bold" },
-  { code: "NB", d: "M800,380 L850,360 L880,400 L850,440 L800,420 Z", tx: 835, ty: 405, fontSize: "text-[10px]" },
-  { code: "NS", d: "M850,420 L920,400 L950,450 L900,470 L850,450 Z", tx: 890, ty: 440, fontSize: "text-[10px]" },
-  { code: "PE", d: "M880,380 L920,370 L930,390 L890,400 Z", tx: 900, ty: 388, fontSize: "text-[8px]" },
-  { code: "NL", d: "M850,280 L920,250 L970,300 L950,380 L900,350 L850,330 Z", tx: 900, ty: 310, fontSize: "text-xs" },
-];
-
 const CanadaMapComponent = () => {
   const navigate = useNavigate();
   const [activeProvince, setActiveProvince] = useState<string | null>(null);
@@ -51,22 +35,10 @@ const CanadaMapComponent = () => {
     setSelectedProvince(selectedProvince === code ? null : code);
   };
 
-<<<<<<< Updated upstream
-  const getFill = (code: string) => {
-    if (selectedProvince === code) return "#E31837";
-    if (activeProvince === code) return "rgba(227, 24, 55, 0.6)";
-    return "rgba(255, 255, 255, 0.08)";
-  };
-
-  const getStroke = (code: string) => {
-    if (selectedProvince === code || activeProvince === code) return "#E31837";
-    return "rgba(255, 255, 255, 0.25)";
-=======
   const getProvinceColor = (code: string) => {
     if (selectedProvince === code) return "fill-primary";
     if (activeProvince === code) return "fill-accent";
     return "fill-white/18 hover:fill-white/32";
->>>>>>> Stashed changes
   };
 
   const selectedData = selectedProvince ? provinceData[selectedProvince] : null;
@@ -93,31 +65,6 @@ const CanadaMapComponent = () => {
               className="relative z-10 w-full h-auto"
               style={{ filter: "drop-shadow(0 10px 30px rgba(0,0,0,0.3))" }}
             >
-<<<<<<< Updated upstream
-              {provinces.map((p) => (
-                <g key={p.code}>
-                  <path
-                    d={p.d}
-                    fill={getFill(p.code)}
-                    stroke={getStroke(p.code)}
-                    strokeWidth={selectedProvince === p.code ? 2 : 1}
-                    className="cursor-pointer transition-all duration-300"
-                    onMouseEnter={() => setActiveProvince(p.code)}
-                    onMouseLeave={() => setActiveProvince(null)}
-                    onClick={() => handleClick(p.code)}
-                  />
-                  <text
-                    x={p.tx}
-                    y={p.ty}
-                    textAnchor="middle"
-                    className={`${p.fontSize} font-medium pointer-events-none`}
-                    fill={selectedProvince === p.code || activeProvince === p.code ? "#ffffff" : "rgba(255,255,255,0.5)"}
-                  >
-                    {p.code}
-                  </text>
-                </g>
-              ))}
-=======
               {/* Yukon */}
               <path
                 d="M80,100 L180,100 L180,200 L120,250 L80,200 Z"
@@ -247,7 +194,6 @@ const CanadaMapComponent = () => {
                 onClick={() => handleClick("NL")}
               />
               <text x="900" y="310" className="fill-white/70 text-xs font-medium pointer-events-none">NL</text>
->>>>>>> Stashed changes
             </svg>
 
             <div className="mt-4 flex items-center justify-between gap-4 text-sm text-white/65">
@@ -337,7 +283,7 @@ const CanadaMapComponent = () => {
                     className="w-full mt-4 bg-destructive hover:bg-destructive/90 text-white py-3 rounded-xl font-medium transition-colors"
                     onClick={() => navigate(`/directory?province=${selectedProvince}`)}
                   >
-                    Explore {selectedData.name} Businesses →
+                    Explore {selectedData.name} Businesses
                   </button>
                 </div>
               </div>
