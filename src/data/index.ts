@@ -1,45 +1,137 @@
-// Main data index - generates and exports 10,000 Canadian businesses
-import { generateAllBusinesses, CANADIAN_CITIES, BUSINESS_CATEGORIES } from './businessGenerator';
+import { CANADIAN_CITIES, CITY_DISTRIBUTION } from './constants/canadianData';
+import { rtmBusinesses } from './rtmBusinesses';
+import { generateAllBusinesses } from './businessGenerator';
 import type { Business } from '@/types/directory';
+import {
+  getBusinesses as getSupabaseBusinesses,
+  getFeaturedBusinesses as getFeaturedFromSupabase,
+  getTrendingBusinesses as getTrendingFromSupabase,
+  getBusinessById as getBusinessFromSupabase,
+  getCategories as getCategoriesFromSupabase,
+  getProvinces as getProvincesFromSupabase,
+  searchBusinesses as searchSupabaseBusinesses,
+  getBusinessStats as getStatsFromSupabase,
+  claimBusiness,
+  saveBusiness,
+  unsaveBusiness,
+  getSavedBusinesses,
+  type BusinessFilters,
+  type PaginatedResult,
+} from '@/services/businesses';
 
-// Generate 10,000 businesses with consistent seed
-const ALL_BUSINESSES: Business[] = generateAllBusinesses(10000, 42);
+const RTM_DATA = rtmBusinesses.filter(b => b.name && b.name.length > 2);
+const GENERATED_DATA = generateAllBusinesses(5000, 42);
+const LOCAL_DATA: Business[] = [...RTM_DATA, ...GENERATED_DATA];
 
-// Export all businesses
-export const allBusinesses = ALL_BUSINESSES;
+export const allBusinesses = LOCAL_DATA;
 
-// Get businesses by city
-export function getBusinessesByCity(city: string): Business[] {
-  return ALL_BUSINESSES.filter(b => b.city.toLowerCase() === city.toLowerCase());
-}
-
-// Get businesses by category
-export function getBusinessesByCategory(category: string): Business[] {
-  return ALL_BUSINESSES.filter(b => b.category.toLowerCase().includes(category.toLowerCase()));
-}
-
-// Get paginated businesses
-export function getPaginatedBusinesses(
-  page: number = 1, 
+export function getLocalBusinesses(
+  page: number = 1,
   pageSize: number = 24,
   filters?: {
     city?: string;
+    province?: string;
     category?: string;
     search?: string;
     minRating?: number;
   }
 ): { businesses: Business[]; total: number; pages: number } {
-  let filtered = ALL_BUSINESSES;
-  
+  let filtered = LOCAL_DATA;
+
   if (filters?.city) {
     filtered = filtered.filter(b => b.city.toLowerCase() === filters.city!.toLowerCase());
+  }
+  if (filters?.province) {
+    filtered = filtered.filter(b => b.province === filters.province);
+  }
+  if (filters?.category) {
+    filtered = filtered.filter(b =>
+      b.category.toLowerCase().includes(filters.category!.toLowerCase())
+    );
+  }
+  if (filters?.search) {
+    const search = filters.search.toLowerCase();
+    filtered = filtered.filter(b =>
+      b.name.toLowerCase().includes(search) ||
+      b.category.toLowerCase().includes(search) ||
+      b.city.toLowerCase().includes(search) ||
+      b.description.toLowerCase().includes(search)
+    );
+  }
+  if (filters?.minRating) {
+    filtered = filtered.filter(b => b.rating >= filters.minRating!);
+  }
+
+  const start = (page - 1) * pageSize;
+  const businesses = filtered.slice(start, start + pageSize);
+
+  return {
+    businesses,
+    total: filtered.length,
+    pages: Math.ceil(filtered.length / pageSize),
+  };
+}
+
+export function getLocalBusinessById(id: string): Business | undefined {
+  return LOCAL_DATA.find(b => b.id === id);
+}
+
+export function getLocalFeatured(limit = 8): Business[] {
+  return LOCAL_DATA
+    .filter(b => b.isVerified || b.isTrending || b.isAwardWinner)
+    .slice(0, limit);
+}
+
+export function getLocalTrending(limit = 6): Business[] {
+  return LOCAL_DATA
+    .filter(b => b.isTrending)
+    .slice(0, limit);
+}
+
+export function searchLocal(query: string, limit = 10): Business[] {
+  const q = query.toLowerCase();
+  return LOCAL_DATA
+    .filter(b =>
+      b.name.toLowerCase().includes(q) ||
+      b.category.toLowerCase().includes(q) ||
+      b.city.toLowerCase().includes(q)
+    )
+    .slice(0, limit);
+}
+
+export function getLocalByCity(city: string): Business[] {
+  return LOCAL_DATA.filter(b => b.city.toLowerCase() === city.toLowerCase());
+}
+
+export function getLocalByCategory(category: string): Business[] {
+  return LOCAL_DATA.filter(b => b.category.toLowerCase().includes(category.toLowerCase()));
+}
+
+export function getLocalPaginatedBusinesses(
+  page: number = 1,
+  pageSize: number = 24,
+  filters?: {
+    city?: string;
+    province?: string;
+    category?: string;
+    search?: string;
+    minRating?: number;
+  }
+): { businesses: Business[]; total: number; pages: number } {
+  let filtered = LOCAL_DATA;
+
+  if (filters?.city) {
+    filtered = filtered.filter(b => b.city.toLowerCase() === filters.city!.toLowerCase());
+  }
+  if (filters?.province) {
+    filtered = filtered.filter(b => b.province === filters.province);
   }
   if (filters?.category) {
     filtered = filtered.filter(b => b.category.toLowerCase().includes(filters.category!.toLowerCase()));
   }
   if (filters?.search) {
     const search = filters.search.toLowerCase();
-    filtered = filtered.filter(b => 
+    filtered = filtered.filter(b =>
       b.name.toLowerCase().includes(search) ||
       b.category.toLowerCase().includes(search) ||
       b.city.toLowerCase().includes(search)
@@ -48,50 +140,149 @@ export function getPaginatedBusinesses(
   if (filters?.minRating) {
     filtered = filtered.filter(b => b.rating >= filters.minRating!);
   }
-  
+
   const start = (page - 1) * pageSize;
   const businesses = filtered.slice(start, start + pageSize);
-  
+
   return {
     businesses,
     total: filtered.length,
-    pages: Math.ceil(filtered.length / pageSize)
+    pages: Math.ceil(filtered.length / pageSize),
   };
 }
 
-// Get business by slug/id
-export function getBusinessById(id: string): Business | undefined {
-  return ALL_BUSINESSES.find(b => b.id === id);
-}
-
-// Get business by slug (from URL)
-export function getBusinessBySlug(slug: string): Business | undefined {
-  // Extract ID from slug (e.g., "maple-kitchen-00001" -> "biz-00001")
+export function getLocalBySlug(slug: string): Business | undefined {
   const match = slug.match(/(\d{5})$/);
   if (match) {
-    return getBusinessById(`biz-${match[1]}`);
+    return getLocalBusinessById(`biz-${match[1]}`);
   }
   return undefined;
 }
 
-// Stats
+export async function getBusinesses(
+  filters?: BusinessFilters
+): Promise<PaginatedResult<Business>> {
+  try {
+    return await getSupabaseBusinesses(filters);
+  } catch (error) {
+    console.warn('Supabase unavailable, falling back to local data:', error);
+    const { businesses, total, pages } = getLocalPaginatedBusinesses(
+      filters?.page || 1,
+      filters?.pageSize || 24,
+      {
+        city: filters?.city,
+        province: filters?.province,
+        category: filters?.category,
+        search: filters?.search,
+        minRating: filters?.minRating,
+      }
+    );
+    return {
+      data: businesses,
+      total,
+      page: filters?.page || 1,
+      pageSize: filters?.pageSize || 24,
+      totalPages: pages,
+    };
+  }
+}
+
+export async function getFeaturedBusinesses(limit = 8): Promise<Business[]> {
+  try {
+    return await getFeaturedFromSupabase(limit);
+  } catch (error) {
+    console.warn('Supabase unavailable, using local featured:', error);
+    return getLocalFeatured(limit);
+  }
+}
+
+export async function getTrendingBusinesses(limit = 6): Promise<Business[]> {
+  try {
+    return await getTrendingFromSupabase(limit);
+  } catch (error) {
+    console.warn('Supabase unavailable, using local trending:', error);
+    return getLocalTrending(limit);
+  }
+}
+
+export async function getBusinessById(id: string): Promise<Business | null> {
+  try {
+    const supabaseResult = await getBusinessFromSupabase(id);
+    if (supabaseResult) return supabaseResult;
+  } catch (error) {
+    console.warn('Supabase unavailable, checking local:', error);
+  }
+
+  const localResult = getLocalBusinessById(id);
+  return localResult || null;
+}
+
+export async function searchBusinesses(query: string, limit = 10): Promise<Business[]> {
+  try {
+    return await searchSupabaseBusinesses(query, limit);
+  } catch (error) {
+    console.warn('Supabase unavailable, searching local:', error);
+    return searchLocal(query, limit);
+  }
+}
+
+export async function getCategories(): Promise<{ category: string; count: number }[]> {
+  try {
+    return await getCategoriesFromSupabase();
+  } catch (error) {
+    const counts: Record<string, number> = {};
+    LOCAL_DATA.forEach(b => {
+      counts[b.category] = (counts[b.category] || 0) + 1;
+    });
+    return Object.entries(counts)
+      .map(([category, count]) => ({ category, count }))
+      .sort((a, b) => b.count - a.count);
+  }
+}
+
+export async function getProvinces(): Promise<{ province: string; count: number }[]> {
+  try {
+    return await getProvincesFromSupabase();
+  } catch (error) {
+    const counts: Record<string, number> = {};
+    LOCAL_DATA.forEach(b => {
+      counts[b.province] = (counts[b.province] || 0) + 1;
+    });
+    return Object.entries(counts)
+      .map(([province, count]) => ({ province, count }))
+      .sort((a, b) => b.count - a.count);
+  }
+}
+
+export async function getBusinessStats(): Promise<{
+  total: number;
+  verified: number;
+  byProvince: Record<string, number>;
+  byCategory: Record<string, number>;
+}> {
+  try {
+    return await getStatsFromSupabase();
+  } catch (error) {
+    const stats = {
+      total: LOCAL_DATA.length,
+      verified: LOCAL_DATA.filter(b => b.isVerified).length,
+      byProvince: {} as Record<string, number>,
+      byCategory: {} as Record<string, number>,
+    };
+    LOCAL_DATA.forEach(b => {
+      stats.byProvince[b.province] = (stats.byProvince[b.province] || 0) + 1;
+      stats.byCategory[b.category] = (stats.byCategory[b.category] || 0) + 1;
+    });
+    return stats;
+  }
+}
+
 export const businessStats = {
-  total: ALL_BUSINESSES.length,
-  byCity: Object.fromEntries(
-    Object.keys(CANADIAN_CITIES).map(city => [
-      city,
-      ALL_BUSINESSES.filter(b => b.city.toLowerCase() === city.toLowerCase()).length
-    ])
-  ),
-  byCategory: Object.fromEntries(
-    Object.keys(BUSINESS_CATEGORIES).map(cat => [
-      cat,
-      ALL_BUSINESSES.filter(b => 
-        b.category.toLowerCase().includes(BUSINESS_CATEGORIES[cat as keyof typeof BUSINESS_CATEGORIES].name.toLowerCase().split(' ')[0])
-      ).length
-    ])
-  )
+  total: LOCAL_DATA.length,
+  rtmCount: RTM_DATA.length,
+  generatedCount: GENERATED_DATA.length,
 };
 
-// Export constants
-export { CANADIAN_CITIES, BUSINESS_CATEGORIES };
+export { CANADIAN_CITIES, CITY_DISTRIBUTION };
+export { claimBusiness, saveBusiness, unsaveBusiness, getSavedBusinesses };
+export type { BusinessFilters, PaginatedResult };

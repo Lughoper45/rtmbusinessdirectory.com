@@ -1,4 +1,4 @@
-import { Rocket, Linkedin, Twitter, Facebook, Instagram, Youtube } from "lucide-react";
+import { Linkedin, Twitter, Facebook, Instagram, Youtube } from "lucide-react";
 
 const Footer = () => {
   const productLinks = [
@@ -42,12 +42,7 @@ const Footer = () => {
           {/* Brand column */}
           <div>
             <a href="/" className="flex items-center gap-2 mb-4">
-              <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
-                <Rocket className="w-6 h-6 text-primary-foreground" />
-              </div>
-              <span className="text-xl font-bold text-primary-foreground">
-                RTM <span className="font-medium text-primary-foreground/70">Business Directory</span>
-              </span>
+              <img src="/rtm logo.png" alt="RTM Business Directory" className="h-10 w-auto" />
             </a>
             <p className="text-primary-foreground/60 mb-6 leading-relaxed">
               Your Trusted Business Directory

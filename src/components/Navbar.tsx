@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Menu, X, ChevronRight, Rocket, LogOut, User } from "lucide-react";
+import { Menu, X, ChevronRight, LogOut, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { User as SupabaseUser } from "@supabase/supabase-js";
@@ -30,9 +30,11 @@ const Navbar = () => {
     toast.success("Signed out successfully");
   };
 
-  const navLinks = [
+const navLinks = [
     { label: "Discover", href: "#discover" },
     { label: "Directory", to: "/directory" },
+    { label: "Dashboard", to: "/dashboard" },
+    { label: "Grants", to: "/grants" },
     { label: "Support", href: "#support" },
     { label: "About", href: "#about" },
   ];
@@ -43,12 +45,7 @@ const Navbar = () => {
         <div className="container mx-auto h-full max-w-[1440px] px-6 flex items-center justify-between">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 group">
-            <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center group-hover:scale-105 transition-transform">
-              <Rocket className="w-6 h-6 text-primary-foreground" />
-            </div>
-            <span className="text-xl font-bold text-foreground">
-              RTM <span className="font-medium text-muted-foreground">Business Directory</span>
-            </span>
+            <img src="/rtm logo.png" alt="RTM Business Directory" className="h-10 w-auto" />
           </Link>
 
           {/* Desktop Navigation */}

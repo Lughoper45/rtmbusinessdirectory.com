@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Rocket, Mail, Lock, Loader2, ArrowLeft } from "lucide-react";
+import { Mail, Lock, Loader2, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
 
@@ -174,12 +174,7 @@ const Auth = () => {
         <div className="min-h-screen bg-gradient-to-br from-muted/50 to-background flex flex-col items-center justify-center p-4">
           <div className="w-full max-w-md animate-fade-up">
             <div className="flex items-center justify-center gap-2 mb-8">
-              <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center shadow-lg">
-                <Rocket className="w-7 h-7 text-primary-foreground" />
-              </div>
-              <span className="text-2xl font-bold text-foreground">
-                RTM <span className="font-medium text-muted-foreground">Business Directory</span>
-              </span>
+              <img src="/rtm logo.png" alt="RTM Business Directory" className="h-12 w-auto" />
             </div>
 
             <Card className="shadow-heavy">
@@ -241,12 +236,7 @@ const Auth = () => {
 
           <div className="w-full max-w-md animate-fade-up">
             <div className="flex items-center justify-center gap-2 mb-8">
-              <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center shadow-lg">
-                <Rocket className="w-7 h-7 text-primary-foreground" />
-              </div>
-              <span className="text-2xl font-bold text-foreground">
-                RTM <span className="font-medium text-muted-foreground">Business Directory</span>
-              </span>
+              <img src="/rtm logo.png" alt="RTM Business Directory" className="h-12 w-auto" />
             </div>
 
             <Card className="shadow-heavy">
@@ -314,15 +304,10 @@ const Auth = () => {
           Back to Home
         </Link>
 
-        <div className="w-full max-w-md animate-fade-up">
-          <div className="flex items-center justify-center gap-2 mb-8">
-            <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center shadow-lg">
-              <Rocket className="w-7 h-7 text-primary-foreground" />
+          <div className="w-full max-w-md animate-fade-up">
+            <div className="flex items-center justify-center gap-2 mb-8">
+              <img src="/rtm logo.png" alt="RTM Business Directory" className="h-12 w-auto" />
             </div>
-            <span className="text-2xl font-bold text-foreground">
-              RTM <span className="font-medium text-muted-foreground">Business Directory</span>
-            </span>
-          </div>
 
           <Card className="shadow-heavy">
             <CardHeader className="text-center">

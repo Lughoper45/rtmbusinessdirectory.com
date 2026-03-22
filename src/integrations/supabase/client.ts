@@ -5,6 +5,36 @@ import type { Database } from './types';
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
+const getProjectRefFromUrl = (url: string) => {
+  try {
+    return new URL(url).hostname.split(".")[0] ?? null;
+  } catch {
+    return null;
+  }
+};
+
+const getProjectRefFromKey = (key: string) => {
+  try {
+    const payload = JSON.parse(atob(key.split(".")[1] ?? ""));
+    return payload.ref ?? null;
+  } catch {
+    return null;
+  }
+};
+
+if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
+  throw new Error("Missing Supabase configuration. Check VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY.");
+}
+
+const urlProjectRef = getProjectRefFromUrl(SUPABASE_URL);
+const keyProjectRef = getProjectRefFromKey(SUPABASE_PUBLISHABLE_KEY);
+
+if (urlProjectRef && keyProjectRef && urlProjectRef !== keyProjectRef) {
+  throw new Error(
+    `Supabase configuration mismatch: URL project ref "${urlProjectRef}" does not match publishable key project ref "${keyProjectRef}". Update your VITE_SUPABASE_PUBLISHABLE_KEY in .env/.env.local.`
+  );
+}
+
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
 

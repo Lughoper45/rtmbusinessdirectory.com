@@ -51,6 +51,7 @@ const CanadaMapComponent = () => {
     setSelectedProvince(selectedProvince === code ? null : code);
   };
 
+<<<<<<< Updated upstream
   const getFill = (code: string) => {
     if (selectedProvince === code) return "#E31837";
     if (activeProvince === code) return "rgba(227, 24, 55, 0.6)";
@@ -60,6 +61,12 @@ const CanadaMapComponent = () => {
   const getStroke = (code: string) => {
     if (selectedProvince === code || activeProvince === code) return "#E31837";
     return "rgba(255, 255, 255, 0.25)";
+=======
+  const getProvinceColor = (code: string) => {
+    if (selectedProvince === code) return "fill-primary";
+    if (activeProvince === code) return "fill-accent";
+    return "fill-white/18 hover:fill-white/32";
+>>>>>>> Stashed changes
   };
 
   const selectedData = selectedProvince ? provinceData[selectedProvince] : null;
@@ -80,11 +87,13 @@ const CanadaMapComponent = () => {
         <div className="grid lg:grid-cols-3 gap-8 items-start">
           {/* Map */}
           <div className="lg:col-span-2 relative">
+            <div className="pointer-events-none absolute inset-4 rounded-[2rem] border border-white/10 bg-gradient-to-br from-white/10 via-white/5 to-transparent" />
             <svg
               viewBox="0 0 1000 600"
-              className="w-full h-auto"
+              className="relative z-10 w-full h-auto"
               style={{ filter: "drop-shadow(0 10px 30px rgba(0,0,0,0.3))" }}
             >
+<<<<<<< Updated upstream
               {provinces.map((p) => (
                 <g key={p.code}>
                   <path
@@ -108,7 +117,150 @@ const CanadaMapComponent = () => {
                   </text>
                 </g>
               ))}
+=======
+              {/* Yukon */}
+              <path
+                d="M80,100 L180,100 L180,200 L120,250 L80,200 Z"
+                className={`${getProvinceColor("YT")} stroke-white/55 stroke-[2] cursor-pointer transition-all duration-300`}
+                onMouseEnter={() => setActiveProvince("YT")}
+                onMouseLeave={() => setActiveProvince(null)}
+                onClick={() => handleClick("YT")}
+              />
+              <text x="130" y="170" className="fill-white/70 text-xs font-medium pointer-events-none">YT</text>
+
+              {/* Northwest Territories */}
+              <path
+                d="M180,80 L380,80 L380,200 L180,200 Z"
+                className={`${getProvinceColor("NT")} stroke-white/55 stroke-[2] cursor-pointer transition-all duration-300`}
+                onMouseEnter={() => setActiveProvince("NT")}
+                onMouseLeave={() => setActiveProvince(null)}
+                onClick={() => handleClick("NT")}
+              />
+              <text x="280" y="140" className="fill-white/70 text-xs font-medium pointer-events-none">NT</text>
+
+              {/* Nunavut */}
+              <path
+                d="M380,60 L600,60 L650,150 L600,250 L380,200 Z"
+                className={`${getProvinceColor("NU")} stroke-white/55 stroke-[2] cursor-pointer transition-all duration-300`}
+                onMouseEnter={() => setActiveProvince("NU")}
+                onMouseLeave={() => setActiveProvince(null)}
+                onClick={() => handleClick("NU")}
+              />
+              <text x="500" y="140" className="fill-white/70 text-xs font-medium pointer-events-none">NU</text>
+
+              {/* British Columbia */}
+              <path
+                d="M80,200 L180,200 L200,380 L100,400 L80,320 Z"
+                className={`${getProvinceColor("BC")} stroke-white/55 stroke-[2] cursor-pointer transition-all duration-300`}
+                onMouseEnter={() => setActiveProvince("BC")}
+                onMouseLeave={() => setActiveProvince(null)}
+                onClick={() => handleClick("BC")}
+              />
+              <text x="130" y="300" className="fill-white/70 text-sm font-bold pointer-events-none">BC</text>
+
+              {/* Alberta */}
+              <path
+                d="M180,200 L280,200 L280,380 L200,380 Z"
+                className={`${getProvinceColor("AB")} stroke-white/55 stroke-[2] cursor-pointer transition-all duration-300`}
+                onMouseEnter={() => setActiveProvince("AB")}
+                onMouseLeave={() => setActiveProvince(null)}
+                onClick={() => handleClick("AB")}
+              />
+              <text x="230" y="290" className="fill-white/70 text-sm font-bold pointer-events-none">AB</text>
+
+              {/* Saskatchewan */}
+              <path
+                d="M280,200 L380,200 L380,380 L280,380 Z"
+                className={`${getProvinceColor("SK")} stroke-white/55 stroke-[2] cursor-pointer transition-all duration-300`}
+                onMouseEnter={() => setActiveProvince("SK")}
+                onMouseLeave={() => setActiveProvince(null)}
+                onClick={() => handleClick("SK")}
+              />
+              <text x="330" y="290" className="fill-white/70 text-sm font-bold pointer-events-none">SK</text>
+
+              {/* Manitoba */}
+              <path
+                d="M380,200 L480,200 L500,380 L380,380 Z"
+                className={`${getProvinceColor("MB")} stroke-white/55 stroke-[2] cursor-pointer transition-all duration-300`}
+                onMouseEnter={() => setActiveProvince("MB")}
+                onMouseLeave={() => setActiveProvince(null)}
+                onClick={() => handleClick("MB")}
+              />
+              <text x="430" y="290" className="fill-white/70 text-sm font-bold pointer-events-none">MB</text>
+
+              {/* Ontario */}
+              <path
+                d="M480,200 L600,250 L650,350 L600,450 L480,420 L500,380 Z"
+                className={`${getProvinceColor("ON")} stroke-white/55 stroke-[2] cursor-pointer transition-all duration-300`}
+                onMouseEnter={() => setActiveProvince("ON")}
+                onMouseLeave={() => setActiveProvince(null)}
+                onClick={() => handleClick("ON")}
+              />
+              <text x="550" y="340" className="fill-white/70 text-lg font-bold pointer-events-none">ON</text>
+
+              {/* Quebec */}
+              <path
+                d="M600,250 L750,200 L850,280 L800,400 L650,420 L600,450 L650,350 Z"
+                className={`${getProvinceColor("QC")} stroke-white/55 stroke-[2] cursor-pointer transition-all duration-300`}
+                onMouseEnter={() => setActiveProvince("QC")}
+                onMouseLeave={() => setActiveProvince(null)}
+                onClick={() => handleClick("QC")}
+              />
+              <text x="720" y="320" className="fill-white/70 text-lg font-bold pointer-events-none">QC</text>
+
+              {/* New Brunswick */}
+              <path
+                d="M800,380 L850,360 L880,400 L850,440 L800,420 Z"
+                className={`${getProvinceColor("NB")} stroke-white/55 stroke-[2] cursor-pointer transition-all duration-300`}
+                onMouseEnter={() => setActiveProvince("NB")}
+                onMouseLeave={() => setActiveProvince(null)}
+                onClick={() => handleClick("NB")}
+              />
+              <text x="835" y="405" className="fill-white/70 text-[10px] font-medium pointer-events-none">NB</text>
+
+              {/* Nova Scotia */}
+              <path
+                d="M850,420 L920,400 L950,450 L900,470 L850,450 Z"
+                className={`${getProvinceColor("NS")} stroke-white/55 stroke-[2] cursor-pointer transition-all duration-300`}
+                onMouseEnter={() => setActiveProvince("NS")}
+                onMouseLeave={() => setActiveProvince(null)}
+                onClick={() => handleClick("NS")}
+              />
+              <text x="890" y="440" className="fill-white/70 text-[10px] font-medium pointer-events-none">NS</text>
+
+              {/* PEI */}
+              <path
+                d="M880,380 L920,370 L930,390 L890,400 Z"
+                className={`${getProvinceColor("PE")} stroke-white/55 stroke-[2] cursor-pointer transition-all duration-300`}
+                onMouseEnter={() => setActiveProvince("PE")}
+                onMouseLeave={() => setActiveProvince(null)}
+                onClick={() => handleClick("PE")}
+              />
+              <text x="900" y="388" className="fill-white/70 text-[8px] font-medium pointer-events-none">PE</text>
+
+              {/* Newfoundland */}
+              <path
+                d="M850,280 L920,250 L970,300 L950,380 L900,350 L850,330 Z"
+                className={`${getProvinceColor("NL")} stroke-white/55 stroke-[2] cursor-pointer transition-all duration-300`}
+                onMouseEnter={() => setActiveProvince("NL")}
+                onMouseLeave={() => setActiveProvince(null)}
+                onClick={() => handleClick("NL")}
+              />
+              <text x="900" y="310" className="fill-white/70 text-xs font-medium pointer-events-none">NL</text>
+>>>>>>> Stashed changes
             </svg>
+
+            <div className="mt-4 flex items-center justify-between gap-4 text-sm text-white/65">
+              <p>Hover to preview. Click to lock a province.</p>
+              <div className="flex items-center gap-2">
+                <span className="h-3 w-3 rounded-full bg-white/30" />
+                <span>Province</span>
+                <span className="h-3 w-3 rounded-full bg-accent" />
+                <span>Hovered</span>
+                <span className="h-3 w-3 rounded-full bg-primary" />
+                <span>Selected</span>
+              </div>
+            </div>
 
             {/* Hover tooltip */}
             {activeProvince && !selectedProvince && (

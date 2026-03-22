@@ -8,12 +8,11 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { User, BookmarkIcon, Settings, Loader2, Trash2, ArrowLeft } from "lucide-react";
+import { User, BookmarkIcon, Settings, Loader2, Trash2, ArrowLeft, LayoutDashboard } from "lucide-react";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
 import { businessProfilePath } from "@/lib/slug";
 import Navbar from "@/components/Navbar";
-import type { User as SupabaseUser } from "@supabase/supabase-js";
 
 interface Profile {
   id: string;
@@ -184,7 +183,11 @@ const Profile = () => {
           </div>
 
           <Tabs defaultValue="saved" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-6">
+<TabsList className="grid w-full grid-cols-3 mb-6">
+              <TabsTrigger value="dashboard" className="flex items-center gap-2">
+                <LayoutDashboard className="w-4 h-4" />
+                Dashboard
+              </TabsTrigger>
               <TabsTrigger value="saved" className="flex items-center gap-2">
                 <BookmarkIcon className="w-4 h-4" />
                 Saved Businesses
@@ -193,7 +196,41 @@ const Profile = () => {
                 <Settings className="w-4 h-4" />
                 Account Settings
               </TabsTrigger>
-            </TabsList>
+</TabsList>
+
+            <TabsContent value="dashboard">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Quick Dashboard</CardTitle>
+                  <CardDescription>Your business at a glance</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="p-4 rounded-lg bg-muted/50 text-center">
+                      <p className="text-2xl font-bold text-primary">1,247</p>
+                      <p className="text-sm text-muted-foreground">Profile Views</p>
+                    </div>
+                    <div className="p-4 rounded-lg bg-muted/50 text-center">
+                      <p className="text-2xl font-bold text-red-500">89</p>
+                      <p className="text-sm text-muted-foreground">Saves</p>
+                    </div>
+                    <div className="p-4 rounded-lg bg-muted/50 text-center">
+                      <p className="text-2xl font-bold text-green-600">23</p>
+                      <p className="text-sm text-muted-foreground">Inquiries</p>
+                    </div>
+                    <div className="p-4 rounded-lg bg-muted/50 text-center">
+                      <p className="text-2xl font-bold text-yellow-500">4.8</p>
+                      <p className="text-sm text-muted-foreground">Rating</p>
+                    </div>
+                  </div>
+                  <Button asChild className="w-full">
+                    <Link to="/dashboard">
+                      Go to Full Dashboard
+                    </Link>
+                  </Button>
+                </CardContent>
+              </Card>
+            </TabsContent>
 
             <TabsContent value="saved">
               <Card>
