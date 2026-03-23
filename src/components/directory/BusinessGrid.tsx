@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { Business } from "@/types/directory";
 import BusinessCard from "./BusinessCard";
 
@@ -8,7 +9,7 @@ interface BusinessGridProps {
   onSave: (business: Business) => void;
 }
 
-const BusinessGrid = ({ businesses, onSelectBusiness, savedBusinesses, onSave }: BusinessGridProps) => {
+const BusinessGrid = memo(function BusinessGrid({ businesses, onSelectBusiness, savedBusinesses, onSave }: BusinessGridProps) {
   if (businesses.length === 0) {
     return (
       <div className="text-center py-16">
@@ -31,6 +32,6 @@ const BusinessGrid = ({ businesses, onSelectBusiness, savedBusinesses, onSave }:
       ))}
     </div>
   );
-};
+});
 
 export default BusinessGrid;

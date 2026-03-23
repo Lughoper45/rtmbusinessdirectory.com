@@ -102,28 +102,35 @@ Deno.serve(async (req) => {
 
     if (error) {
       console.error("Generate link error:", error);
-      // Still return success to prevent email enumeration
       return new Response(JSON.stringify({ 
-        success: true, 
-        message: "If an account exists, a password reset link has been sent" 
+        success: false, 
+        error: error.message 
       }), {
+        status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // The token is in the hash portion of redirectTo
-    const redirectTo = data?.properties?.action?.redirectTo || `${siteUrl}/auth`;
+    // The generateLink returns a redirect URL with hash containing the token
+    // Format: https://site.com/callback#type=recovery&access_token=xxx
+    const redirectTo = data?.properties?.action?.redirectTo as string || `${siteUrl}/auth`;
     
-    // Parse the hash to get token
+    // Extract the hash portion and parse token
     let resetUrl = redirectTo;
-    if (data?.properties?.action?.hash) {
-      const hashParams = new URLSearchParams(data.properties.action.hash.replace('#', ''));
-      const tokenFromHash = hashParams.get('token');
-      if (tokenFromHash) {
-        resetUrl = `${siteUrl}/auth?type=recovery&token=${tokenFromHash}&email=${encodeURIComponent(email)}`;
+    
+    // Check if there's a hash in the URL
+    if (redirectTo.includes('#')) {
+      const hashPart = redirectTo.split('#')[1];
+      const hashParams = new URLSearchParams(hashPart);
+      const accessToken = hashParams.get('access_token');
+      
+      if (accessToken) {
+        // Build clean URL with our reset-password page
+        resetUrl = `${siteUrl}/reset-password?token=${encodeURIComponent(accessToken)}&email=${encodeURIComponent(email)}`;
       }
     } else {
-      resetUrl = `${siteUrl}/reset-password?token=fallback&email=${encodeURIComponent(email)}`;
+      // Fallback - use the redirect URL as-is
+      resetUrl = redirectTo;
     }
 
     // Send branded reset email

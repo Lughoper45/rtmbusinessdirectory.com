@@ -21,7 +21,8 @@ const ResetPassword = () => {
   const [errors, setErrors] = useState<{ password?: string; confirm?: string }>({});
   const [isSuccess, setIsSuccess] = useState(false);
 
-  const token = searchParams.get("token");
+  // Try both token param names
+  const token = searchParams.get("token") || searchParams.get("access_token");
   const email = searchParams.get("email");
 
   useEffect(() => {

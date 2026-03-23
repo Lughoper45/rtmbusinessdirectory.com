@@ -25,36 +25,45 @@ const Auth = () => {
   const [password, setPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
+  const [token, setToken] = useState<string | null>(null);
+  const [tokenEmail, setTokenEmail] = useState<string | null>(null);
 
+  // Check for reset token on mount
   useEffect(() => {
-    // Check if this is a password reset callback
-    const hashParams = new URLSearchParams(window.location.hash.substring(1));
-    const accessToken = hashParams.get("access_token");
-    const type = hashParams.get("type");
-    
-    if (accessToken && type === "recovery") {
+    // Check URL search params (our custom format)
+    const params = new URLSearchParams(window.location.search);
+    const type = params.get("type");
+    const urlToken = params.get("token");
+    const urlEmail = params.get("email");
+
+    if (type === "recovery" && urlToken) {
       setMode("reset");
+      setToken(urlToken);
+      if (urlEmail) setTokenEmail(decodeURIComponent(urlEmail));
       return;
     }
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    // Check hash params (Supabase default format)
+    const hash = window.location.hash;
+    if (hash.includes("type=recovery") || hash.includes("access_token")) {
+      const hashParams = new URLSearchParams(hash.split('?')[1] || '');
+      const accessToken = hashParams.get("access_token");
+      if (accessToken) {
+        setMode("reset");
+        setToken(accessToken);
+      }
+      return;
+    }
+
+    // Listen for auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === "PASSWORD_RECOVERY") {
         setMode("reset");
-        return;
-      }
-      if (session && mode !== "reset") {
-        navigate("/");
-      }
-    });
-
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session && mode !== "reset") {
-        navigate("/");
       }
     });
 
     return () => subscription.unsubscribe();
-  }, [navigate, mode]);
+  }, []);
 
   const validateEmail = () => {
     const result = emailSchema.safeParse(email);
@@ -102,22 +111,32 @@ const Auth = () => {
     if (!validate()) return;
 
     setIsLoading(true);
-    const redirectUrl = `${window.location.origin}/`;
 
-    const { error } = await supabase.auth.signUp({
-      email: email.trim(),
-      password,
-      options: { emailRedirectTo: redirectUrl },
-    });
+    try {
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/signup`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: email.trim(),
+          password,
+          fullName: "",
+        }),
+      });
 
-    if (error) {
-      if (error.message.includes("already registered")) {
-        toast.error("This email is already registered. Please sign in instead.");
+      const result = await response.json();
+
+      if (!response.ok) {
+        if (result.error?.includes("already been registered")) {
+          toast.error("This email is already registered. Please sign in instead.");
+        } else {
+          toast.error(result.error || "Registration failed");
+        }
       } else {
-        toast.error(error.message);
+        toast.success("Account created! You can now sign in.");
+        setMode("login");
       }
-    } else {
-      toast.success("Account created! You're now signed in.");
+    } catch (err) {
+      toast.error("Something went wrong. Please try again.");
     }
     setIsLoading(false);
   };
@@ -127,17 +146,26 @@ const Auth = () => {
     if (!validateEmail()) return;
 
     setIsLoading(true);
-    const redirectUrl = `${window.location.origin}/auth`;
 
-    const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-      redirectTo: redirectUrl,
-    });
+    try {
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/reset-password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: email.trim(),
+        }),
+      });
 
-    if (error) {
-      toast.error(error.message);
-    } else {
-      toast.success("Password reset link sent! Check your email.");
-      setMode("login");
+      const result = await response.json();
+
+      if (!response.ok) {
+        toast.error(result.error || "Failed to send reset email");
+      } else {
+        toast.success("Password reset link sent! Check your email.");
+        setMode("login");
+      }
+    } catch (err) {
+      toast.error("Something went wrong. Please try again.");
     }
     setIsLoading(false);
   };
@@ -152,12 +180,30 @@ const Auth = () => {
     setErrors({});
 
     setIsLoading(true);
+
+    // If we have a token, use it to set the session first
+    if (token) {
+      const { error: sessionError } = await supabase.auth.setSession({
+        access_token: token,
+        refresh_token: token, // Use same token as refresh
+      });
+
+      if (sessionError) {
+        toast.error(sessionError.message);
+        setIsLoading(false);
+        return;
+      }
+    }
+
+    // Now update the password
     const { error } = await supabase.auth.updateUser({ password: newPassword });
 
     if (error) {
       toast.error(error.message);
     } else {
       toast.success("Password updated successfully!");
+      // Clear URL params
+      window.history.replaceState({}, "", "/auth");
       navigate("/");
     }
     setIsLoading(false);
@@ -180,7 +226,9 @@ const Auth = () => {
             <Card className="shadow-heavy">
               <CardHeader className="text-center">
                 <CardTitle className="text-2xl">Set New Password</CardTitle>
-                <CardDescription>Enter your new password below</CardDescription>
+                <CardDescription>
+                  {tokenEmail ? `Resetting password for ${tokenEmail}` : "Enter your new password below"}
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleUpdatePassword} className="space-y-4">
