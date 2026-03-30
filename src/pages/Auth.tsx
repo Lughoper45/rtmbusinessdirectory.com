@@ -148,6 +148,7 @@ const Auth = () => {
     setIsLoading(true);
 
     try {
+      // Use our custom branded email function
       const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/reset-password`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },

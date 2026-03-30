@@ -64,10 +64,29 @@ interface FundingOpportunity {
   matchScore: number;
 }
 
+interface MembershipSummary {
+  id: string;
+  plan_id: string | null;
+  status: string;
+  expires_at: string;
+  plan_name?: string | null;
+  plan_price?: number | null;
+}
+
+interface AffiliateSummary {
+  id: string;
+  referral_code: string;
+  total_earnings: number;
+  commission_rate: number;
+}
+
 const Dashboard = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [membership, setMembership] = useState<MembershipSummary | null>(null);
+  const [affiliate, setAffiliate] = useState<AffiliateSummary | null>(null);
+  const [referralCount, setReferralCount] = useState(0);
 
   const [stats, setStats] = useState<DashboardStats>({
     totalViews: 1247,
@@ -152,9 +171,62 @@ const Dashboard = () => {
 
   useEffect(() => {
     if (user) {
+      void loadProgramData(user.id);
       setIsLoading(false);
     }
   }, [user]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("success") === "true") {
+      toast.success("Stripe checkout completed. Membership data will appear after the webhook finalizes.");
+    }
+  }, []);
+
+  const loadProgramData = async (userId: string) => {
+    const [{ data: membershipData }, { data: affiliateData }] = await Promise.all([
+      supabase
+        .from("user_memberships")
+        .select("id, plan_id, status, expires_at")
+        .eq("user_id", userId)
+        .order("expires_at", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+      supabase
+        .from("affiliates")
+        .select("id, referral_code, total_earnings, commission_rate")
+        .eq("user_id", userId)
+        .maybeSingle(),
+    ]);
+
+    let membershipSummary: MembershipSummary | null = (membershipData as MembershipSummary | null) ?? null;
+
+    if (membershipSummary?.plan_id) {
+      const { data: planData } = await supabase
+        .from("membership_plans")
+        .select("name, price")
+        .eq("id", membershipSummary.plan_id)
+        .maybeSingle();
+
+      membershipSummary = {
+        ...membershipSummary,
+        plan_name: planData?.name ?? null,
+        plan_price: planData?.price ?? null,
+      };
+    }
+
+    setMembership(membershipSummary);
+    setAffiliate(affiliateData);
+
+    if (affiliateData?.id) {
+      const { count } = await supabase
+        .from("affiliate_referrals")
+        .select("*", { count: "exact", head: true })
+        .eq("affiliate_id", affiliateData.id);
+
+      setReferralCount(count ?? 0);
+    }
+  };
 
   const getActivityIcon = (type: string) => {
     switch (type) {
@@ -207,7 +279,7 @@ const Dashboard = () => {
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
             <div>
               <h1 className="text-3xl font-bold text-foreground">Business Dashboard</h1>
-              <p className="text-muted-foreground">Welcome back! Here's how your business is performing.</p>
+              <p className="text-muted-foreground">Welcome back. Manage listing performance, memberships, and affiliate revenue from one place.</p>
             </div>
             <div className="flex gap-3">
               <Button variant="outline" onClick={() => navigate("/directory")}>
@@ -219,6 +291,38 @@ const Dashboard = () => {
                 Add New Business
               </Button>
             </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <Card className="border-blue-200 bg-blue-50/60">
+              <CardContent className="pt-6">
+                <p className="text-sm text-muted-foreground">Membership</p>
+                <p className="mt-1 text-2xl font-bold text-foreground">{membership?.plan_name ?? "None"}</p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {membership ? `Valid until ${new Date(membership.expires_at).toLocaleDateString()}` : "Purchase a plan from /deals"}
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="border-emerald-200 bg-emerald-50/60">
+              <CardContent className="pt-6">
+                <p className="text-sm text-muted-foreground">Affiliate earnings</p>
+                <p className="mt-1 text-2xl font-bold text-foreground">${(affiliate?.total_earnings ?? 0).toFixed(2)}</p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {affiliate ? `${affiliate.commission_rate}% commission on qualified referrals` : "Affiliate account not created yet"}
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="border-amber-200 bg-amber-50/60">
+              <CardContent className="pt-6">
+                <p className="text-sm text-muted-foreground">Referral performance</p>
+                <p className="mt-1 text-2xl font-bold text-foreground">{referralCount}</p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {affiliate?.referral_code ? `Code: ${affiliate.referral_code}` : "Referral code unavailable"}
+                </p>
+              </CardContent>
+            </Card>
           </div>
 
           {/* Stats Grid */}

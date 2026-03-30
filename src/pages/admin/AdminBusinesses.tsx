@@ -34,12 +34,9 @@ import {
   Plus, 
   Pencil, 
   Trash2, 
-  Eye, 
-  Filter,
-  MoreVertical,
   CheckCircle,
   XCircle,
-  Loader2
+  Percent
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -53,6 +50,21 @@ const categories = [
 
 const provinces = ["ON", "BC", "AB", "QC", "MB", "NS", "NB", "SK", "NL", "PE", "YT", "NT", "NU"];
 
+interface DealRecord {
+  id: string;
+  business_id: string | null;
+  title: string;
+  description: string | null;
+  discount_percent: number;
+  code: string | null;
+  expires_at: string | null;
+  is_active: boolean;
+}
+
+type AdminBusiness = Business & {
+  rowId: string;
+};
+
 export default function AdminBusinesses() {
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
@@ -61,8 +73,12 @@ export default function AdminBusinesses() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(null);
-  const [businesses, setBusinesses] = useState<Business[]>([]);
+  const [isDealDialogOpen, setIsDealDialogOpen] = useState(false);
+  const [isDeleteDealDialogOpen, setIsDeleteDealDialogOpen] = useState(false);
+  const [selectedBusiness, setSelectedBusiness] = useState<AdminBusiness | null>(null);
+  const [selectedDeal, setSelectedDeal] = useState<DealRecord | null>(null);
+  const [businesses, setBusinesses] = useState<AdminBusiness[]>([]);
+  const [deals, setDeals] = useState<DealRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const pageSize = 20;
 
@@ -78,6 +94,16 @@ export default function AdminBusinesses() {
     website: "",
     isVerified: false,
     priceRange: "$$",
+  });
+
+  const [dealFormData, setDealFormData] = useState({
+    business_id: "",
+    title: "",
+    description: "",
+    discount_percent: 10,
+    code: "",
+    expires_at: "",
+    is_active: true,
   });
 
   const fetchBusinesses = useCallback(async () => {
@@ -98,12 +124,29 @@ export default function AdminBusinesses() {
     }
   }, []);
 
+  const fetchDeals = useCallback(async () => {
+    try {
+      const { data, error } = await (supabase as any)
+        .from("business_deals")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      setDeals(data || []);
+    } catch (error) {
+      console.error("Error fetching deals:", error);
+      toast.error("Failed to load deals");
+    }
+  }, []);
+
   useEffect(() => {
     fetchBusinesses();
-  }, [fetchBusinesses]);
+    fetchDeals();
+  }, [fetchBusinesses, fetchDeals]);
 
-  function mapRowToBusiness(row: any): Business {
+  function mapRowToBusiness(row: any): AdminBusiness {
     return {
+      rowId: row.id,
       id: row.business_id,
       name: row.name,
       category: row.category,
@@ -169,13 +212,13 @@ export default function AdminBusinesses() {
     setIsAddDialogOpen(true);
   };
 
-  const handleEdit = (business: Business) => {
+  const handleEdit = (business: AdminBusiness) => {
     setSelectedBusiness(business);
     setFormData({ ...business });
     setIsEditDialogOpen(true);
   };
 
-  const handleDelete = (business: Business) => {
+  const handleDelete = (business: AdminBusiness) => {
     setSelectedBusiness(business);
     setIsDeleteDialogOpen(true);
   };
@@ -244,7 +287,7 @@ export default function AdminBusinesses() {
       if (error) throw error;
 
       setBusinesses(businesses.map(b => 
-        b.id === selectedBusiness.id ? mapRowToBusiness(data) : b
+        b.rowId === selectedBusiness.rowId ? mapRowToBusiness(data) : b
       ));
       setIsEditDialogOpen(false);
       toast.success("Business updated successfully");
@@ -274,7 +317,7 @@ export default function AdminBusinesses() {
     }
   };
 
-  const toggleVerification = async (business: Business) => {
+  const toggleVerification = async (business: AdminBusiness) => {
     try {
       const { error } = await (supabase as any)
         .from("businesses")
@@ -287,13 +330,107 @@ export default function AdminBusinesses() {
       if (error) throw error;
 
       setBusinesses(businesses.map(b => 
-        b.id === business.id ? { ...b, isVerified: !b.isVerified } : b
+        b.rowId === business.rowId ? { ...b, isVerified: !b.isVerified } : b
       ));
       toast.success(business.isVerified ? "Business unverified" : "Business verified");
     } catch (error) {
       console.error("Error toggling verification:", error);
       toast.error("Failed to update verification status");
     }
+  };
+
+  const openNewDealDialog = () => {
+    setSelectedDeal(null);
+    setDealFormData({
+      business_id: "",
+      title: "",
+      description: "",
+      discount_percent: 10,
+      code: "",
+      expires_at: "",
+      is_active: true,
+    });
+    setIsDealDialogOpen(true);
+  };
+
+  const handleEditDeal = (deal: DealRecord) => {
+    setSelectedDeal(deal);
+    setDealFormData({
+      business_id: deal.business_id || "",
+      title: deal.title,
+      description: deal.description || "",
+      discount_percent: deal.discount_percent,
+      code: deal.code || "",
+      expires_at: deal.expires_at ? deal.expires_at.slice(0, 10) : "",
+      is_active: deal.is_active,
+    });
+    setIsDealDialogOpen(true);
+  };
+
+  const handleSaveDeal = async () => {
+    try {
+      const payload = {
+        business_id: dealFormData.business_id || null,
+        title: dealFormData.title,
+        description: dealFormData.description || null,
+        discount_percent: Number(dealFormData.discount_percent),
+        code: dealFormData.code || null,
+        expires_at: dealFormData.expires_at ? new Date(dealFormData.expires_at).toISOString() : null,
+        is_active: dealFormData.is_active,
+      };
+
+      if (selectedDeal) {
+        const { data, error } = await (supabase as any)
+          .from("business_deals")
+          .update(payload)
+          .eq("id", selectedDeal.id)
+          .select()
+          .single();
+
+        if (error) throw error;
+        setDeals((prev) => prev.map((deal) => (deal.id === selectedDeal.id ? data : deal)));
+        toast.success("Deal updated successfully");
+      } else {
+        const { data, error } = await (supabase as any)
+          .from("business_deals")
+          .insert(payload)
+          .select()
+          .single();
+
+        if (error) throw error;
+        setDeals((prev) => [data, ...prev]);
+        toast.success("Deal created successfully");
+      }
+
+      setIsDealDialogOpen(false);
+    } catch (error) {
+      console.error("Error saving deal:", error);
+      toast.error("Failed to save deal");
+    }
+  };
+
+  const handleDeleteDeal = async () => {
+    if (!selectedDeal) return;
+
+    try {
+      const { error } = await (supabase as any)
+        .from("business_deals")
+        .delete()
+        .eq("id", selectedDeal.id);
+
+      if (error) throw error;
+      setDeals((prev) => prev.filter((deal) => deal.id !== selectedDeal.id));
+      setIsDeleteDealDialogOpen(false);
+      toast.success("Deal deleted successfully");
+    } catch (error) {
+      console.error("Error deleting deal:", error);
+      toast.error("Failed to delete deal");
+    }
+  };
+
+  const getBusinessName = (businessId: string | null) => {
+    if (!businessId) return "Unassigned";
+    return businesses.find((business) => business.rowId === businessId)?.name || "Unknown business";
   };
 
   return (
@@ -470,6 +607,78 @@ export default function AdminBusinesses() {
             </div>
           </div>
         )}
+
+        <div className="mt-10">
+          <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <h2 className="text-2xl font-bold">Deals & Discounts</h2>
+              <p className="text-gray-600 dark:text-gray-400">
+                Manage public RTM offers and membership redemption campaigns
+              </p>
+            </div>
+            <Button onClick={openNewDealDialog} className="gap-2">
+              <Percent className="h-4 w-4" />
+              Add Deal
+            </Button>
+          </div>
+
+          <Card>
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Offer</TableHead>
+                    <TableHead>Business</TableHead>
+                    <TableHead>Discount</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Expiry</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {deals.map((deal) => (
+                    <TableRow key={deal.id}>
+                      <TableCell>
+                        <div>
+                          <p className="font-medium">{deal.title}</p>
+                          {deal.code ? <p className="text-sm text-gray-500">{deal.code}</p> : null}
+                        </div>
+                      </TableCell>
+                      <TableCell>{getBusinessName(deal.business_id)}</TableCell>
+                      <TableCell>
+                        <Badge variant="secondary">{deal.discount_percent}% off</Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={deal.is_active ? "default" : "secondary"}>
+                          {deal.is_active ? "Active" : "Inactive"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>{deal.expires_at ? new Date(deal.expires_at).toLocaleDateString() : "Ongoing"}</TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <Button variant="ghost" size="icon" onClick={() => handleEditDeal(deal)}>
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-red-600 hover:text-red-700"
+                            onClick={() => {
+                              setSelectedDeal(deal);
+                              setIsDeleteDealDialogOpen(true);
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </div>
 
         {/* Add Dialog */}
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
@@ -721,6 +930,128 @@ export default function AdminBusinesses() {
                 Cancel
               </Button>
               <Button variant="destructive" onClick={handleConfirmDelete}>
+                Delete
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={isDealDialogOpen} onOpenChange={setIsDealDialogOpen}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>{selectedDeal ? "Edit Deal" : "Create Deal"}</DialogTitle>
+              <DialogDescription>
+                Configure a discount offer that appears on the public RTM deals surfaces.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <Label htmlFor="deal-business">Business</Label>
+                <Select
+                  value={dealFormData.business_id}
+                  onValueChange={(value) => setDealFormData((prev) => ({ ...prev, business_id: value }))}
+                >
+                  <SelectTrigger id="deal-business">
+                    <SelectValue placeholder="Select business" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {businesses.map((business) => (
+                      <SelectItem key={business.rowId} value={business.rowId}>
+                        {business.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="deal-title">Title</Label>
+                <Input
+                  id="deal-title"
+                  value={dealFormData.title}
+                  onChange={(e) => setDealFormData((prev) => ({ ...prev, title: e.target.value }))}
+                  placeholder="20% off weekday lunch"
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="deal-description">Description</Label>
+                <Textarea
+                  id="deal-description"
+                  value={dealFormData.description}
+                  onChange={(e) => setDealFormData((prev) => ({ ...prev, description: e.target.value }))}
+                  rows={3}
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="deal-percent">Discount Percent</Label>
+                  <Input
+                    id="deal-percent"
+                    type="number"
+                    min={5}
+                    max={50}
+                    value={dealFormData.discount_percent}
+                    onChange={(e) => setDealFormData((prev) => ({ ...prev, discount_percent: Number(e.target.value) }))}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="deal-code">Promo Code</Label>
+                  <Input
+                    id="deal-code"
+                    value={dealFormData.code}
+                    onChange={(e) => setDealFormData((prev) => ({ ...prev, code: e.target.value }))}
+                    placeholder="RTM20"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="deal-expiry">Expires On</Label>
+                  <Input
+                    id="deal-expiry"
+                    type="date"
+                    value={dealFormData.expires_at}
+                    onChange={(e) => setDealFormData((prev) => ({ ...prev, expires_at: e.target.value }))}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="deal-status">Status</Label>
+                  <Select
+                    value={dealFormData.is_active ? "active" : "inactive"}
+                    onValueChange={(value) => setDealFormData((prev) => ({ ...prev, is_active: value === "active" }))}
+                  >
+                    <SelectTrigger id="deal-status">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="active">Active</SelectItem>
+                      <SelectItem value="inactive">Inactive</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsDealDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleSaveDeal}>{selectedDeal ? "Save Deal" : "Create Deal"}</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={isDeleteDealDialogOpen} onOpenChange={setIsDeleteDealDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Delete Deal</DialogTitle>
+              <DialogDescription>
+                Are you sure you want to delete "{selectedDeal?.title}"? This cannot be undone.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsDeleteDealDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button variant="destructive" onClick={handleDeleteDeal}>
                 Delete
               </Button>
             </DialogFooter>

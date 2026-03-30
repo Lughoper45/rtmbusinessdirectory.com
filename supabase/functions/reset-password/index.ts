@@ -1,5 +1,5 @@
 import { createClient } from "npm:@supabase/supabase-js@2.34.0";
-import { Resend } from "https://esm.sh/resend@3.1.0";
+import { Resend } from "npm:@resend/resend@1.1.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -37,7 +37,6 @@ const baseTemplate = (content: string, title: string) => `
           RTM Business Directory
         </p>
         <p style="color: #94a3b8; font-size: 12px; margin: 0;">
-          Connecting Canadian businesses with customers nationwide<br>
           © ${new Date().getFullYear()} RTM Directory. All rights reserved.
         </p>
       </td>
@@ -48,31 +47,19 @@ const baseTemplate = (content: string, title: string) => `
 `;
 
 const resetPasswordTemplate = (resetUrl: string) => baseTemplate(`
-  <h2 style="color: #1e293b; margin: 0 0 8px; font-size: 24px;">
-    Reset Your Password 🔐
+  <h2 style="color: #1e293b; margin: 0 0 16px; font-size: 24px;">
+    Reset Your Password
   </h2>
   <p style="color: #475569; line-height: 1.7; margin: 0 0 24px;">
-    We received a request to reset your password. Click the button below to create a new one:
+    We received a request to reset your password. Click the button below to create a new password:
   </p>
   <div style="text-align: center; margin: 32px 0;">
-    <a href="${resetUrl}" style="display: inline-block; background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); color: #ffffff; padding: 16px 40px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 14px rgba(220, 38, 38, 0.3);">
+    <a href="${resetUrl}" style="display: inline-block; background: #2563eb; color: #ffffff; padding: 14px 32px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px;">
       Reset Password
     </a>
   </div>
-  <div style="background: #fef3c7; border-radius: 8px; padding: 16px; margin: 24px 0;">
-    <p style="color: #92400e; margin: 0; font-size: 14px;">
-      ⚠️ This link will expire in <strong>1 hour</strong>. If you didn't request a password reset, please ignore this email or contact support immediately.
-    </p>
-  </div>
-  <div style="background: #f1f5f9; border-radius: 8px; padding: 16px; margin: 24px 0;">
-    <h4 style="color: #1e293b; margin: 0 0 12px; font-size: 14px;">Why did you receive this email?</h4>
-    <p style="color: #64748b; margin: 0; font-size: 14px; line-height: 1.6;">
-      Someone may have entered your email address when trying to reset their password. If it wasn't you, your account is still secure and no action is needed.
-    </p>
-  </div>
-  <p style="color: #64748b; font-size: 13px; margin: 24px 0 0;">
-    If the button doesn't work, copy and paste this link:<br>
-    <a href="${resetUrl}" style="color: #2563eb; word-break: break-all;">${resetUrl}</a>
+  <p style="color: #64748b; font-size: 14px; margin: 24px 0 0;">
+    This link expires in 1 hour. If you didn't request this, ignore this email.
   </p>
 `, "Reset Your Password - RTM Directory");
 
@@ -94,7 +81,7 @@ Deno.serve(async (req) => {
     const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
     const siteUrl = Deno.env.get("SITE_URL") || "https://rtmbusinessdirectory.com";
 
-    // Generate proper reset link using Supabase admin API
+    // Generate a magic link using Supabase
     const { data, error } = await supabase.auth.admin.generateLink({
       type: "recovery",
       email: email,
@@ -111,26 +98,22 @@ Deno.serve(async (req) => {
       });
     }
 
-    // The generateLink returns a redirect URL with hash containing the token
-    // Format: https://site.com/callback#type=recovery&access_token=xxx
-    const redirectTo = data?.properties?.action?.redirectTo as string || `${siteUrl}/auth`;
+    // Build the reset URL pointing to our page
+    // The magic link contains the token in the hash
+    const magicLink = data?.properties?.action?.redirectTo as string || "";
     
-    // Extract the hash portion and parse token
-    let resetUrl = redirectTo;
-    
-    // Check if there's a hash in the URL
-    if (redirectTo.includes('#')) {
-      const hashPart = redirectTo.split('#')[1];
-      const hashParams = new URLSearchParams(hashPart);
-      const accessToken = hashParams.get('access_token');
-      
+    // Extract token from the magic link and build our own URL
+    let resetUrl = `${siteUrl}/reset-password`;
+    if (magicLink.includes("access_token=")) {
+      const url = new URL(magicLink);
+      const accessToken = url.hash.split("access_token=")[1]?.split("&")[0];
       if (accessToken) {
-        // Build clean URL with our reset-password page
-        resetUrl = `${siteUrl}/reset-password?token=${encodeURIComponent(accessToken)}&email=${encodeURIComponent(email)}`;
+        // Use search params instead of hash for cleaner URL
+        resetUrl = `${siteUrl}/reset-password?token=${encodeURIComponent(accessToken)}`;
       }
     } else {
-      // Fallback - use the redirect URL as-is
-      resetUrl = redirectTo;
+      // Fallback - use the magic link as-is
+      resetUrl = magicLink.replace("#", "/?");
     }
 
     // Send branded reset email
@@ -150,9 +133,10 @@ Deno.serve(async (req) => {
   } catch (error) {
     console.error("Reset password error:", error);
     return new Response(JSON.stringify({ 
-      success: true, 
-      message: "If an account exists, a password reset link has been sent" 
+      success: false, 
+      error: error.message 
     }), {
+      status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }

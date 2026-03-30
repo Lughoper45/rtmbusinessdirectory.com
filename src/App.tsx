@@ -12,6 +12,9 @@ import ResetPassword from "./pages/ResetPassword";
 import Profile from "./pages/Profile";
 import Dashboard from "./pages/Dashboard";
 import GrantPilot from "./pages/GrantPilot";
+import Deals from "./pages/Deals";
+import Membership from "./pages/Membership";
+import Affiliate from "./pages/Affiliate";
 import NotFound from "./pages/NotFound";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminBusinesses from "./pages/admin/AdminBusinesses";
@@ -35,6 +38,9 @@ const App = () => (
             <Route path="/profile" element={<Profile />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/grants" element={<GrantPilot />} />
+            <Route path="/deals" element={<Deals />} />
+            <Route path="/membership" element={<Membership />} />
+            <Route path="/affiliate" element={<Affiliate />} />
             <Route path="/directory" element={<Directory />} />
             <Route path="/directory/:category/:city/:slug" element={<BusinessProfile />} />
             <Route path="/admin" element={<AdminDashboard />} />

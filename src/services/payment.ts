@@ -1,4 +1,5 @@
 import { loadStripe, Stripe } from "@stripe/stripe-js";
+import { supabase } from "@/integrations/supabase/client";
 
 let stripePromise: Promise<Stripe | null>;
 
@@ -85,6 +86,11 @@ export interface Subscription {
   cancelAtPeriodEnd: boolean;
 }
 
+export interface MembershipCheckoutResponse {
+  sessionId?: string;
+  url?: string;
+}
+
 export const createCheckoutSession = async (priceId: string, userId: string) => {
   const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-checkout`, {
     method: "POST",
@@ -118,6 +124,22 @@ export const createPortalSession = async (userId: string) => {
 export const redirectToCheckout = async (priceId: string) => {
   const sessionId = await createCheckoutSession(priceId, "demo-user");
   window.location.href = `https://checkout.stripe.com/pay/${sessionId}`;
+};
+
+export const createMembershipCheckout = async (planId: string, userId: string) => {
+  const { data, error } = await supabase.functions.invoke<MembershipCheckoutResponse>("membership-checkout", {
+    body: { planId, userId },
+  });
+
+  if (error) {
+    throw error;
+  }
+
+  if (!data?.url) {
+    throw new Error("Membership checkout URL was not returned.");
+  }
+
+  return data.url;
 };
 
 export const getSubscriptionStatus = async (userId: string): Promise<Subscription | null> => {

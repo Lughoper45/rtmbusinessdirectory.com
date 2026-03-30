@@ -12,10 +12,10 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { priceId, userId } = await req.json();
+    const { planId, userId } = await req.json();
 
-    if (!priceId || !userId) {
-      throw new Error("Missing priceId or userId");
+    if (!planId || !userId) {
+      throw new Error("Missing planId or userId");
     }
 
     const stripeSecretKey = Deno.env.get("STRIPE_SECRET_KEY");
@@ -31,14 +31,35 @@ Deno.serve(async (req) => {
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
+    // Get plan details
+    const { data: plan } = await supabase
+      .from("membership_plans")
+      .select("*")
+      .eq("id", planId)
+      .single();
+
+    if (!plan) {
+      throw new Error("Plan not found");
+    }
+
     const {
       data: { user },
     } = await supabase.auth.admin.getUserById(userId);
 
     const customerEmail = user?.email;
 
+    // Map plan to Stripe price
+    const priceMap: Record<string, string> = {
+      "Basic": "price_basic_monthly",
+      "Premium": "price_premium_monthly", 
+      "Pro": "price_pro_monthly",
+    };
+
+    const priceId = priceMap[plan.name] || "price_basic_monthly";
+
     const baseUrl = Deno.env.get("SITE_URL") || "https://rtmbusinessdirectory.com";
 
+    // Create checkout session
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
       payment_method_types: ["card"],
@@ -50,17 +71,19 @@ Deno.serve(async (req) => {
         },
       ],
       success_url: `${baseUrl}/dashboard?session_id={CHECKOUT_SESSION_ID}&success=true`,
-      cancel_url: `${baseUrl}/pricing?canceled=true`,
+      cancel_url: `${baseUrl}/deals?canceled=true`,
       metadata: {
         userId,
+        planId,
+        planName: plan.name,
       },
     });
 
-    return new Response(JSON.stringify({ sessionId: session.id }), {
+    return new Response(JSON.stringify({ sessionId: session.id, url: session.url }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
-    console.error("Checkout error:", error);
+    console.error("Membership checkout error:", error);
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },

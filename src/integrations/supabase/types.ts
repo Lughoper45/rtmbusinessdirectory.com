@@ -306,6 +306,171 @@ export type Database = {
         }
         Relationships: []
       }
+      membership_plans: {
+        Row: {
+          id: string
+          name: string
+          description: string | null
+          price: number
+          interval: string
+          features: string[]
+          is_active: boolean
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          description?: string | null
+          price: number
+          interval?: string
+          features?: string[]
+          is_active?: boolean
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          description?: string | null
+          price?: number
+          interval?: string
+          features?: string[]
+          is_active?: boolean
+          created_at?: string
+        }
+        Relationships: []
+      }
+      user_memberships: {
+        Row: {
+          id: string
+          user_id: string
+          plan_id: string | null
+          status: string
+          started_at: string
+          expires_at: string
+          stripe_subscription_id: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          plan_id?: string | null
+          status?: string
+          started_at?: string
+          expires_at: string
+          stripe_subscription_id?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          plan_id?: string | null
+          status?: string
+          started_at?: string
+          expires_at?: string
+          stripe_subscription_id?: string | null
+          created_at?: string
+        }
+        Relationships: []
+      }
+      business_deals: {
+        Row: {
+          id: string
+          business_id: string | null
+          title: string
+          description: string | null
+          discount_percent: number
+          code: string | null
+          expires_at: string | null
+          is_active: boolean
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          business_id?: string | null
+          title: string
+          description?: string | null
+          discount_percent: number
+          code?: string | null
+          expires_at?: string | null
+          is_active?: boolean
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          business_id?: string | null
+          title?: string
+          description?: string | null
+          discount_percent?: number
+          code?: string | null
+          expires_at?: string | null
+          is_active?: boolean
+          created_at?: string
+        }
+        Relationships: []
+      }
+      affiliates: {
+        Row: {
+          id: string
+          user_id: string
+          referral_code: string
+          commission_rate: number
+          total_earnings: number
+          status: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          referral_code: string
+          commission_rate?: number
+          total_earnings?: number
+          status?: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          referral_code?: string
+          commission_rate?: number
+          total_earnings?: number
+          status?: string
+          created_at?: string
+        }
+        Relationships: []
+      }
+      affiliate_referrals: {
+        Row: {
+          id: string
+          affiliate_id: string | null
+          referred_user_id: string | null
+          referred_business_id: string | null
+          membership_tier: string | null
+          commission_amount: number | null
+          commission_paid: boolean
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          affiliate_id?: string | null
+          referred_user_id?: string | null
+          referred_business_id?: string | null
+          membership_tier?: string | null
+          commission_amount?: number | null
+          commission_paid?: boolean
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          affiliate_id?: string | null
+          referred_user_id?: string | null
+          referred_business_id?: string | null
+          membership_tier?: string | null
+          commission_amount?: number | null
+          commission_paid?: boolean
+          created_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

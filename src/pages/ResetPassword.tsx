@@ -21,16 +21,68 @@ const ResetPassword = () => {
   const [errors, setErrors] = useState<{ password?: string; confirm?: string }>({});
   const [isSuccess, setIsSuccess] = useState(false);
 
-  // Try both token param names
-  const token = searchParams.get("token") || searchParams.get("access_token");
+  // Get token from URL hash (Supabase format) or search params
+  const [token, setToken] = useState<string | null>(null);
   const email = searchParams.get("email");
 
   useEffect(() => {
+    // Check hash for access_token (Supabase default format)
+    const hash = window.location.hash;
+    if (hash) {
+      const hashParams = new URLSearchParams(hash.substring(1));
+      const accessToken = hashParams.get("access_token");
+      if (accessToken) {
+        setToken(accessToken);
+        return;
+      }
+    }
+
+    // Check search params as fallback
+    const urlToken = searchParams.get("token") || searchParams.get("access_token");
+    if (urlToken) {
+      setToken(urlToken);
+      return;
+    }
+
+    // Listen for PASSWORD_RECOVERY event
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === "PASSWORD_RECOVERY" && session?.access_token) {
+        setToken(session.access_token);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  // Check if token exists (timeout after 3 seconds)
+  useEffect(() => {
     if (!token) {
-      toast.error("Invalid reset link");
-      navigate("/auth");
+      const timer = setTimeout(() => {
+        toast.error("Invalid or expired reset link");
+        navigate("/auth");
+      }, 3000);
+      return () => clearTimeout(timer);
     }
   }, [token, navigate]);
+
+  // Show loading while waiting for token
+  if (!token) {
+    return (
+      <>
+        <Helmet>
+          <title>Set New Password | RTM Business Directory</title>
+        </Helmet>
+        <div className="min-h-screen bg-gradient-to-br from-muted/50 to-background flex flex-col items-center justify-center p-4">
+          <Card className="shadow-heavy max-w-md w-full">
+            <CardContent className="pt-6 text-center">
+              <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-primary" />
+              <p className="text-muted-foreground">Loading...</p>
+            </CardContent>
+          </Card>
+        </div>
+      </>
+    );
+  }
 
   const handleReset = async (e: React.FormEvent) => {
     e.preventDefault();
