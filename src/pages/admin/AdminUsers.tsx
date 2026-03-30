@@ -15,6 +15,7 @@ interface UserProfile {
   id: string;
   user_id: string;
   full_name: string | null;
+  email: string | null;
   role: "member" | "business" | "admin";
   phone: string | null;
   avatar_url: string | null;
@@ -51,8 +52,13 @@ export default function AdminUsers() {
 
       if (error) throw error;
 
+      const { data: { users: authUsers } } = await supabase.auth.admin.listUsers();
+      
+      const authUserMap = new Map(authUsers.map(u => [u.id, u.email]));
+
       const normalizedUsers = (profiles || []).map((profile) => ({
         ...profile,
+        email: authUserMap.get(profile.user_id) || null,
         role: ((profile as any).role || "member") as UserProfile["role"],
       }));
 
@@ -74,6 +80,7 @@ export default function AdminUsers() {
   const filteredUsers = users.filter((user) => {
     const matchesSearch =
       user.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       user.user_id.toLowerCase().includes(searchQuery.toLowerCase());
 
     const matchesRole = roleFilter === "all" || user.role === roleFilter;
@@ -195,7 +202,7 @@ export default function AdminUsers() {
                           </div>
                           <div>
                             <div className="font-medium">{user.full_name || "Unknown"}</div>
-                            <div className="text-xs text-gray-500">{user.phone || "No phone"}</div>
+                            <div className="text-xs text-gray-500">{user.email || user.phone || "No email/phone"}</div>
                           </div>
                         </div>
                       </TableCell>
