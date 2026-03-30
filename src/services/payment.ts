@@ -132,7 +132,11 @@ export const createMembershipCheckout = async (planId: string, userId: string) =
   });
 
   if (error) {
-    throw error;
+    const message =
+      typeof error.context === "string"
+        ? error.context
+        : error.message || "Membership checkout failed.";
+    throw new Error(message);
   }
 
   if (!data?.url) {

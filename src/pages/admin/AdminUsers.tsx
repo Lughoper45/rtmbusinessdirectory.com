@@ -53,10 +53,12 @@ export default function AdminUsers() {
       if (error) throw error;
 
       const { data: { users: authUsers } } = await supabase.auth.admin.listUsers();
-      
-      const authUserMap = new Map(authUsers.map(u => [u.id, u.email]));
 
-      const normalizedUsers = (profiles || []).map((profile) => ({
+      const authUserMap = new Map<string, string | null>(
+        (authUsers ?? []).map((user): [string, string | null] => [user.id, user.email ?? null]),
+      );
+
+      const normalizedUsers: UserProfile[] = (profiles || []).map((profile) => ({
         ...profile,
         email: authUserMap.get(profile.user_id) || null,
         role: ((profile as any).role || "member") as UserProfile["role"],

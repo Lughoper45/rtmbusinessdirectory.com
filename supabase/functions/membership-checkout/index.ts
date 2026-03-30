@@ -6,6 +6,33 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+const PLACEHOLDER_PRICE_IDS = new Set([
+  "price_basic_year",
+  "price_premium_year",
+  "price_pro_year",
+]);
+
+function resolveStripePriceId(plan: { name: string; stripe_price_id?: string | null }) {
+  if (plan.stripe_price_id && !PLACEHOLDER_PRICE_IDS.has(plan.stripe_price_id)) {
+    return plan.stripe_price_id;
+  }
+
+  const planEnvMap: Record<string, string> = {
+    Basic: "STRIPE_PRICE_BASIC_YEAR",
+    Premium: "STRIPE_PRICE_PREMIUM_YEAR",
+    Pro: "STRIPE_PRICE_PRO_YEAR",
+  };
+
+  const envKey = planEnvMap[plan.name];
+  const envPriceId = envKey ? Deno.env.get(envKey) : null;
+
+  if (envPriceId) {
+    return envPriceId;
+  }
+
+  return plan.stripe_price_id;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -48,9 +75,17 @@ Deno.serve(async (req) => {
 
     const customerEmail = user?.email;
 
-    const priceId = plan.stripe_price_id;
+    const priceId = resolveStripePriceId(plan);
     if (!priceId) {
-      throw new Error(`No Stripe price ID configured for plan: ${plan.name}`);
+      throw new Error(
+        `No Stripe price ID configured for plan: ${plan.name}. Set membership_plans.stripe_price_id or the ${plan.name.toUpperCase()} yearly Stripe env variable.`,
+      );
+    }
+
+    if (PLACEHOLDER_PRICE_IDS.has(priceId)) {
+      throw new Error(
+        `Stripe price ID for plan ${plan.name} is still a placeholder (${priceId}). Replace it in membership_plans or set the matching Supabase function env variable.`,
+      );
     }
 
     const baseUrl = Deno.env.get("SITE_URL") || "https://rtmbusinessdirectory.com";

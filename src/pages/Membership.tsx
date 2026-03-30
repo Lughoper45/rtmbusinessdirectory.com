@@ -93,7 +93,7 @@ const Membership = () => {
       window.location.href = checkoutUrl;
     } catch (error) {
       console.error(error);
-      toast.error("Unable to start membership checkout.");
+      toast.error(error instanceof Error ? error.message : "Unable to start membership checkout.");
     } finally {
       setCheckoutPlanId(null);
     }

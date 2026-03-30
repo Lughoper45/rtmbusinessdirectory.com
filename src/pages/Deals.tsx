@@ -235,7 +235,7 @@ const Deals = () => {
       window.location.href = checkoutUrl;
     } catch (error) {
       console.error(error);
-      toast.error("Unable to start checkout. Confirm Stripe and Supabase function settings.");
+      toast.error(error instanceof Error ? error.message : "Unable to start checkout.");
     } finally {
       setCheckoutPlanId(null);
     }
