@@ -269,7 +269,7 @@ const Navbar = () => {
           </div>
 
           {isOpen && (
-            <div className="fixed inset-0 top-[76px] z-40 overflow-y-auto border-t bg-background md:hidden">
+            <div className="fixed inset-0 top-[76px] z-[60] overflow-y-auto border-t bg-background md:hidden">
               <div className="container mx-auto flex flex-col gap-3 px-6 py-6">
                 <div className="rounded-2xl bg-slate-950 px-4 py-4 text-slate-100">
                   <div className="mb-3 flex items-center justify-between">
