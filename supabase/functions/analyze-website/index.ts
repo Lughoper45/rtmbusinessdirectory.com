@@ -41,7 +41,23 @@ serve(async (req) => {
 
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY is not configured');
+      // Return mock data if no API key is configured
+      return new Response(
+        JSON.stringify({ 
+          success: true, 
+          data: {
+            businessName: '',
+            description: 'Business information auto-fill is currently unavailable. Please enter details manually.',
+            businessType: 'service',
+            suggestedCategory: '',
+            city: '',
+            province: ''
+          },
+          websiteUrl: formattedUrl,
+          message: 'Auto-fill unavailable - please enter details manually'
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     // Format URL
