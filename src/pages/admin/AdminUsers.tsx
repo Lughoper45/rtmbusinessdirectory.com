@@ -1,176 +1,116 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { AdminLayout } from "./AdminLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Users, Shield, UserCheck, UserX, Search, MoreVertical, Mail, Calendar, Loader2 } from "lucide-react";
+import { Users, Shield, UserCheck, UserX, Search, Calendar, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import type { User } from "@supabase/supabase-js";
 
 interface UserProfile {
   id: string;
   user_id: string;
   full_name: string | null;
-  email?: string;
+  role: "member" | "business" | "admin";
   phone: string | null;
   avatar_url: string | null;
   created_at: string;
 }
 
 const stats = [
-  { title: "Total Users", value: "0", icon: Users, color: "text-blue-600", key: "total" },
-  { title: "Active Users", value: "0", icon: UserCheck, color: "text-green-600", key: "active" },
-  { title: "Business Owners", value: "0", icon: Shield, color: "text-purple-600", key: "business" },
-  { title: "Members", value: "0", icon: UserX, color: "text-orange-600", key: "member" },
-];
+  { title: "Total Users", icon: Users, color: "text-blue-600", key: "total" },
+  { title: "Admin Users", icon: Shield, color: "text-red-600", key: "admin" },
+  { title: "Business Owners", icon: UserCheck, color: "text-purple-600", key: "business" },
+  { title: "Members", icon: UserX, color: "text-orange-600", key: "member" },
+] as const;
 
 export default function AdminUsers() {
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
-  const [statsData, setStatsData] = useState<Record<string, number>>({ total: 0, active: 0, business: 0, member: 0 });
+  const [statsData, setStatsData] = useState<Record<string, number>>({ total: 0, admin: 0, business: 0, member: 0 });
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
   const [isEditOpen, setIsEditOpen] = useState(false);
 
   useEffect(() => {
-    loadUsers();
+    void loadUsers();
   }, []);
 
   const loadUsers = async () => {
     setIsLoading(true);
     try {
-      // Get auth users directly
-      const { data: { users: authUsers }, error: authError } = await supabase.auth.admin.listUsers();
-
-      if (authError) {
-        console.error("Auth error:", authError);
-        // Try alternative - get from profiles table
-        const { data: profiles } = await supabase
-          .from("profiles")
-          .select("*")
-          .order("created_at", { ascending: false });
-        
-        const mergedUsers = (profiles || []).map((profile) => ({
-          ...profile,
-          email: profile.full_name || "Unknown",
-        }));
-        setUsers(mergedUsers);
-        setStatsData({
-          total: mergedUsers.length,
-          active: mergedUsers.length,
-          business: 0,
-          member: mergedUsers.length,
-        });
-        setIsLoading(false);
-        return;
-      }
-
-      // Get profiles to merge with auth users
-      const { data: profiles } = await supabase
+      const { data: profiles, error } = await supabase
         .from("profiles")
-        .select("*");
-      
-      // Merge auth users with profiles
-      const mergedUsers = (authUsers || []).map((authUser) => {
-        const profile = profiles?.find(p => p.user_id === authUser.id);
-        return {
-          id: authUser.id,
-          user_id: authUser.id,
-          full_name: profile?.full_name || authUser.user_metadata?.full_name || authUser.email?.split("@")[0] || "Unknown",
-          email: authUser.email || "Unknown",
-          phone: profile?.phone || null,
-          avatar_url: profile?.avatar_url || authUser.user_metadata?.avatar_url || null,
-          created_at: authUser.created_at,
-        };
-      });
+        .select("id, user_id, full_name, role, phone, avatar_url, created_at")
+        .order("created_at", { ascending: false });
 
-      setUsers(mergedUsers);
-      
-      // Calculate stats
-      const total = mergedUsers.length;
-      const active = authUsers?.filter(u => u.email_confirmed_at).length || 0;
+      if (error) throw error;
+
+      const normalizedUsers = (profiles || []).map((profile) => ({
+        ...profile,
+        role: ((profile as any).role || "member") as UserProfile["role"],
+      }));
+
+      setUsers(normalizedUsers);
       setStatsData({
-        total,
-        active,
-        business: Math.floor(total * 0.3),
-        member: total - Math.floor(total * 0.3),
+        total: normalizedUsers.length,
+        admin: normalizedUsers.filter((user) => user.role === "admin").length,
+        business: normalizedUsers.filter((user) => user.role === "business").length,
+        member: normalizedUsers.filter((user) => user.role === "member").length,
       });
     } catch (error) {
       console.error("Error loading users:", error);
       toast.error("Failed to load users");
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   const filteredUsers = users.filter((user) => {
-    const matchesSearch = 
+    const matchesSearch =
       user.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.email?.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    const matchesRole = roleFilter === "all" || 
-      (roleFilter === "business" && user.full_name?.includes("Business")) ||
-      (roleFilter === "member" && !user.full_name?.includes("Business"));
+      user.user_id.toLowerCase().includes(searchQuery.toLowerCase());
 
+    const matchesRole = roleFilter === "all" || user.role === roleFilter;
     return matchesSearch && matchesRole;
   });
 
-  const handleDeleteUser = async (userId: string) => {
-    if (!confirm("Are you sure you want to delete this user? This action cannot be undone.")) {
-      return;
-    }
-
-    try {
-      const { error } = await supabase.auth.admin.deleteUser(userId);
-      if (error) throw error;
-      
-      toast.success("User deleted successfully");
-      loadUsers();
-    } catch (error) {
-      console.error("Error deleting user:", error);
-      toast.error("Failed to delete user");
-    }
-  };
-
-  const handleUpdateUserRole = async (userId: string, role: string) => {
+  const handleUpdateUserRole = async (userId: string, role: UserProfile["role"]) => {
     try {
       const { error } = await supabase
         .from("profiles")
-        .update({ full_name: role })
+        .update({ role })
         .eq("user_id", userId);
 
       if (error) throw error;
 
       toast.success("User role updated");
       setIsEditOpen(false);
-      loadUsers();
+      void loadUsers();
     } catch (error) {
       console.error("Error updating user:", error);
-      toast.error("Failed to update user");
+      toast.error("Failed to update user role");
     }
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
+  const formatDate = (dateString: string) =>
+    new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
       month: "short",
       day: "numeric",
     });
-  };
 
   return (
     <AdminLayout>
       <div className="p-6 lg:p-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold">Users</h1>
-          <p className="text-gray-600 dark:text-gray-400">
-            Manage user accounts and permissions
-          </p>
+          <p className="text-gray-600 dark:text-gray-400">Manage profile roles and access levels</p>
         </div>
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
@@ -181,7 +121,7 @@ export default function AdminUsers() {
                 <stat.icon className={`h-5 w-5 ${stat.color}`} />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{statsData[stat.key as keyof typeof statsData]}</div>
+                <div className="text-2xl font-bold">{statsData[stat.key]}</div>
               </CardContent>
             </Card>
           ))}
@@ -191,10 +131,8 @@ export default function AdminUsers() {
           <CardHeader>
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
               <div>
-                <CardTitle>All Users</CardTitle>
-                <CardDescription>
-                  {filteredUsers.length} user{filteredUsers.length !== 1 ? "s" : ""} found
-                </CardDescription>
+                <CardTitle>All Profiles</CardTitle>
+                <CardDescription>{filteredUsers.length} profile{filteredUsers.length !== 1 ? "s" : ""} found</CardDescription>
               </div>
               <div className="flex gap-2">
                 <div className="relative">
@@ -211,9 +149,10 @@ export default function AdminUsers() {
                     <SelectValue placeholder="Filter by role" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All Users</SelectItem>
-                    <SelectItem value="business">Business Owners</SelectItem>
-                    <SelectItem value="member">Members</SelectItem>
+                    <SelectItem value="all">All Roles</SelectItem>
+                    <SelectItem value="admin">Admin</SelectItem>
+                    <SelectItem value="business">Business</SelectItem>
+                    <SelectItem value="member">Member</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -227,16 +166,16 @@ export default function AdminUsers() {
             ) : filteredUsers.length === 0 ? (
               <div className="text-center py-8 text-gray-500">
                 <Users className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                <p>No users found</p>
+                <p>No profiles found</p>
               </div>
             ) : (
               <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead>User</TableHead>
-                    <TableHead>Email</TableHead>
+                    <TableHead>User ID</TableHead>
                     <TableHead>Joined</TableHead>
-                    <TableHead>Status</TableHead>
+                    <TableHead>Role</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -260,12 +199,7 @@ export default function AdminUsers() {
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Mail className="h-4 w-4 text-gray-400" />
-                          {user.email}
-                        </div>
-                      </TableCell>
+                      <TableCell className="text-sm text-gray-500">{user.user_id}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <Calendar className="h-4 w-4 text-gray-400" />
@@ -273,30 +207,19 @@ export default function AdminUsers() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Badge variant={user.email !== "Unknown" ? "default" : "secondary"}>
-                          {user.email !== "Unknown" ? "Active" : "Pending"}
-                        </Badge>
+                        <Badge variant={user.role === "admin" ? "default" : "secondary"}>{user.role}</Badge>
                       </TableCell>
                       <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              setSelectedUser(user);
-                              setIsEditOpen(true);
-                            }}
-                          >
-                            Edit
-                          </Button>
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            onClick={() => handleDeleteUser(user.user_id)}
-                          >
-                            Delete
-                          </Button>
-                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setSelectedUser(user);
+                            setIsEditOpen(true);
+                          }}
+                        >
+                          Edit
+                        </Button>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -310,49 +233,52 @@ export default function AdminUsers() {
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Edit User</DialogTitle>
-              <DialogDescription>
-                Update user details and permissions
-              </DialogDescription>
+              <DialogDescription>Update name and role for this profile</DialogDescription>
             </DialogHeader>
-            {selectedUser && (
+            {selectedUser ? (
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Name</label>
                   <Input defaultValue={selectedUser.full_name || ""} id="edit-name" />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Email</label>
-                  <Input defaultValue={selectedUser.email || ""} disabled />
-                </div>
-                <div className="space-y-2">
                   <label className="text-sm font-medium">Role</label>
-                  <Select defaultValue="member" onValueChange={(value) => handleUpdateUserRole(selectedUser.user_id, value)}>
+                  <Select
+                    defaultValue={selectedUser.role}
+                    onValueChange={(value: UserProfile["role"]) => handleUpdateUserRole(selectedUser.user_id, value)}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Select role" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="member">Member</SelectItem>
-                      <SelectItem value="business">Business Owner</SelectItem>
+                      <SelectItem value="business">Business</SelectItem>
                       <SelectItem value="admin">Admin</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
               </div>
-            )}
+            ) : null}
             <DialogFooter>
               <Button variant="outline" onClick={() => setIsEditOpen(false)}>
                 Cancel
               </Button>
-              <Button onClick={() => {
-                const name = (document.getElementById("edit-name") as HTMLInputElement).value;
-                if (selectedUser) {
-                  supabase.from("profiles").update({ full_name: name }).eq("user_id", selectedUser.user_id).then(() => {
-                    toast.success("User updated");
-                    setIsEditOpen(false);
-                    loadUsers();
-                  });
-                }
-              }}>
+              <Button
+                onClick={() => {
+                  const name = (document.getElementById("edit-name") as HTMLInputElement).value;
+                  if (selectedUser) {
+                    supabase
+                      .from("profiles")
+                      .update({ full_name: name })
+                      .eq("user_id", selectedUser.user_id)
+                      .then(() => {
+                        toast.success("User updated");
+                        setIsEditOpen(false);
+                        void loadUsers();
+                      });
+                  }
+                }}
+              >
                 Save Changes
               </Button>
             </DialogFooter>

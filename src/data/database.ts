@@ -1,12 +1,25 @@
 // Database-backed data layer - replaces mock data with real Supabase queries
 import { supabase } from "@/integrations/supabase/client";
 import type { Business } from "@/types/directory";
-import { rtmBusinesses } from "./rtmBusinesses";
-import { generateAllBusinesses } from "./businessGenerator";
+import {
+  DIRECTORY_SOURCE_MODE,
+  LOCAL_DATA,
+  LOCAL_DATA_STATS,
+  type DirectoryDataSource,
+  shouldUseDatabaseOnly,
+  shouldUseLocalFallback,
+  shouldUseLocalOnly,
+} from "./sourceConfig";
 
-const RTM_DATA = rtmBusinesses.filter(b => b.name && b.name.length > 2);
-const GENERATED_DATA = generateAllBusinesses(5000, 42);
-const LOCAL_DATA: Business[] = [...RTM_DATA, ...GENERATED_DATA];
+export interface PaginatedBusinessResult {
+  businesses: Business[];
+  total: number;
+  pages: number;
+  source: DirectoryDataSource;
+  databaseEmpty: boolean;
+  localStats: typeof LOCAL_DATA_STATS;
+  sourceMode: typeof DIRECTORY_SOURCE_MODE;
+}
 
 function getLocalPaginatedBusinesses(
   page: number = 1,
@@ -118,7 +131,18 @@ export async function fetchPaginatedBusinesses(
     ownership?: string;
     worldCupReady?: boolean;
   }
-): Promise<{ businesses: Business[]; total: number; pages: number }> {
+) : Promise<PaginatedBusinessResult> {
+  if (shouldUseLocalOnly()) {
+    const localResult = getLocalPaginatedBusinesses(page, pageSize, filters);
+    return {
+      ...localResult,
+      source: "local",
+      databaseEmpty: true,
+      localStats: LOCAL_DATA_STATS,
+      sourceMode: DIRECTORY_SOURCE_MODE,
+    };
+  }
+
   let query = supabase
     .from("businesses")
     .select("*", { count: "exact" });
@@ -155,14 +179,44 @@ export async function fetchPaginatedBusinesses(
     .range(from, to);
 
   if (error) {
-    console.warn("Supabase error, falling back to local data:", error.message);
-    return getLocalPaginatedBusinesses(page, pageSize, filters);
+    if (shouldUseLocalFallback()) {
+      console.warn("Supabase error, falling back to local data:", error.message);
+      const localResult = getLocalPaginatedBusinesses(page, pageSize, filters);
+      return {
+        ...localResult,
+        source: "local",
+        databaseEmpty: false,
+        localStats: LOCAL_DATA_STATS,
+        sourceMode: DIRECTORY_SOURCE_MODE,
+      };
+    }
+
+    throw error;
   }
 
-  // If no data from Supabase, use local data
+  // If no data from Supabase, use local data only in hybrid mode
   if (!data || data.length === 0) {
-    console.log("No businesses in database, using local data");
-    return getLocalPaginatedBusinesses(page, pageSize, filters);
+    if (shouldUseLocalFallback()) {
+      console.log("No businesses in database, using local data");
+      const localResult = getLocalPaginatedBusinesses(page, pageSize, filters);
+      return {
+        ...localResult,
+        source: "local",
+        databaseEmpty: true,
+        localStats: LOCAL_DATA_STATS,
+        sourceMode: DIRECTORY_SOURCE_MODE,
+      };
+    }
+
+    return {
+      businesses: [],
+      total: 0,
+      pages: 0,
+      source: "database",
+      databaseEmpty: true,
+      localStats: LOCAL_DATA_STATS,
+      sourceMode: DIRECTORY_SOURCE_MODE,
+    };
   }
 
   const total = count || 0;
@@ -170,11 +224,19 @@ export async function fetchPaginatedBusinesses(
     businesses: (data || []).map(mapRowToBusiness),
     total,
     pages: Math.ceil(total / pageSize),
+    source: "database",
+    databaseEmpty: false,
+    localStats: LOCAL_DATA_STATS,
+    sourceMode: DIRECTORY_SOURCE_MODE,
   };
 }
 
 // Fetch a single business by its business_id (e.g. "biz-00001")
 export async function fetchBusinessById(businessId: string): Promise<Business | null> {
+  if (shouldUseLocalOnly()) {
+    return LOCAL_DATA.find((business) => business.id === businessId) || null;
+  }
+
   const { data, error } = await supabase
     .from("businesses")
     .select("*")
@@ -185,10 +247,11 @@ export async function fetchBusinessById(businessId: string): Promise<Business | 
     console.warn("Supabase error, looking locally:", error.message);
   }
   
-  if (error || !data) {
+  if ((error || !data) && !shouldUseDatabaseOnly()) {
     // Fallback to local data
     return LOCAL_DATA.find(b => b.id === businessId) || null;
   }
+  if (error || !data) return null;
   return mapRowToBusiness(data);
 }
 
@@ -204,6 +267,7 @@ export async function fetchBusinessBySlug(slug: string): Promise<Business | null
   const match = slug.match(/(\d{5})$/);
   if (match) return fetchBusinessById(`biz-${match[1]}`);
   // Fallback to local search
+  if (shouldUseDatabaseOnly()) return null;
   const q = slug.toLowerCase();
   return LOCAL_DATA.find(b => 
     b.name.toLowerCase().includes(q) || b.id.includes(q)

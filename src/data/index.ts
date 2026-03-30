@@ -1,7 +1,11 @@
 import { CANADIAN_CITIES, CITY_DISTRIBUTION } from './constants/canadianData';
-import { rtmBusinesses } from './rtmBusinesses';
-import { generateAllBusinesses } from './businessGenerator';
 import type { Business } from '@/types/directory';
+import {
+  DIRECTORY_SOURCE_MODE,
+  LOCAL_DATA,
+  LOCAL_DATA_STATS,
+  RTM_DATA,
+} from './sourceConfig';
 import {
   getBusinesses as getSupabaseBusinesses,
   getFeaturedBusinesses as getFeaturedFromSupabase,
@@ -18,10 +22,6 @@ import {
   type BusinessFilters,
   type PaginatedResult,
 } from '@/services/businesses';
-
-const RTM_DATA = rtmBusinesses.filter(b => b.name && b.name.length > 2);
-const GENERATED_DATA = generateAllBusinesses(5000, 42);
-const LOCAL_DATA: Business[] = [...RTM_DATA, ...GENERATED_DATA];
 
 export const allBusinesses = LOCAL_DATA;
 
@@ -278,9 +278,10 @@ export async function getBusinessStats(): Promise<{
 }
 
 export const businessStats = {
-  total: LOCAL_DATA.length,
-  rtmCount: RTM_DATA.length,
-  generatedCount: GENERATED_DATA.length,
+  total: LOCAL_DATA_STATS.total,
+  rtmCount: LOCAL_DATA_STATS.rtmCount,
+  generatedCount: LOCAL_DATA_STATS.generatedCount,
+  sourceMode: DIRECTORY_SOURCE_MODE,
 };
 
 export { CANADIAN_CITIES, CITY_DISTRIBUTION };

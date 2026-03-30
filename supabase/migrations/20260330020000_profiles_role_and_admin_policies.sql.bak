@@ -1,0 +1,80 @@
+alter table public.profiles
+add column if not exists role text;
+
+update public.profiles
+set role = 'member'
+where role is null;
+
+alter table public.profiles
+alter column role set default 'member';
+
+alter table public.profiles
+alter column role set not null;
+
+do $$
+begin
+  if not exists (
+    select 1
+    from pg_constraint
+    where conname = 'profiles_role_check'
+  ) then
+    alter table public.profiles
+    add constraint profiles_role_check
+    check (role in ('member', 'business', 'admin'));
+  end if;
+end
+$$;
+
+do $$
+begin
+  if not exists (
+    select 1 from pg_policies
+    where schemaname = 'public'
+      and tablename = 'profiles'
+      and policyname = 'Admins can view all profiles'
+  ) then
+    create policy "Admins can view all profiles"
+    on public.profiles for select
+    using (
+      exists (
+        select 1
+        from public.profiles as p
+        where p.user_id = auth.uid()
+          and p.role = 'admin'
+      )
+      or
+      user_id = auth.uid()
+    );
+  end if
+end
+$$;
+
+do $$
+begin
+  if not exists (
+    select 1 from pg_policies
+    where schemaname = 'public'
+      and tablename = 'profiles'
+      and policyname = 'Admins can update all profiles'
+  ) then
+    create policy "Admins can update all profiles"
+    on public.profiles for update
+    using (
+      exists (
+        select 1
+        from public.profiles as p
+        where p.user_id = auth.uid()
+          and p.role = 'admin'
+      )
+    )
+    with check (
+      exists (
+        select 1
+        from public.profiles as p
+        where p.user_id = auth.uid()
+          and p.role = 'admin'
+      )
+    );
+  end if;
+end
+$$;

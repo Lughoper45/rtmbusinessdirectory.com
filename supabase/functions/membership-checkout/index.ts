@@ -48,14 +48,10 @@ Deno.serve(async (req) => {
 
     const customerEmail = user?.email;
 
-    // Map plan to Stripe price
-    const priceMap: Record<string, string> = {
-      "Basic": "price_basic_monthly",
-      "Premium": "price_premium_monthly", 
-      "Pro": "price_pro_monthly",
-    };
-
-    const priceId = priceMap[plan.name] || "price_basic_monthly";
+    const priceId = plan.stripe_price_id;
+    if (!priceId) {
+      throw new Error(`No Stripe price ID configured for plan: ${plan.name}`);
+    }
 
     const baseUrl = Deno.env.get("SITE_URL") || "https://rtmbusinessdirectory.com";
 

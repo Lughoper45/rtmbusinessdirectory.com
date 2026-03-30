@@ -1,0 +1,14 @@
+drop policy if exists "Admins can view all profiles" on public.profiles;
+
+create policy "Admins can view all profiles"
+on public.profiles for select
+using (
+  exists (
+    select 1
+    from public.profiles as p
+    where p.user_id = auth.uid()
+      and p.role = 'admin'
+  )
+  or
+  user_id = auth.uid()
+);

@@ -36,11 +36,15 @@ import {
   Trash2, 
   CheckCircle,
   XCircle,
-  Percent
+  Percent,
+  AlertTriangle,
+  Database,
+  RefreshCw
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { Business } from "@/types/directory";
+import { LOCAL_DATA, LOCAL_DATA_STATS } from "@/data/sourceConfig";
 
 const categories = [
   "Restaurants", "Professional Services", "Shopping", "Health & Medical",
@@ -80,6 +84,7 @@ export default function AdminBusinesses() {
   const [businesses, setBusinesses] = useState<AdminBusiness[]>([]);
   const [deals, setDeals] = useState<DealRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSyncingLocalData, setIsSyncingLocalData] = useState(false);
   const pageSize = 20;
 
   const [formData, setFormData] = useState<Partial<Business>>({
@@ -433,6 +438,68 @@ export default function AdminBusinesses() {
     return businesses.find((business) => business.rowId === businessId)?.name || "Unknown business";
   };
 
+  const mapBusinessToInsertRow = (business: Business) => ({
+    business_id: business.id,
+    name: business.name,
+    category: business.category,
+    subcategory: business.subcategory || null,
+    description: business.description || "",
+    image: business.image || "",
+    logo: business.logo || null,
+    rating: business.rating || 0,
+    review_count: business.reviewCount || 0,
+    price_range: business.priceRange || "$$",
+    address: business.address || "",
+    city: business.city || "Toronto",
+    province: business.province || "ON",
+    distance: business.distance ?? null,
+    is_open: business.isOpen ?? true,
+    closing_time: business.closingTime || null,
+    phone: business.phone || null,
+    website: business.website || null,
+    is_verified: business.isVerified ?? false,
+    is_world_cup_ready: business.isWorldCupReady ?? false,
+    is_new: business.isNew ?? false,
+    is_trending: business.isTrending ?? false,
+    is_award_winner: business.isAwardWinner ?? false,
+    features: business.features || [],
+    ownership: business.ownership || [],
+    cuisine: business.cuisine || null,
+    recent_review_text: business.recentReview?.text || null,
+    recent_review_author: business.recentReview?.author || null,
+    recent_review_rating: business.recentReview?.rating || null,
+    lat: business.coordinates?.lat ?? null,
+    lng: business.coordinates?.lng ?? null,
+    photos: business.photos || [],
+  });
+
+  const syncLocalBusinessesToDatabase = async () => {
+    setIsSyncingLocalData(true);
+
+    try {
+      const BATCH_SIZE = 200;
+      let processed = 0;
+
+      for (let i = 0; i < LOCAL_DATA.length; i += BATCH_SIZE) {
+        const batch = LOCAL_DATA.slice(i, i + BATCH_SIZE).map(mapBusinessToInsertRow);
+        const { error } = await (supabase as any)
+          .from("businesses")
+          .upsert(batch, { onConflict: "business_id" });
+
+        if (error) throw error;
+        processed += batch.length;
+      }
+
+      await fetchBusinesses();
+      toast.success(`Synced ${processed.toLocaleString()} businesses to Supabase`);
+    } catch (error) {
+      console.error("Error syncing local businesses:", error);
+      toast.error("Failed to sync local businesses to Supabase");
+    } finally {
+      setIsSyncingLocalData(false);
+    }
+  };
+
   return (
     <AdminLayout>
       <div className="p-6 lg:p-8">
@@ -443,11 +510,51 @@ export default function AdminBusinesses() {
               Manage your business listings ({filteredBusinesses.length} total)
             </p>
           </div>
-          <Button onClick={handleAdd} className="gap-2">
-            <Plus className="h-4 w-4" />
-            Add Business
-          </Button>
+          <div className="flex flex-wrap gap-3">
+            <Button
+              variant="outline"
+              onClick={syncLocalBusinessesToDatabase}
+              disabled={isSyncingLocalData}
+              className="gap-2"
+            >
+              {isSyncingLocalData ? (
+                <RefreshCw className="h-4 w-4 animate-spin" />
+              ) : (
+                <Database className="h-4 w-4" />
+              )}
+              {isSyncingLocalData ? "Syncing Inventory..." : "Sync Local Inventory"}
+            </Button>
+            <Button onClick={handleAdd} className="gap-2">
+              <Plus className="h-4 w-4" />
+              Add Business
+            </Button>
+          </div>
         </div>
+
+        <Card className="mb-6 border-sky-200 bg-sky-50/80">
+          <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="space-y-1">
+              <p className="font-medium text-sky-950">Directory inventory available for sync</p>
+              <p className="text-sm text-sky-900">
+                {LOCAL_DATA_STATS.rtmCount.toLocaleString()} RTM export businesses plus{" "}
+                {LOCAL_DATA_STATS.generatedCount.toLocaleString()} system-generated Canadian listings are available locally in this app.
+              </p>
+            </div>
+            <Button
+              variant="secondary"
+              onClick={syncLocalBusinessesToDatabase}
+              disabled={isSyncingLocalData}
+              className="gap-2"
+            >
+              {isSyncingLocalData ? (
+                <RefreshCw className="h-4 w-4 animate-spin" />
+              ) : (
+                <Database className="h-4 w-4" />
+              )}
+              Push to Database
+            </Button>
+          </CardContent>
+        </Card>
 
         {/* Filters */}
         <Card className="mb-6">
@@ -488,6 +595,21 @@ export default function AdminBusinesses() {
         </Card>
 
         {/* Table */}
+        {businesses.length === 0 && !isLoading ? (
+          <Card className="mb-6 border-amber-300 bg-amber-50/80">
+            <CardContent className="flex gap-3 p-4">
+              <AlertTriangle className="h-5 w-5 text-amber-700 mt-0.5" />
+              <div>
+                <p className="font-medium text-amber-900">Database businesses are empty</p>
+                <p className="text-sm text-amber-800">
+                  The public directory can still show bundled fallback data, but admin only manages rows in `public.businesses`.
+                  Use "Push to Database" to sync the current local inventory into Supabase so businesses appear here and become selectable for deals.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        ) : null}
+
         <Card>
           <CardContent className="p-0">
             <Table>

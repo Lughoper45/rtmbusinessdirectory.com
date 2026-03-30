@@ -1,17 +1,20 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { 
   LayoutDashboard, 
   Building2, 
   Users, 
   Settings, 
   BarChart3,
+  Loader2,
+  ShieldAlert,
   X,
   Menu
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
 
 const navItems = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
@@ -74,7 +77,75 @@ const AdminSidebar = ({ onClose }: { onClose?: () => void }) => {
 };
 
 export const AdminLayout = ({ children }: { children: React.ReactNode }) => {
+  const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    void (async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (!session?.user) {
+        setIsAuthenticated(false);
+        setIsAdmin(false);
+        setIsLoading(false);
+        return;
+      }
+
+      setIsAuthenticated(true);
+
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("user_id", session.user.id)
+        .maybeSingle();
+
+      console.log("Profile data for user", session.user.id, { data, error });
+      setIsAdmin(data?.role === "admin");
+      setIsLoading(false);
+    })();
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-900">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!isAdmin) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-900 p-6">
+        <div className="max-w-lg rounded-2xl border bg-white p-8 text-center shadow-lg dark:bg-gray-950">
+          <ShieldAlert className="mx-auto mb-4 h-10 w-10 text-red-500" />
+          <h1 className="text-2xl font-bold">
+            {isAuthenticated ? "Admin Access Required" : "Sign In Required"}
+          </h1>
+          <p className="mt-3 text-sm text-gray-600 dark:text-gray-400">
+            {isAuthenticated
+              ? "Your account does not currently have the `admin` role in `profiles.role`, so the admin workspace is blocked."
+              : "Please sign in to access the admin workspace."}
+          </p>
+          <div className="mt-6">
+            {isAuthenticated ? (
+              <Link to="/" className="text-primary hover:underline">
+                Return to website
+              </Link>
+            ) : (
+              <Link to="/login" className="text-primary hover:underline">
+                Sign in
+              </Link>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-gray-900">

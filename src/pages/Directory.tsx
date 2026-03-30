@@ -26,6 +26,8 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Database, TriangleAlert } from "lucide-react";
 
 const PAGE_SIZE = 24;
 
@@ -63,6 +65,10 @@ const Directory = () => {
   const [totalPages, setTotalPages] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [savedBusinesses, setSavedBusinesses] = useState<Business[]>([]);
+  const [dataSource, setDataSource] = useState<"database" | "local">("database");
+  const [databaseEmpty, setDatabaseEmpty] = useState(false);
+  const [sourceMode, setSourceMode] = useState<"hybrid" | "database" | "local">("hybrid");
+  const [localStats, setLocalStats] = useState({ total: 0, rtmCount: 0, generatedCount: 0 });
 
   // Load user
   useEffect(() => {
@@ -111,6 +117,10 @@ const Directory = () => {
     setBusinesses(result.businesses);
     setTotalCount(result.total);
     setTotalPages(result.pages);
+    setDataSource(result.source);
+    setDatabaseEmpty(result.databaseEmpty);
+    setSourceMode(result.sourceMode);
+    setLocalStats(result.localStats);
     setIsLoading(false);
   }, [currentPage, searchQuery, filters.categories, filters.rating, filters.location, filters.ownership, urlFilter]);
 
@@ -265,6 +275,29 @@ const Directory = () => {
           <SmartFilters filters={filters} setFilters={handleFiltersChange} resultCount={totalCount} />
         )}
         <main className="container mx-auto px-4 py-6">
+          {dataSource === "local" && (
+            <Alert className="mb-6 border-amber-200 bg-amber-50 text-amber-950">
+              <TriangleAlert className="h-4 w-4" />
+              <AlertTitle>Directory is using bundled fallback data</AlertTitle>
+              <AlertDescription>
+                {databaseEmpty
+                  ? `Supabase businesses are empty, so the public directory is currently showing ${localStats.rtmCount.toLocaleString()} RTM-export businesses plus ${localStats.generatedCount.toLocaleString()} system-generated Canadian business listings.`
+                  : `The directory fell back to bundled local data because the database request failed. Current local bundle: ${localStats.rtmCount.toLocaleString()} RTM-export businesses plus ${localStats.generatedCount.toLocaleString()} system-generated Canadian business listings.`}
+                {sourceMode === "hybrid"
+                  ? " Set VITE_DIRECTORY_SOURCE_MODE=database once the full old-site import is loaded into public.businesses."
+                  : ""}
+              </AlertDescription>
+            </Alert>
+          )}
+          {dataSource === "database" && sourceMode === "database" && totalCount === 0 && (
+            <Alert className="mb-6 border-sky-200 bg-sky-50 text-sky-950">
+              <Database className="h-4 w-4" />
+              <AlertTitle>Directory is running database-only</AlertTitle>
+              <AlertDescription>
+                No businesses were returned from `public.businesses`. This is the correct production-safe behavior while the full old-site import is still pending.
+              </AlertDescription>
+            </Alert>
+          )}
           {renderContent()}
           {renderPagination()}
         </main>

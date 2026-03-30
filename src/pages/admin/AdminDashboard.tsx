@@ -7,7 +7,10 @@ const stats = [
   {
     title: "Total Businesses",
     value: businessStats.total.toLocaleString(),
-    description: `${businessStats.rtmCount} from RTM, ${businessStats.generatedCount} generated`,
+    description:
+      businessStats.sourceMode === "database"
+        ? "Local bundle stats shown for reference while production uses the database"
+        : `${businessStats.rtmCount} from RTM, ${businessStats.generatedCount} system-generated listings`,
     icon: Building2,
     color: "text-blue-600",
     bgColor: "bg-blue-50 dark:bg-blue-950",
@@ -47,7 +50,7 @@ export default function AdminDashboard() {
         <div className="mb-8">
           <h1 className="text-3xl font-bold">Dashboard</h1>
           <p className="text-gray-600 dark:text-gray-400">
-            Overview of your business directory
+            Overview of the local directory bundle used for fallback and demo states
           </p>
         </div>
 

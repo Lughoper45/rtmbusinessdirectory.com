@@ -7,6 +7,7 @@ CREATE TABLE membership_plans (
   interval TEXT NOT NULL DEFAULT 'year',
   features JSONB DEFAULT '[]',
   is_active BOOLEAN DEFAULT true,
+  stripe_price_id TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
