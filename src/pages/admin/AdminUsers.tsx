@@ -45,22 +45,48 @@ export default function AdminUsers() {
   const loadUsers = async () => {
     setIsLoading(true);
     try {
-      const { data: profiles, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .order("created_at", { ascending: false });
+      // Get auth users directly
+      const { data: { users: authUsers }, error: authError } = await supabase.auth.admin.listUsers();
 
-      if (error) throw error;
-
-      // Get auth users to get emails
-      const { data: { users: authUsers } } = await supabase.auth.admin.listUsers();
-      
-      // Merge profiles with auth users
-      const mergedUsers = (profiles || []).map((profile) => {
-        const authUser = authUsers?.find(u => u.id === profile.user_id);
-        return {
+      if (authError) {
+        console.error("Auth error:", authError);
+        // Try alternative - get from profiles table
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select("*")
+          .order("created_at", { ascending: false });
+        
+        const mergedUsers = (profiles || []).map((profile) => ({
           ...profile,
-          email: authUser?.email || "Unknown",
+          email: profile.full_name || "Unknown",
+        }));
+        setUsers(mergedUsers);
+        setStatsData({
+          total: mergedUsers.length,
+          active: mergedUsers.length,
+          business: 0,
+          member: mergedUsers.length,
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      // Get profiles to merge with auth users
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("*");
+      
+      // Merge auth users with profiles
+      const mergedUsers = (authUsers || []).map((authUser) => {
+        const profile = profiles?.find(p => p.user_id === authUser.id);
+        return {
+          id: authUser.id,
+          user_id: authUser.id,
+          full_name: profile?.full_name || authUser.user_metadata?.full_name || authUser.email?.split("@")[0] || "Unknown",
+          email: authUser.email || "Unknown",
+          phone: profile?.phone || null,
+          avatar_url: profile?.avatar_url || authUser.user_metadata?.avatar_url || null,
+          created_at: authUser.created_at,
         };
       });
 

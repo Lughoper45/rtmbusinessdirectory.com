@@ -251,6 +251,7 @@ export type Database = {
           id: string
           user_id: string
           full_name: string | null
+          role: string
           phone: string | null
           avatar_url: string | null
           created_at: string
@@ -260,6 +261,7 @@ export type Database = {
           id?: string
           user_id: string
           full_name?: string | null
+          role?: string
           phone?: string | null
           avatar_url?: string | null
           created_at?: string
@@ -269,6 +271,7 @@ export type Database = {
           id?: string
           user_id?: string
           full_name?: string | null
+          role?: string
           phone?: string | null
           avatar_url?: string | null
           created_at?: string
