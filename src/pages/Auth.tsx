@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
@@ -19,6 +19,7 @@ type AuthMode = "login" | "signup" | "forgot" | "reset";
 
 const Auth = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [mode, setMode] = useState<AuthMode>("login");
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState("");
@@ -27,6 +28,12 @@ const Auth = () => {
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
   const [token, setToken] = useState<string | null>(null);
   const [tokenEmail, setTokenEmail] = useState<string | null>(null);
+  const redirectTo = (() => {
+    const params = new URLSearchParams(location.search);
+    const rawTarget = params.get("redirectTo");
+    if (!rawTarget || !rawTarget.startsWith("/")) return "/dashboard";
+    return rawTarget;
+  })();
 
   // Check for reset token on mount
   useEffect(() => {
@@ -56,14 +63,24 @@ const Auth = () => {
     }
 
     // Listen for auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === "PASSWORD_RECOVERY") {
         setMode("reset");
+        return;
+      }
+      if (event === "SIGNED_IN" && session?.user && mode !== "reset") {
+        navigate(redirectTo, { replace: true });
+      }
+    });
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user && mode !== "reset") {
+        navigate(redirectTo, { replace: true });
       }
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [mode, navigate, redirectTo]);
 
   const validateEmail = () => {
     const result = emailSchema.safeParse(email);
@@ -102,6 +119,7 @@ const Auth = () => {
       toast.error(error.message);
     } else {
       toast.success("Welcome back!");
+      navigate(redirectTo, { replace: true });
     }
     setIsLoading(false);
   };

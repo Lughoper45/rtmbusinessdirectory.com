@@ -30,6 +30,8 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Database, TriangleAlert } from "lucide-react";
 
 const PAGE_SIZE = 24;
+const showDirectorySourceNotice =
+  import.meta.env.DEV || import.meta.env.VITE_SHOW_DIRECTORY_SOURCE_NOTICE === "true";
 
 const Directory = () => {
   const navigate = useNavigate();
@@ -275,7 +277,7 @@ const Directory = () => {
           <SmartFilters filters={filters} setFilters={handleFiltersChange} resultCount={totalCount} />
         )}
         <main className="container mx-auto px-4 py-6">
-          {dataSource === "local" && (
+          {showDirectorySourceNotice && dataSource === "local" && (
             <Alert className="mb-6 border-amber-200 bg-amber-50 text-amber-950">
               <TriangleAlert className="h-4 w-4" />
               <AlertTitle>Directory is using bundled fallback data</AlertTitle>
@@ -289,7 +291,7 @@ const Directory = () => {
               </AlertDescription>
             </Alert>
           )}
-          {dataSource === "database" && sourceMode === "database" && totalCount === 0 && (
+          {showDirectorySourceNotice && dataSource === "database" && sourceMode === "database" && totalCount === 0 && (
             <Alert className="mb-6 border-sky-200 bg-sky-50 text-sky-950">
               <Database className="h-4 w-4" />
               <AlertTitle>Directory is running database-only</AlertTitle>
