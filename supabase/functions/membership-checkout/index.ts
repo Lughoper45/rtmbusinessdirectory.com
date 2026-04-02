@@ -12,6 +12,12 @@ const PLACEHOLDER_PRICE_IDS = new Set([
   "price_pro_year",
 ]);
 
+const FALLBACK_PLAN_CATALOG = {
+  basic: { id: "basic", name: "Basic", price: 99.99 },
+  premium: { id: "premium", name: "Premium", price: 149.99 },
+  pro: { id: "pro", name: "Pro", price: 199.99 },
+} as const;
+
 function resolveStripePriceId(plan: { name: string; stripe_price_id?: string | null }) {
   if (plan.stripe_price_id && !PLACEHOLDER_PRICE_IDS.has(plan.stripe_price_id)) {
     return plan.stripe_price_id;
@@ -59,15 +65,16 @@ Deno.serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     // Get plan details
-    const { data: plan } = await supabase
+    const { data: planRow } = await supabase
       .from("membership_plans")
       .select("*")
       .eq("id", planId)
       .single();
 
-    if (!plan) {
-      throw new Error("Plan not found");
-    }
+    const fallbackPlan = FALLBACK_PLAN_CATALOG[planId.toLowerCase() as keyof typeof FALLBACK_PLAN_CATALOG];
+    const plan = planRow ?? fallbackPlan;
+
+    if (!plan) throw new Error("Plan not found");
 
     const {
       data: { user },

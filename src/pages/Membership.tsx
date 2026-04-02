@@ -9,17 +9,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
+import { FALLBACK_MEMBERSHIP_PLANS, type MembershipPlan } from "@/data/membershipPlans";
 import { createMembershipCheckout } from "@/services/payment";
 import { toast } from "sonner";
-
-interface MembershipPlan {
-  id: string;
-  name: string;
-  description: string | null;
-  price: number;
-  interval: string;
-  features: string[];
-}
 
 interface UserMembership {
   id: string;
@@ -68,11 +60,15 @@ const Membership = () => {
     ]);
 
     if (plansError) {
-      toast.error("Unable to load membership plans.");
-      return;
+      console.error(plansError);
+      setPlans(FALLBACK_MEMBERSHIP_PLANS);
+      toast.error("Live membership plans were unavailable. Showing the current RTM catalog.");
+    } else if (!plansData || plansData.length === 0) {
+      setPlans(FALLBACK_MEMBERSHIP_PLANS);
+    } else {
+      setPlans(plansData);
     }
 
-    setPlans(plansData ?? []);
     setMembership(membershipData);
   };
 

@@ -25,6 +25,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
+import { FALLBACK_MEMBERSHIP_PLANS, type MembershipPlan } from "@/data/membershipPlans";
 import { createMembershipCheckout } from "@/services/payment";
 import { toast } from "sonner";
 
@@ -46,15 +47,6 @@ interface Deal {
     image: string;
     rating: number;
   };
-}
-
-interface MembershipPlan {
-  id: string;
-  name: string;
-  description: string | null;
-  price: number;
-  interval: string;
-  features: string[];
 }
 
 interface UserMembership {
@@ -155,11 +147,13 @@ const Deals = () => {
       .order("price");
 
     if (error) {
-      toast.error("Unable to load membership plans.");
+      console.error(error);
+      setMembershipPlans(FALLBACK_MEMBERSHIP_PLANS);
+      toast.error("Live membership plans were unavailable. Showing the current RTM catalog.");
       return;
     }
 
-    setMembershipPlans(data ?? []);
+    setMembershipPlans(data && data.length > 0 ? data : FALLBACK_MEMBERSHIP_PLANS);
   };
 
   const loadUserMembership = async (userId: string) => {
