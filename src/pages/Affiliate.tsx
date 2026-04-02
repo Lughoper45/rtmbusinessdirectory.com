@@ -86,14 +86,24 @@ const Affiliate = () => {
   );
 
   const handleCopyLink = async () => {
-    if (!affiliate?.referral_code) {
-      toast.error("Referral code not available yet.");
+    if (!user) {
+      navigate("/auth?redirectTo=/affiliate");
       return;
     }
 
-    const url = `${window.location.origin}/ref/${affiliate.referral_code}`;
-    await navigator.clipboard.writeText(url);
-    toast.success("Referral link copied.");
+    try {
+      const affiliateAccount = affiliate ?? (await ensureAffiliateAccount(user));
+      if (!affiliate) {
+        setAffiliate(affiliateAccount);
+      }
+
+      const url = `${window.location.origin}/ref/${affiliateAccount.referral_code}`;
+      await navigator.clipboard.writeText(url);
+      toast.success("Referral link copied.");
+    } catch (error) {
+      console.error(error);
+      toast.error("Unable to generate your referral link right now.");
+    }
   };
 
   const handleCreateAffiliate = async () => {

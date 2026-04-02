@@ -153,9 +153,9 @@ const Membership = () => {
                   <CardHeader className="border-b border-border/60 pb-4">
                     <CardTitle className="flex items-center gap-2 text-xl">
                       <Wallet className="h-5 w-5 text-primary" />
-                      Membership Status
+                      Your RTM Benefit Card
                     </CardTitle>
-                    <CardDescription>Your current RTM access state</CardDescription>
+                    <CardDescription>Click to see front and back</CardDescription>
                   </CardHeader>
                   <CardContent className="grid gap-4 p-6 sm:grid-cols-2">
                     <div className="rounded-2xl bg-muted/50 p-4">
@@ -172,6 +172,19 @@ const Membership = () => {
                         {membership ? new Date(membership.expires_at).toLocaleDateString() : "Purchase a plan to activate access"}
                       </div>
                     </div>
+                    {membership && (
+                      <div className="sm:col-span-2">
+                        <div className="flex gap-4 justify-center">
+                          <div className="flex-1 max-w-[200px]">
+                            <img src="/membership card front.png" alt="RTM Benefit Card Front" className="w-full rounded-xl shadow-lg" />
+                          </div>
+                          <div className="flex-1 max-w-[200px]">
+                            <img src="/membership card back.png" alt="RTM Benefit Card Back" className="w-full rounded-xl shadow-lg" />
+                          </div>
+                        </div>
+                        <p className="mt-3 text-center text-sm text-muted-foreground">Your RTM Benefit Card - present at participating businesses for discounts</p>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               </div>
