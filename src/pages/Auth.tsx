@@ -69,13 +69,13 @@ const Auth = () => {
         return;
       }
       if (event === "SIGNED_IN" && session?.user && mode !== "reset") {
-        navigate(redirectTo, { replace: true });
+        setTimeout(() => navigate(redirectTo, { replace: true }), 100);
       }
     });
 
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user && mode !== "reset") {
-        navigate(redirectTo, { replace: true });
+        setTimeout(() => navigate(redirectTo, { replace: true }), 100);
       }
     });
 
@@ -119,7 +119,8 @@ const Auth = () => {
       toast.error(error.message);
     } else {
       toast.success("Welcome back!");
-      navigate(redirectTo, { replace: true });
+      // Small delay to ensure session is set before navigation
+      setTimeout(() => navigate(redirectTo, { replace: true }), 100);
     }
     setIsLoading(false);
   };

@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
+import { ensureAffiliateAccount } from "@/services/affiliate";
 import { toast } from "sonner";
 
 interface AffiliateSummary {
@@ -33,12 +34,14 @@ const Affiliate = () => {
   const [affiliate, setAffiliate] = useState<AffiliateSummary | null>(null);
   const [referrals, setReferrals] = useState<AffiliateReferral[]>([]);
   const [isCreatingAffiliate, setIsCreatingAffiliate] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     void loadPage();
   }, []);
 
   const loadPage = async () => {
+    setIsLoading(true);
     const {
       data: { session },
     } = await supabase.auth.getSession();
@@ -46,18 +49,13 @@ const Affiliate = () => {
     setUser(currentUser);
 
     if (!currentUser) {
+      setIsLoading(false);
       return;
     }
 
-    const { data: affiliateData } = await supabase
-      .from("affiliates")
-      .select("id, referral_code, total_earnings, commission_rate, status")
-      .eq("user_id", currentUser.id)
-      .maybeSingle();
-
-    setAffiliate(affiliateData);
-
-    if (affiliateData?.id) {
+    try {
+      const affiliateData = await ensureAffiliateAccount(currentUser);
+      setAffiliate(affiliateData);
       const { data: referralData } = await supabase
         .from("affiliate_referrals")
         .select("id, membership_tier, commission_amount, commission_paid, created_at")
@@ -66,6 +64,11 @@ const Affiliate = () => {
         .limit(8);
 
       setReferrals(referralData ?? []);
+    } catch (error) {
+      console.error(error);
+      toast.error("Unable to load affiliate account.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -101,23 +104,7 @@ const Affiliate = () => {
 
     try {
       setIsCreatingAffiliate(true);
-      const base = (user.email?.split("@")[0] || "rtm").replace(/[^a-zA-Z0-9]/g, "").slice(0, 8).toUpperCase();
-      const referralCode = `${base}${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
-
-      const { data, error } = await supabase
-        .from("affiliates")
-        .insert({
-          user_id: user.id,
-          referral_code: referralCode,
-          commission_rate: 30,
-          total_earnings: 0,
-          status: "active",
-        })
-        .select("id, referral_code, total_earnings, commission_rate, status")
-        .single();
-
-      if (error) throw error;
-
+      const data = await ensureAffiliateAccount(user);
       setAffiliate(data);
       toast.success("Affiliate account activated.");
     } catch (error) {
@@ -134,6 +121,8 @@ const Affiliate = () => {
     { icon: Users, label: "Tracked Referrals", value: `${referrals.length}` },
     { icon: Target, label: "Pending Value", value: `$${pendingValue.toFixed(2)}` },
   ];
+
+  const referralLink = affiliate?.referral_code ? `${window.location.origin}/ref/${affiliate.referral_code}` : null;
 
   return (
     <>
@@ -194,18 +183,22 @@ const Affiliate = () => {
                   <CardContent className="grid gap-4 p-6 sm:grid-cols-2">
                     <div className="rounded-2xl bg-muted/50 p-4">
                       <div className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Status</div>
-                      <div className="mt-2 text-2xl font-bold text-foreground">{affiliate?.status ?? "Not Setup"}</div>
+                      <div className="mt-2 text-2xl font-bold text-foreground">
+                        {isLoading ? "Loading" : affiliate?.status ?? "Not Setup"}
+                      </div>
                     </div>
                     <div className="rounded-2xl bg-muted/50 p-4">
                       <div className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Referral Code</div>
-                      <div className="mt-2 text-2xl font-bold text-foreground">{affiliate?.referral_code ?? "Pending"}</div>
+                      <div className="mt-2 text-2xl font-bold text-foreground">
+                        {isLoading ? "Generating..." : affiliate?.referral_code ?? "Pending"}
+                      </div>
                     </div>
                     <div className="rounded-2xl bg-muted/50 p-4 sm:col-span-2">
                       <div className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Shareable Link</div>
                       <div className="mt-2 break-all text-sm font-medium text-foreground">
-                        {affiliate?.referral_code ? `${window.location.origin}/ref/${affiliate.referral_code}` : "Available after affiliate setup"}
+                        {isLoading ? "Preparing your referral link..." : referralLink ?? "Available after affiliate setup"}
                       </div>
-                      <Button className="mt-4" variant="outline" onClick={() => void handleCopyLink()}>
+                      <Button className="mt-4" variant="outline" onClick={() => void handleCopyLink()} disabled={isLoading}>
                         Copy Referral Link
                       </Button>
                     </div>
@@ -217,7 +210,7 @@ const Affiliate = () => {
 
           <section className="py-20 md:py-24">
             <div className="container mx-auto max-w-[1280px] px-6">
-              {user && !affiliate ? (
+              {user && !affiliate && !isLoading ? (
                 <Card className="mb-8 border-primary/15 bg-primary/5 shadow-medium">
                   <CardContent className="flex flex-col gap-4 p-8 md:flex-row md:items-center md:justify-between">
                     <div>

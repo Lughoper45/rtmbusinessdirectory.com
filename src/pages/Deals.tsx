@@ -554,6 +554,9 @@ const Deals = () => {
                   <p className="mt-3 text-lg text-muted-foreground">
                     Annual plans are presented as premium products while keeping the existing RTM membership model intact.
                   </p>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    <span className="font-semibold text-primary">RTM Benefit Card:</span> Get exclusive 5-50% discounts at participating businesses across restaurants, retail, travel, and more.
+                  </p>
                 </div>
                 <div className="rounded-2xl border border-primary/15 bg-primary/5 px-5 py-4 text-sm text-foreground">
                   <span className="font-semibold text-primary">Current access:</span> {activePlan?.name ?? "No active membership"}

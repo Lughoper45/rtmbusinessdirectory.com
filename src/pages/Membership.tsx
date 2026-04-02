@@ -103,7 +103,9 @@ const Membership = () => {
     "Unlock member-only deals across RTM businesses",
     "Keep access in a digital-first membership experience",
     "Move from basic sign-up to repeatable loyalty and renewals",
-    "Fit naturally into RTM’s wider business and media ecosystem",
+    "Fit naturally into RTM's wider business and media ecosystem",
+    "Receive your RTM Benefit Card for exclusive discounts at participating businesses",
+    "Access savings of 5% - 50% at restaurants, retail, travel, and more",
   ];
 
   return (
