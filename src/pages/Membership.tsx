@@ -172,10 +172,10 @@ const Membership = () => {
                       <div className="sm:col-span-2">
                         <div className="flex gap-4 justify-center">
                           <div className="flex-1 max-w-[200px]">
-                            <img src="/membership card front.png" alt="RTM Benefit Card Front" className="w-full rounded-xl shadow-lg" />
+                            <img src="/membership-card-front.png" alt="RTM Benefit Card Front" className="w-full rounded-xl shadow-lg" />
                           </div>
                           <div className="flex-1 max-w-[200px]">
-                            <img src="/membership card back.png" alt="RTM Benefit Card Back" className="w-full rounded-xl shadow-lg" />
+                            <img src="/membership-card-back.png" alt="RTM Benefit Card Back" className="w-full rounded-xl shadow-lg" />
                           </div>
                         </div>
                         <p className="mt-3 text-center text-sm text-muted-foreground">Your RTM Benefit Card - present at participating businesses for discounts</p>
