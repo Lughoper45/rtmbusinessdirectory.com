@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Business } from "@/types/directory";
 import { cn } from "@/lib/utils";
+import { getBusinessImageFallback, getBusinessImageUrl } from "@/lib/businessImages";
 
 interface BusinessListProps {
   businesses: Business[];
@@ -29,9 +30,13 @@ const BusinessList = ({ businesses, onSelectBusiness, savedBusinesses, onSave }:
           onClick={() => onSelectBusiness(business)}
         >
           <img
-            src={business.image}
+            src={getBusinessImageUrl(business)}
             alt={business.name}
             className="w-40 h-32 object-cover rounded-lg flex-shrink-0"
+            onError={(e) => {
+              e.currentTarget.onerror = null;
+              e.currentTarget.src = getBusinessImageFallback(business);
+            }}
           />
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between">

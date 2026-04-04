@@ -2,6 +2,7 @@ import { X, Star, MapPin, Clock, Phone, Navigation, Heart, Share2, ExternalLink 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Business } from "@/types/directory";
+import { getBusinessImageFallback, getBusinessImageUrl } from "@/lib/businessImages";
 
 interface QuickViewModalProps {
   business: Business;
@@ -27,7 +28,15 @@ const QuickViewModal = ({ business, onClose, isSaved, onSave }: QuickViewModalPr
 
         {/* Gallery */}
         <div className="relative h-48 overflow-hidden">
-          <img src={business.image} alt={business.name} className="w-full h-full object-cover" />
+          <img
+            src={getBusinessImageUrl(business)}
+            alt={business.name}
+            className="w-full h-full object-cover"
+            onError={(e) => {
+              e.currentTarget.onerror = null;
+              e.currentTarget.src = getBusinessImageFallback(business);
+            }}
+          />
           <div className="absolute bottom-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded">
             1 / {business.photos?.length || 1}
           </div>

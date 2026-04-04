@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Business } from "@/types/directory";
 import { cn } from "@/lib/utils";
+import { getBusinessImageFallback, getBusinessImageUrl } from "@/lib/businessImages";
 
 interface BusinessCardProps {
   business: Business;
@@ -13,10 +14,8 @@ interface BusinessCardProps {
   onSave: () => void;
 }
 
-const PLACEHOLDER_IMAGE = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300'%3E%3Crect fill='%23e5e7eb' width='400' height='300'/%3E%3Ctext fill='%239ca3af' font-family='sans-serif' font-size='20' x='50%25' y='50%25' text-anchor='middle' dy='.3em'%3ENo Image%3C/text%3E%3C/svg%3E";
-
 const BusinessCard = memo(function BusinessCard({ business, onSelect, isSaved, onSave }: BusinessCardProps) {
-  const imageSrc = business.image || PLACEHOLDER_IMAGE;
+  const imageSrc = getBusinessImageUrl(business);
 
   return (
     <Card className="group overflow-hidden hover:shadow-heavy transition-all duration-300 hover:-translate-y-2 cursor-pointer">
@@ -26,7 +25,10 @@ const BusinessCard = memo(function BusinessCard({ business, onSelect, isSaved, o
           src={imageSrc}
           alt={business.name}
           loading="lazy"
-          onError={(e) => { e.currentTarget.src = PLACEHOLDER_IMAGE; }}
+          onError={(e) => {
+            e.currentTarget.onerror = null;
+            e.currentTarget.src = getBusinessImageFallback(business);
+          }}
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
