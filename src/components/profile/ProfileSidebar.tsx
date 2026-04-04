@@ -76,14 +76,18 @@ const ProfileSidebar = ({ business }: ProfileSidebarProps) => {
           {/* Website */}
           <div className="flex items-center gap-3">
             <Globe className="w-5 h-5 text-muted-foreground" />
-            <a 
-              href={business.website || '#'} 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="text-primary hover:underline truncate"
-            >
-              {business.website || 'www.example.com'}
-            </a>
+            {business.website ? (
+              <a 
+                href={business.website.startsWith('http') ? business.website : `https://${business.website}`}
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-primary hover:underline truncate"
+              >
+                {business.website}
+              </a>
+            ) : (
+              <span className="text-muted-foreground">Not provided</span>
+            )}
           </div>
 
           <Separator />

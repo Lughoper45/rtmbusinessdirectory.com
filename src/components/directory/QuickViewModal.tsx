@@ -22,7 +22,14 @@ const QuickViewModal = ({ business, onClose, isSaved, onSave }: QuickViewModalPr
             <X size={20} />
           </Button>
           <Button variant="outline" size="sm" asChild>
-            <a href="#">Full Profile <ExternalLink size={14} className="ml-1" /></a>
+            <a 
+              href={business.website?.trim() ? (business.website.startsWith('http') ? business.website : `https://${business.website}`) : '#'} 
+              target={business.website ? "_blank" : undefined}
+              rel={business.website ? "noopener noreferrer" : undefined}
+              onClick={(e) => !business.website && e.preventDefault()}
+            >
+              Visit Website <ExternalLink size={14} className="ml-1" />
+            </a>
           </Button>
         </div>
 
