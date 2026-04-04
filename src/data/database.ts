@@ -5,6 +5,9 @@ import {
   DIRECTORY_SOURCE_MODE,
   LOCAL_DATA,
   LOCAL_DATA_STATS,
+  dedupeBusinessesById,
+  getBusinessSignature,
+  sortBusinessesForDirectory,
   type DirectoryDataSource,
   shouldUseDatabaseOnly,
   shouldUseLocalFallback,
@@ -19,6 +22,19 @@ export interface PaginatedBusinessResult {
   databaseEmpty: boolean;
   localStats: typeof LOCAL_DATA_STATS;
   sourceMode: typeof DIRECTORY_SOURCE_MODE;
+}
+
+function dedupePageBusinesses(businesses: Business[]) {
+  const seen = new Set<string>();
+
+  return businesses.filter((business) => {
+    const signature = getBusinessSignature(business);
+    if (seen.has(signature)) {
+      return false;
+    }
+    seen.add(signature);
+    return true;
+  });
 }
 
 function getLocalPaginatedBusinesses(
@@ -172,11 +188,12 @@ export async function fetchPaginatedBusinesses(
   }
 
   const from = (page - 1) * pageSize;
-  const to = from + pageSize - 1;
+  const fetchLimit = Math.max(page * pageSize * 12, 500);
+  const to = fetchLimit - 1;
 
   const { data, error, count } = await query
-    .order("rating", { ascending: false })
-    .range(from, to);
+    .order("business_id", { ascending: false })
+    .range(0, to);
 
   if (error) {
     if (shouldUseLocalFallback()) {
@@ -219,9 +236,13 @@ export async function fetchPaginatedBusinesses(
     };
   }
 
-  const total = count || 0;
+  const processedBusinesses = sortBusinessesForDirectory(dedupeBusinessesById((data || []).map(mapRowToBusiness)));
+  const pageWindow = processedBusinesses.slice(from, from + pageSize * 3);
+  const paginatedBusinesses = dedupePageBusinesses(pageWindow).slice(0, pageSize);
+  const total = count || processedBusinesses.length;
+
   return {
-    businesses: (data || []).map(mapRowToBusiness),
+    businesses: paginatedBusinesses,
     total,
     pages: Math.ceil(total / pageSize),
     source: "database",
