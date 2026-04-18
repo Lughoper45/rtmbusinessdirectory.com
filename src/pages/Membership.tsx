@@ -26,6 +26,13 @@ const Membership = () => {
   const [plans, setPlans] = useState<MembershipPlan[]>([]);
   const [membership, setMembership] = useState<UserMembership | null>(null);
   const [checkoutPlanId, setCheckoutPlanId] = useState<string | null>(null);
+  const [dineOut, setDineOut] = useState(4);
+  const [shopping, setShopping] = useState(500);
+  const [services, setServices] = useState(200);
+
+  const monthlySavings = (dineOut * 40 * 0.15) + (shopping * 0.15) + (services * 0.15);
+  const annualSavings = monthlySavings * 12;
+  const roi = annualSavings / 100;
 
   useEffect(() => {
     void loadPage();
@@ -184,6 +191,66 @@ const Membership = () => {
                   </CardContent>
                 </Card>
               </div>
+            </div>
+          </section>
+
+          <section className="py-20 md:py-24 bg-slate-50">
+            <div className="container mx-auto max-w-[1280px] px-6">
+              <Card className="border-border/70 bg-background shadow-heavy">
+                <CardHeader className="border-b border-border/60 pb-4 text-center">
+                  <CardTitle className="flex items-center justify-center gap-2 text-2xl">
+                    💰 Will You Save More Than $100?
+                  </CardTitle>
+                  <CardDescription>Calculate your potential annual savings with RTM membership</CardDescription>
+                </CardHeader>
+                <CardContent className="p-6">
+                  <div className="grid gap-6 md:grid-cols-3">
+                    <div className="space-y-2">
+                      <label className="block text-sm font-medium">Dining out per month:</label>
+                      <input
+                        type="number"
+                        value={dineOut}
+                        onChange={(e) => setDineOut(Number(e.target.value))}
+                        className="w-full p-3 border rounded-lg"
+                        min="0"
+                      />
+                      <p className="text-xs text-muted-foreground">Save ~$40/month at 15% avg</p>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="block text-sm font-medium">Monthly shopping:</label>
+                      <input
+                        type="number"
+                        value={shopping}
+                        onChange={(e) => setShopping(Number(e.target.value))}
+                        className="w-full p-3 border rounded-lg"
+                        min="0"
+                      />
+                      <p className="text-xs text-muted-foreground">Save ~15%</p>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="block text-sm font-medium">Services (haircut, etc):</label>
+                      <input
+                        type="number"
+                        value={services}
+                        onChange={(e) => setServices(Number(e.target.value))}
+                        className="w-full p-3 border rounded-lg"
+                        min="0"
+                      />
+                      <p className="text-xs text-muted-foreground">Save ~15%</p>
+                    </div>
+                  </div>
+                  <div className="mt-6 rounded-xl bg-green-50 p-6 border border-green-200 text-center">
+                    <div className="text-sm text-green-700">Your Estimated Annual Savings:</div>
+                    <div className="text-4xl font-bold text-green-700">${annualSavings.toFixed(0)}</div>
+                    <div className="text-lg text-green-600 mt-2">
+                      That's <strong>{roi.toFixed(0)}x</strong> your $100 membership cost!
+                    </div>
+                    <p className="mt-2 text-sm text-green-600">
+                      You break even after just {Math.ceil(100 / monthlySavings)} weeks of savings!
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           </section>
 

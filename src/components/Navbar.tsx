@@ -10,7 +10,9 @@ import {
   HandCoins,
   LogOut,
   Menu,
+  MapPin,
   Newspaper,
+  Phone,
   User,
   X,
 } from "lucide-react";
@@ -136,14 +138,25 @@ const Navbar = () => {
       <header className="sticky top-0 z-50 border-b border-border/60 bg-background/95 backdrop-blur-md">
         <div className="hidden border-b border-white/10 bg-slate-950 text-slate-100 md:block">
           <div className="container mx-auto flex max-w-[1440px] items-center justify-between px-6 py-2 text-sm">
-            <button
-              type="button"
-              className="inline-flex items-center gap-2 text-slate-300 transition-colors hover:text-white"
-              onClick={() => toast.message("English and French language switching will be enabled in a later release.")}
-            >
-              <Globe className="h-4 w-4" />
-              EN / FR
-            </button>
+            <div className="flex items-center gap-4">
+              <button
+                type="button"
+                className="inline-flex items-center gap-2 text-slate-300 transition-colors hover:text-white"
+                onClick={() => toast.message("English and French language switching will be enabled in a later release.")}
+              >
+                <Globe className="h-4 w-4" />
+                EN / FR
+              </button>
+              <a href="tel:+14161234567" className="inline-flex items-center gap-1.5 text-slate-300 hover:text-white transition-colors">
+                <Phone className="h-4 w-4" />
+                1-416-123-4567
+              </a>
+              <span className="text-slate-600">|</span>
+              <div className="inline-flex items-center gap-1.5 text-slate-300">
+                <MapPin className="h-4 w-4" />
+                Toronto, ON
+              </div>
+            </div>
 
             <div className="flex items-center gap-5">
               <a href="/#support" className="text-slate-300 transition-colors hover:text-white">
@@ -170,7 +183,10 @@ const Navbar = () => {
             <Link to="/" className="flex items-center gap-3">
               <img src="/rtm logo.png" alt="RTM Global Canada" className="h-10 w-auto" />
               <div className="hidden lg:block">
-                <div className="text-sm font-semibold uppercase tracking-[0.2em] text-primary">RTM Global Canada</div>
+                <div className="flex items-center gap-2">
+                  <div className="text-sm font-semibold uppercase tracking-[0.2em] text-primary">RTM Global Canada</div>
+                  <span className="text-lg" title="Proudly Canadian">🍁</span>
+                </div>
                 <div className="text-xs text-muted-foreground">Deals, directory, and growth tools</div>
               </div>
             </Link>

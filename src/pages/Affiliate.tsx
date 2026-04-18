@@ -35,6 +35,10 @@ const Affiliate = () => {
   const [referrals, setReferrals] = useState<AffiliateReferral[]>([]);
   const [isCreatingAffiliate, setIsCreatingAffiliate] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [calcBusinesses, setCalcBusinesses] = useState(5);
+
+  const calcMonthlyEarnings = calcBusinesses * 109.50;
+  const calcAnnualEarnings = calcMonthlyEarnings * 12;
 
   useEffect(() => {
     void loadPage();
@@ -180,41 +184,89 @@ const Affiliate = () => {
                       See Membership Funnel
                     </Button>
                   </div>
-                </div>
+</div>
 
-                <Card className="overflow-hidden border-border/70 bg-background shadow-heavy">
-                  <CardHeader className="border-b border-border/60 pb-4">
-                    <CardTitle className="flex items-center gap-2 text-xl">
-                      <Link2 className="h-5 w-5 text-primary" />
-                      Affiliate Snapshot
-                    </CardTitle>
-                    <CardDescription>Your current public-facing referral position</CardDescription>
-                  </CardHeader>
-                  <CardContent className="grid gap-4 p-6 sm:grid-cols-2">
-                    <div className="rounded-2xl bg-muted/50 p-4">
-                      <div className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Status</div>
-                      <div className="mt-2 text-2xl font-bold text-foreground">
-                        {isLoading ? "Loading" : affiliate?.status ?? "Not Setup"}
+                  <Card className="overflow-hidden border-border/70 bg-background shadow-heavy">
+                    <CardHeader className="border-b border-border/60 pb-4">
+                      <CardTitle className="flex items-center gap-2 text-xl">
+                        <Link2 className="h-5 w-5 text-primary" />
+                        Affiliate Snapshot
+                      </CardTitle>
+                      <CardDescription>Your current public-facing referral position</CardDescription>
+                    </CardHeader>
+                    <CardContent className="grid gap-4 p-6 sm:grid-cols-2">
+                      <div className="rounded-2xl bg-muted/50 p-4">
+                        <div className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Status</div>
+                        <div className="mt-2 text-2xl font-bold text-foreground">
+                          {isLoading ? "Loading" : affiliate?.status ?? "Not Setup"}
+                        </div>
                       </div>
-                    </div>
-                    <div className="rounded-2xl bg-muted/50 p-4">
-                      <div className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Referral Code</div>
-                      <div className="mt-2 text-2xl font-bold text-foreground">
-                        {isLoading ? "Generating..." : affiliate?.referral_code ?? "Pending"}
+                      <div className="rounded-2xl bg-muted/50 p-4">
+                        <div className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Referral Code</div>
+                        <div className="mt-2 text-2xl font-bold text-foreground">
+                          {isLoading ? "Generating..." : affiliate?.referral_code ?? "Pending"}
+                        </div>
                       </div>
-                    </div>
-                    <div className="rounded-2xl bg-muted/50 p-4 sm:col-span-2">
-                      <div className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Shareable Link</div>
-                      <div className="mt-2 break-all text-sm font-medium text-foreground">
-                        {isLoading ? "Preparing your referral link..." : referralLink ?? "Available after affiliate setup"}
+                      <div className="rounded-2xl bg-muted/50 p-4 sm:col-span-2">
+                        <div className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Shareable Link</div>
+                        <div className="mt-2 break-all text-sm font-medium text-foreground">
+                          {isLoading ? "Preparing your referral link..." : referralLink ?? "Available after affiliate setup"}
+                        </div>
+                        <Button className="mt-4" variant="outline" onClick={() => void handleCopyLink()} disabled={isLoading}>
+                          Copy Referral Link
+                        </Button>
                       </div>
-                      <Button className="mt-4" variant="outline" onClick={() => void handleCopyLink()} disabled={isLoading}>
-                        Copy Referral Link
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
+                    </CardContent>
+                  </Card>
+                </div>
               </div>
+            </div>
+          </section>
+
+          <section className="py-16 md:py-20 bg-slate-50">
+            <div className="container mx-auto max-w-[1280px] px-6">
+              <Card className="border-border/70 bg-background shadow-heavy">
+                <CardHeader className="border-b border-border/60 pb-4 text-center">
+                  <CardTitle className="flex items-center justify-center gap-2 text-2xl">
+                    <HandCoins className="h-6 w-6 text-primary" />
+                    💰 Earnings Calculator
+                  </CardTitle>
+                  <CardDescription>See how much you can earn with 30% commission</CardDescription>
+                </CardHeader>
+                <CardContent className="p-6">
+                  <div className="grid gap-6 md:grid-cols-2">
+                    <div className="space-y-4">
+                      <label className="block text-sm font-medium">Businesses referred per month:</label>
+                      <input
+                        type="range"
+                        min="1"
+                        max="20"
+                        value={calcBusinesses}
+                        onChange={(e) => setCalcBusinesses(Number(e.target.value))}
+                        className="w-full"
+                      />
+                      <div className="flex justify-between text-sm text-muted-foreground">
+                        <span>1</span>
+                        <span className="font-bold text-lg text-primary">{calcBusinesses} businesses</span>
+                        <span>20</span>
+                      </div>
+                    </div>
+                    <div className="space-y-4">
+                      <div className="rounded-xl bg-green-50 p-4 border border-green-200">
+                        <div className="text-sm text-green-700">Monthly Earnings (30% of $365)</div>
+                        <div className="text-3xl font-bold text-green-700">${calcMonthlyEarnings.toFixed(2)}</div>
+                      </div>
+                      <div className="rounded-xl bg-green-50 p-4 border border-green-200">
+                        <div className="text-sm text-green-700">Annual Earnings</div>
+                        <div className="text-3xl font-bold text-green-700">${calcAnnualEarnings.toFixed(2)}</div>
+                      </div>
+                    </div>
+                  </div>
+                  <p className="mt-4 text-center text-sm text-muted-foreground">
+                    Based on $365/year business listing. Earn recurring every year they renew!
+                  </p>
+                </CardContent>
+              </Card>
             </div>
           </section>
 
