@@ -2,16 +2,24 @@ import { useEffect, useMemo, useState } from "react";
 import { Helmet } from "react-helmet-async";
 import { useNavigate } from "react-router-dom";
 import type { User } from "@supabase/supabase-js";
-import { ArrowRight, Check, Crown, ShieldCheck, Sparkles, Ticket, Wallet, Star, Building2, Utensils, Car, Plane, Scissors, GraduationCap, Palette } from "lucide-react";
+import { ArrowRight, Check, Crown, ShieldCheck, Sparkles, Ticket, Wallet } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
-import { FALLBACK_MEMBERSHIP_PLANS, type MembershipPlan } from "@/data/membershipPlans";
 import { createMembershipCheckout } from "@/services/payment";
 import { toast } from "sonner";
+
+interface MembershipPlan {
+  id: string;
+  name: string;
+  description: string | null;
+  price: number;
+  interval: string;
+  features: string[];
+}
 
 interface UserMembership {
   id: string;
@@ -26,13 +34,6 @@ const Membership = () => {
   const [plans, setPlans] = useState<MembershipPlan[]>([]);
   const [membership, setMembership] = useState<UserMembership | null>(null);
   const [checkoutPlanId, setCheckoutPlanId] = useState<string | null>(null);
-  const [dineOut, setDineOut] = useState(4);
-  const [shopping, setShopping] = useState(500);
-  const [services, setServices] = useState(200);
-
-  const monthlySavings = (dineOut * 40 * 0.15) + (shopping * 0.15) + (services * 0.15);
-  const annualSavings = monthlySavings * 12;
-  const roi = annualSavings / 100;
 
   useEffect(() => {
     void loadPage();
@@ -67,15 +68,11 @@ const Membership = () => {
     ]);
 
     if (plansError) {
-      console.error(plansError);
-      setPlans(FALLBACK_MEMBERSHIP_PLANS);
-      toast.error("Live membership plans were unavailable. Showing the current RTM catalog.");
-    } else if (!plansData || plansData.length === 0) {
-      setPlans(FALLBACK_MEMBERSHIP_PLANS);
-    } else {
-      setPlans(plansData);
+      toast.error("Unable to load membership plans.");
+      return;
     }
 
+    setPlans(plansData ?? []);
     setMembership(membershipData);
   };
 
@@ -106,9 +103,7 @@ const Membership = () => {
     "Unlock member-only deals across RTM businesses",
     "Keep access in a digital-first membership experience",
     "Move from basic sign-up to repeatable loyalty and renewals",
-    "Fit naturally into RTM's wider business and media ecosystem",
-    "Receive your RTM Benefit Card for exclusive discounts at participating businesses",
-    "Access savings of 5% - 50% at restaurants, retail, travel, and more",
+    "Fit naturally into RTM’s wider business and media ecosystem",
   ];
 
   return (
@@ -125,261 +120,56 @@ const Membership = () => {
         <Navbar />
 
         <main>
-          <section className="relative overflow-hidden bg-gradient-to-br from-primary to-red-900 text-white">
-            <div className="absolute inset-0 opacity-30">
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.1),transparent_30%),radial-gradient(circle_at_bottom_right,rgba(255,255,255,0.05),transparent_28%)]" />
-            </div>
+          <section className="relative overflow-hidden">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,hsla(352,82%,49%,0.10),transparent_30%),radial-gradient(circle_at_bottom_right,hsla(22,100%,60%,0.12),transparent_28%),linear-gradient(180deg,hsl(210_40%_98%)_0%,hsl(0_0%_100%)_100%)]" />
             <div className="container relative z-10 mx-auto max-w-[1280px] px-6 py-16 md:py-20">
               <div className="grid items-center gap-10 lg:grid-cols-[1.05fr_0.95fr]">
                 <div className="max-w-3xl">
-                  <div className="mb-5 inline-flex items-center gap-2 rounded-full bg-white/20 backdrop-blur-sm px-4 py-2 text-sm font-medium">
-                    🍁 RTM Membership - Redesigned as a Premium Digital Product
+                  <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-primary/15 bg-primary/5 px-4 py-2 text-sm font-medium text-foreground">
+                    <Sparkles className="h-4 w-4 text-primary" />
+                    RTM membership, redesigned as a premium digital product
                   </div>
-                  <h1 className="text-4xl font-extrabold leading-[1.05] md:text-5xl lg:text-6xl">
-                    Activate the RTM Card Experience
+                  <h1 className="text-4xl font-extrabold leading-[1.05] text-foreground md:text-5xl lg:text-6xl">
+                    Activate the RTM card experience with modern membership flows
                   </h1>
-                  <p className="mt-6 max-w-2xl text-lg opacity-95 md:text-xl">
-                    Save 5-50% at 5,000+ Canadian businesses. Your membership pays for itself in weeks!
+                  <p className="mt-6 max-w-2xl text-lg text-muted-foreground md:text-xl">
+                    Membership is now positioned as a premium access product, not just a simple annual card fee. The plans below are the front door into the RTM deals ecosystem.
                   </p>
 
-                  <div className="mt-8 grid grid-cols-2 gap-4 md:grid-cols-4">
-                    <div className="text-center">
-                      <div className="text-2xl md:text-3xl font-bold">💳</div>
-                      <div className="text-xs opacity-80">Digital + Physical Card</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-2xl md:text-3xl font-bold">🏪</div>
-                      <div className="text-xs opacity-80">5,000+ Businesses</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-2xl md:text-3xl font-bold">💰</div>
-                      <div className="text-xs opacity-80">Save Up to 50%</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-2xl md:text-3xl font-bold">🇨🇦</div>
-                      <div className="text-xs opacity-80">Proudly Canadian</div>
-                    </div>
-                  </div>
-
                   <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                    <Button 
-                      variant="default" 
-                      size="xl" 
-                      className="bg-white text-primary hover:bg-white/90"
-                      onClick={() => document.getElementById("plans")?.scrollIntoView({ behavior: "smooth" })}
-                    >
+                    <Button variant="hero" size="xl" onClick={() => document.getElementById("plans")?.scrollIntoView({ behavior: "smooth" })}>
                       View Membership Plans
                       <ArrowRight className="h-5 w-5" />
                     </Button>
-                    <Button 
-                      variant="outline" 
-                      size="xl" 
-                      className="border-white text-white hover:bg-white hover:text-primary"
-                      onClick={() => document.getElementById("calculator")?.scrollIntoView({ behavior: "smooth" })}
-                    >
-                      Calculate Your Savings
+                    <Button variant="outline" size="xl" onClick={() => navigate("/deals")}>
+                      Explore Deals First
                     </Button>
                   </div>
-                  
-                  <p className="mt-4 text-sm opacity-80">
-                    ✓ Instant digital activation ✓ No contracts ✓ Cancel anytime
-                  </p>
                 </div>
 
-                <Card className="overflow-hidden border-0 bg-white/10 backdrop-blur-sm shadow-heavy">
-                  <CardHeader className="border-b border-white/20 pb-4">
-                    <CardTitle className="flex items-center gap-2 text-xl text-white">
-                      <Wallet className="h-5 w-5" />
-                      Your RTM Benefit Card
+                <Card className="overflow-hidden border-border/70 bg-background shadow-heavy">
+                  <CardHeader className="border-b border-border/60 pb-4">
+                    <CardTitle className="flex items-center gap-2 text-xl">
+                      <Wallet className="h-5 w-5 text-primary" />
+                      Membership Status
                     </CardTitle>
-                    <CardDescription className="text-white/70">Present at participating businesses</CardDescription>
+                    <CardDescription>Your current RTM access state</CardDescription>
                   </CardHeader>
                   <CardContent className="grid gap-4 p-6 sm:grid-cols-2">
-                    <div className="rounded-2xl bg-white/10 p-4">
-                      <div className="text-xs uppercase tracking-[0.18em] text-white/70">Status</div>
-                      <div className="mt-2 text-2xl font-bold text-white">{membership ? "Active" : "Get Started"}</div>
+                    <div className="rounded-2xl bg-muted/50 p-4">
+                      <div className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Status</div>
+                      <div className="mt-2 text-2xl font-bold text-foreground">{membership ? "Active" : "Inactive"}</div>
                     </div>
-                    <div className="rounded-2xl bg-white/10 p-4">
-                      <div className="text-xs uppercase tracking-[0.18em] text-white/70">Plan</div>
-                      <div className="mt-2 text-2xl font-bold text-white">{activePlan?.name ?? "Not selected"}</div>
+                    <div className="rounded-2xl bg-muted/50 p-4">
+                      <div className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Plan</div>
+                      <div className="mt-2 text-2xl font-bold text-foreground">{activePlan?.name ?? "Not selected"}</div>
                     </div>
-                    <div className="rounded-2xl bg-white/10 p-4 sm:col-span-2">
-                      <div className="text-xs uppercase tracking-[0.18em] text-white/70">Valid Until</div>
-                      <div className="mt-2 text-lg font-semibold text-white">
-                        {membership ? new Date(membership.expires_at).toLocaleDateString() : "Purchase a plan to activate"}
+                    <div className="rounded-2xl bg-muted/50 p-4 sm:col-span-2">
+                      <div className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Valid Until</div>
+                      <div className="mt-2 text-lg font-semibold text-foreground">
+                        {membership ? new Date(membership.expires_at).toLocaleDateString() : "Purchase a plan to activate access"}
                       </div>
                     </div>
-                  </CardContent>
-</Card>
-            </div>
-          </section>
-
-          <section className="py-20 md:py-24">
-            <div className="container mx-auto max-w-[1280px] px-6">
-              <div className="text-center mb-12">
-                <h2 className="text-3xl font-bold">How Your RTM Membership Works</h2>
-                <p className="mt-2 text-muted-foreground">From sign-up to savings in 4 simple steps</p>
-              </div>
-              
-              <div className="grid gap-8 md:grid-cols-4">
-                <div className="text-center">
-                  <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-2xl font-bold text-primary">1</div>
-                  <div className="text-3xl mb-3">📝</div>
-                  <h3 className="font-semibold">Choose Plan</h3>
-                  <p className="text-sm text-muted-foreground mt-2">Select Basic, Premium, or Pro based on your savings needs</p>
-                </div>
-                <div className="text-center">
-                  <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-2xl font-bold text-primary">2</div>
-                  <div className="text-3xl mb-3">⚡</div>
-                  <h3 className="font-semibold">Instant Activation</h3>
-                  <p className="text-sm text-muted-foreground mt-2">Get immediate access to your digital card. Physical card in 5-7 days</p>
-                </div>
-                <div className="text-center">
-                  <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-2xl font-bold text-primary">3</div>
-                  <div className="text-3xl mb-3">🏪</div>
-                  <h3 className="font-semibold">Find Deals</h3>
-                  <p className="text-sm text-muted-foreground mt-2">Browse 5,000+ participating businesses by category and location</p>
-                </div>
-                <div className="text-center">
-                  <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-2xl font-bold text-primary">4</div>
-                  <div className="text-3xl mb-3">💰</div>
-                  <h3 className="font-semibold">Show & Save</h3>
-                  <p className="text-sm text-muted-foreground mt-2">Present your RTM card and enjoy instant 5-50% discounts</p>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <section className="py-20 md:py-24 bg-slate-50" id="calculator">
-            <div className="container mx-auto max-w-[1280px] px-6">
-              <Card className="border-border/70 bg-background shadow-heavy">
-                <CardHeader className="border-b border-border/60 pb-4 text-center">
-                  <CardTitle className="flex items-center justify-center gap-2 text-2xl">
-                    💰 Will You Save More Than $100?
-                  </CardTitle>
-                  <CardDescription>Calculate your potential annual savings with RTM membership</CardDescription>
-                </CardHeader>
-                <CardContent className="p-6">
-                  <div className="grid gap-6 md:grid-cols-3">
-                    <div className="space-y-2">
-                      <label className="block text-sm font-medium">Dining out per month:</label>
-                      <input
-                        type="number"
-                        value={dineOut}
-                        onChange={(e) => setDineOut(Number(e.target.value))}
-                        className="w-full p-3 border rounded-lg"
-                        min="0"
-                      />
-                      <p className="text-xs text-muted-foreground">Save ~$40/month at 15% avg</p>
-                    </div>
-                    <div className="space-y-2">
-                      <label className="block text-sm font-medium">Monthly shopping:</label>
-                      <input
-                        type="number"
-                        value={shopping}
-                        onChange={(e) => setShopping(Number(e.target.value))}
-                        className="w-full p-3 border rounded-lg"
-                        min="0"
-                      />
-                      <p className="text-xs text-muted-foreground">Save ~15%</p>
-                    </div>
-                    <div className="space-y-2">
-                      <label className="block text-sm font-medium">Services (haircut, etc):</label>
-                      <input
-                        type="number"
-                        value={services}
-                        onChange={(e) => setServices(Number(e.target.value))}
-                        className="w-full p-3 border rounded-lg"
-                        min="0"
-                      />
-                      <p className="text-xs text-muted-foreground">Save ~15%</p>
-                    </div>
-                  </div>
-                  <div className="mt-6 rounded-xl bg-green-50 p-6 border border-green-200 text-center">
-                    <div className="text-sm text-green-700">Your Estimated Annual Savings:</div>
-                    <div className="text-4xl font-bold text-green-700">${annualSavings.toFixed(0)}</div>
-                    <div className="text-lg text-green-600 mt-2">
-                      That's <strong>{roi.toFixed(0)}x</strong> your $100 membership cost!
-                    </div>
-                    <p className="mt-2 text-sm text-green-600">
-                      You break even after just {Math.ceil(100 / monthlySavings)} weeks of savings!
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </section>
-
-          <section className="py-20 md:py-24">
-            <div className="container mx-auto max-w-[1280px] px-6">
-              <div className="text-center mb-12">
-                <h2 className="text-3xl font-bold">Where You'll Save Money</h2>
-                <p className="mt-2 text-muted-foreground">RTM partners across every spending category</p>
-              </div>
-              
-              <div className="grid gap-6 md:grid-cols-3 lg:grid-cols-4">
-                <Card className="text-center hover:shadow-heavy transition-shadow">
-                  <CardContent className="p-6">
-                    <div className="text-4xl mb-3">🍽️</div>
-                    <h3 className="font-semibold">Restaurants</h3>
-                    <div className="text-primary font-bold mt-1">10-30% off</div>
-                    <p className="text-sm text-muted-foreground mt-2">1,200+ locations</p>
-                  </CardContent>
-                </Card>
-                <Card className="text-center hover:shadow-heavy transition-shadow">
-                  <CardContent className="p-6">
-                    <div className="text-4xl mb-3">🛍️</div>
-                    <h3 className="font-semibold">Retail</h3>
-                    <div className="text-primary font-bold mt-1">15-40% off</div>
-                    <p className="text-sm text-muted-foreground mt-2">2,300+ stores</p>
-                  </CardContent>
-                </Card>
-                <Card className="text-center hover:shadow-heavy transition-shadow">
-                  <CardContent className="p-6">
-                    <div className="text-4xl mb-3">🏥</div>
-                    <h3 className="font-semibold">Health</h3>
-                    <div className="text-primary font-bold mt-1">10-25% off</div>
-                    <p className="text-sm text-muted-foreground mt-2">680+ providers</p>
-                  </CardContent>
-                </Card>
-                <Card className="text-center hover:shadow-heavy transition-shadow">
-                  <CardContent className="p-6">
-                    <div className="text-4xl mb-3">🏠</div>
-                    <h3 className="font-semibold">Home Services</h3>
-                    <div className="text-primary font-bold mt-1">5-20% off</div>
-                    <p className="text-sm text-muted-foreground mt-2">890+ contractors</p>
-                  </CardContent>
-                </Card>
-                <Card className="text-center hover:shadow-heavy transition-shadow">
-                  <CardContent className="p-6">
-                    <div className="text-4xl mb-3">🚗</div>
-                    <h3 className="font-semibold">Automotive</h3>
-                    <div className="text-primary font-bold mt-1">10-30% off</div>
-                    <p className="text-sm text-muted-foreground mt-2">540+ shops</p>
-                  </CardContent>
-                </Card>
-                <Card className="text-center hover:shadow-heavy transition-shadow">
-                  <CardContent className="p-6">
-                    <div className="text-4xl mb-3">✈️</div>
-                    <h3 className="font-semibold">Travel</h3>
-                    <div className="text-primary font-bold mt-1">15-50% off</div>
-                    <p className="text-sm text-muted-foreground mt-2">320+ partners</p>
-                  </CardContent>
-                </Card>
-                <Card className="text-center hover:shadow-heavy transition-shadow">
-                  <CardContent className="p-6">
-                    <div className="text-4xl mb-3">💇</div>
-                    <h3 className="font-semibold">Beauty</h3>
-                    <div className="text-primary font-bold mt-1">15-35% off</div>
-                    <p className="text-sm text-muted-foreground mt-2">450+ salons</p>
-                  </CardContent>
-                </Card>
-                <Card className="text-center hover:shadow-heavy transition-shadow">
-                  <CardContent className="p-6">
-                    <div className="text-4xl mb-3">🎓</div>
-                    <h3 className="font-semibold">Education</h3>
-                    <div className="text-primary font-bold mt-1">10-40% off</div>
-                    <p className="text-sm text-muted-foreground mt-2">220+ courses</p>
                   </CardContent>
                 </Card>
               </div>

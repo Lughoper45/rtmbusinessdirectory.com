@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
-import { ensureAffiliateAccount } from "@/services/affiliate";
 import { toast } from "sonner";
 
 interface AffiliateSummary {
@@ -34,18 +33,12 @@ const Affiliate = () => {
   const [affiliate, setAffiliate] = useState<AffiliateSummary | null>(null);
   const [referrals, setReferrals] = useState<AffiliateReferral[]>([]);
   const [isCreatingAffiliate, setIsCreatingAffiliate] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [calcBusinesses, setCalcBusinesses] = useState(5);
-
-  const calcMonthlyEarnings = calcBusinesses * 109.50;
-  const calcAnnualEarnings = calcMonthlyEarnings * 12;
 
   useEffect(() => {
     void loadPage();
   }, []);
 
   const loadPage = async () => {
-    setIsLoading(true);
     const {
       data: { session },
     } = await supabase.auth.getSession();
@@ -53,13 +46,18 @@ const Affiliate = () => {
     setUser(currentUser);
 
     if (!currentUser) {
-      setIsLoading(false);
       return;
     }
 
-    try {
-      const affiliateData = await ensureAffiliateAccount(currentUser);
-      setAffiliate(affiliateData);
+    const { data: affiliateData } = await supabase
+      .from("affiliates")
+      .select("id, referral_code, total_earnings, commission_rate, status")
+      .eq("user_id", currentUser.id)
+      .maybeSingle();
+
+    setAffiliate(affiliateData);
+
+    if (affiliateData?.id) {
       const { data: referralData } = await supabase
         .from("affiliate_referrals")
         .select("id, membership_tier, commission_amount, commission_paid, created_at")
@@ -68,11 +66,6 @@ const Affiliate = () => {
         .limit(8);
 
       setReferrals(referralData ?? []);
-    } catch (error) {
-      console.error(error);
-      toast.error("Unable to load affiliate account.");
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -90,24 +83,14 @@ const Affiliate = () => {
   );
 
   const handleCopyLink = async () => {
-    if (!user) {
-      navigate("/auth?redirectTo=/affiliate");
+    if (!affiliate?.referral_code) {
+      toast.error("Referral code not available yet.");
       return;
     }
 
-    try {
-      const affiliateAccount = affiliate ?? (await ensureAffiliateAccount(user));
-      if (!affiliate) {
-        setAffiliate(affiliateAccount);
-      }
-
-      const url = `${window.location.origin}/ref/${affiliateAccount.referral_code}`;
-      await navigator.clipboard.writeText(url);
-      toast.success("Referral link copied.");
-    } catch (error) {
-      console.error(error);
-      toast.error("Unable to generate your referral link right now.");
-    }
+    const url = `${window.location.origin}/ref/${affiliate.referral_code}`;
+    await navigator.clipboard.writeText(url);
+    toast.success("Referral link copied.");
   };
 
   const handleCreateAffiliate = async () => {
@@ -118,7 +101,23 @@ const Affiliate = () => {
 
     try {
       setIsCreatingAffiliate(true);
-      const data = await ensureAffiliateAccount(user);
+      const base = (user.email?.split("@")[0] || "rtm").replace(/[^a-zA-Z0-9]/g, "").slice(0, 8).toUpperCase();
+      const referralCode = `${base}${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
+
+      const { data, error } = await supabase
+        .from("affiliates")
+        .insert({
+          user_id: user.id,
+          referral_code: referralCode,
+          commission_rate: 30,
+          total_earnings: 0,
+          status: "active",
+        })
+        .select("id, referral_code, total_earnings, commission_rate, status")
+        .single();
+
+      if (error) throw error;
+
       setAffiliate(data);
       toast.success("Affiliate account activated.");
     } catch (error) {
@@ -135,8 +134,6 @@ const Affiliate = () => {
     { icon: Users, label: "Tracked Referrals", value: `${referrals.length}` },
     { icon: Target, label: "Pending Value", value: `$${pendingValue.toFixed(2)}` },
   ];
-
-  const referralLink = affiliate?.referral_code ? `${window.location.origin}/ref/${affiliate.referral_code}` : null;
 
   return (
     <>
@@ -184,95 +181,43 @@ const Affiliate = () => {
                       See Membership Funnel
                     </Button>
                   </div>
-</div>
-
-                  <Card className="overflow-hidden border-border/70 bg-background shadow-heavy">
-                    <CardHeader className="border-b border-border/60 pb-4">
-                      <CardTitle className="flex items-center gap-2 text-xl">
-                        <Link2 className="h-5 w-5 text-primary" />
-                        Affiliate Snapshot
-                      </CardTitle>
-                      <CardDescription>Your current public-facing referral position</CardDescription>
-                    </CardHeader>
-                    <CardContent className="grid gap-4 p-6 sm:grid-cols-2">
-                      <div className="rounded-2xl bg-muted/50 p-4">
-                        <div className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Status</div>
-                        <div className="mt-2 text-2xl font-bold text-foreground">
-                          {isLoading ? "Loading" : affiliate?.status ?? "Not Setup"}
-                        </div>
-                      </div>
-                      <div className="rounded-2xl bg-muted/50 p-4">
-                        <div className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Referral Code</div>
-                        <div className="mt-2 text-2xl font-bold text-foreground">
-                          {isLoading ? "Generating..." : affiliate?.referral_code ?? "Pending"}
-                        </div>
-                      </div>
-                      <div className="rounded-2xl bg-muted/50 p-4 sm:col-span-2">
-                        <div className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Shareable Link</div>
-                        <div className="mt-2 break-all text-sm font-medium text-foreground">
-                          {isLoading ? "Preparing your referral link..." : referralLink ?? "Available after affiliate setup"}
-                        </div>
-                        <Button className="mt-4" variant="outline" onClick={() => void handleCopyLink()} disabled={isLoading}>
-                          Copy Referral Link
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
                 </div>
-              </div>
-            </div>
-          </section>
 
-          <section className="py-16 md:py-20 bg-slate-50">
-            <div className="container mx-auto max-w-[1280px] px-6">
-              <Card className="border-border/70 bg-background shadow-heavy">
-                <CardHeader className="border-b border-border/60 pb-4 text-center">
-                  <CardTitle className="flex items-center justify-center gap-2 text-2xl">
-                    <HandCoins className="h-6 w-6 text-primary" />
-                    💰 Earnings Calculator
-                  </CardTitle>
-                  <CardDescription>See how much you can earn with 30% commission</CardDescription>
-                </CardHeader>
-                <CardContent className="p-6">
-                  <div className="grid gap-6 md:grid-cols-2">
-                    <div className="space-y-4">
-                      <label className="block text-sm font-medium">Businesses referred per month:</label>
-                      <input
-                        type="range"
-                        min="1"
-                        max="20"
-                        value={calcBusinesses}
-                        onChange={(e) => setCalcBusinesses(Number(e.target.value))}
-                        className="w-full"
-                      />
-                      <div className="flex justify-between text-sm text-muted-foreground">
-                        <span>1</span>
-                        <span className="font-bold text-lg text-primary">{calcBusinesses} businesses</span>
-                        <span>20</span>
-                      </div>
+                <Card className="overflow-hidden border-border/70 bg-background shadow-heavy">
+                  <CardHeader className="border-b border-border/60 pb-4">
+                    <CardTitle className="flex items-center gap-2 text-xl">
+                      <Link2 className="h-5 w-5 text-primary" />
+                      Affiliate Snapshot
+                    </CardTitle>
+                    <CardDescription>Your current public-facing referral position</CardDescription>
+                  </CardHeader>
+                  <CardContent className="grid gap-4 p-6 sm:grid-cols-2">
+                    <div className="rounded-2xl bg-muted/50 p-4">
+                      <div className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Status</div>
+                      <div className="mt-2 text-2xl font-bold text-foreground">{affiliate?.status ?? "Not Setup"}</div>
                     </div>
-                    <div className="space-y-4">
-                      <div className="rounded-xl bg-green-50 p-4 border border-green-200">
-                        <div className="text-sm text-green-700">Monthly Earnings (30% of $365)</div>
-                        <div className="text-3xl font-bold text-green-700">${calcMonthlyEarnings.toFixed(2)}</div>
-                      </div>
-                      <div className="rounded-xl bg-green-50 p-4 border border-green-200">
-                        <div className="text-sm text-green-700">Annual Earnings</div>
-                        <div className="text-3xl font-bold text-green-700">${calcAnnualEarnings.toFixed(2)}</div>
-                      </div>
+                    <div className="rounded-2xl bg-muted/50 p-4">
+                      <div className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Referral Code</div>
+                      <div className="mt-2 text-2xl font-bold text-foreground">{affiliate?.referral_code ?? "Pending"}</div>
                     </div>
-                  </div>
-                  <p className="mt-4 text-center text-sm text-muted-foreground">
-                    Based on $365/year business listing. Earn recurring every year they renew!
-                  </p>
-                </CardContent>
-              </Card>
+                    <div className="rounded-2xl bg-muted/50 p-4 sm:col-span-2">
+                      <div className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Shareable Link</div>
+                      <div className="mt-2 break-all text-sm font-medium text-foreground">
+                        {affiliate?.referral_code ? `${window.location.origin}/ref/${affiliate.referral_code}` : "Available after affiliate setup"}
+                      </div>
+                      <Button className="mt-4" variant="outline" onClick={() => void handleCopyLink()}>
+                        Copy Referral Link
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
             </div>
           </section>
 
           <section className="py-20 md:py-24">
             <div className="container mx-auto max-w-[1280px] px-6">
-              {user && !affiliate && !isLoading ? (
+              {user && !affiliate ? (
                 <Card className="mb-8 border-primary/15 bg-primary/5 shadow-medium">
                   <CardContent className="flex flex-col gap-4 p-8 md:flex-row md:items-center md:justify-between">
                     <div>
