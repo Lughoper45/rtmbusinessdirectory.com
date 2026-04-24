@@ -15,6 +15,7 @@ import GrantPilot from "./pages/GrantPilot";
 import Deals from "./pages/Deals";
 import Membership from "./pages/Membership";
 import Affiliate from "./pages/Affiliate";
+import ContentPage from "./pages/ContentPage";
 import NotFound from "./pages/NotFound";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminBusinesses from "./pages/admin/AdminBusinesses";
@@ -42,7 +43,24 @@ const App = () => (
             <Route path="/membership" element={<Membership />} />
             <Route path="/affiliate" element={<Affiliate />} />
             <Route path="/directory" element={<Directory />} />
+            <Route path="/business-support" element={<ContentPage />} />
+            <Route path="/ai-search" element={<ContentPage />} />
+            <Route path="/world-cup-hub" element={<ContentPage />} />
+            <Route path="/marketplace" element={<ContentPage />} />
+            <Route path="/pricing" element={<ContentPage />} />
+            <Route path="/about" element={<ContentPage />} />
+            <Route path="/careers" element={<ContentPage />} />
+            <Route path="/blog" element={<ContentPage />} />
+            <Route path="/press-kit" element={<ContentPage />} />
+            <Route path="/partners" element={<ContentPage />} />
+            <Route path="/contact" element={<ContentPage />} />
+            <Route path="/terms" element={<ContentPage />} />
+            <Route path="/privacy" element={<ContentPage />} />
+            <Route path="/cookies" element={<ContentPage />} />
+            <Route path="/accessibility" element={<ContentPage />} />
+            <Route path="/content/:slug" element={<ContentPage />} />
             <Route path="/directory/:category/:city/:slug" element={<BusinessProfile />} />
+            <Route path="/404" element={<NotFound />} />
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/admin/businesses" element={<AdminBusinesses />} />
             <Route path="/admin/users" element={<AdminUsers />} />
