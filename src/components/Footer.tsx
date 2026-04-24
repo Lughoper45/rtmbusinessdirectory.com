@@ -42,7 +42,7 @@ const Footer = () => {
         <div className="mb-12 grid gap-12 md:grid-cols-2 lg:grid-cols-4">
           <div>
             <Link to="/" className="mb-4 flex items-center gap-3">
-              <img src="/rtm logo.png" alt="RTM Business Directory" className="h-10 w-auto" />
+              <img src="/rtm-logo.png" alt="RTM Business Directory" className="h-10 w-auto" />
             </Link>
             <div className="text-lg font-semibold text-primary-foreground">RTM Business Directory</div>
             <p className="mb-6 mt-2 leading-relaxed text-primary-foreground/60">Your Trusted Business Directory</p>
