@@ -18,7 +18,6 @@ import StickyFloatingCTA from "@/components/StickyFloatingCTA";
 import LiveActivityFeed from "@/components/LiveActivityFeed";
 import AIChatAssistant from "@/components/AIChatAssistant";
 import CanadaMap from "@/components/CanadaMap";
-import FacebookFeed from "@/components/FacebookFeed";
 
 const Index = () => {
   return (
@@ -41,7 +40,6 @@ const Index = () => {
           <ThreePathSection />
           <CanadaMap />
           <ProgressVisualization />
-          <FacebookFeed />
           <AIDiscoverySection />
           <BusinessSupportHub />
           <WorldCupSection />

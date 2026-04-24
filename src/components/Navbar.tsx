@@ -181,7 +181,7 @@ const Navbar = () => {
         <nav className="bg-background/95">
           <div className="container mx-auto flex h-[76px] max-w-[1440px] items-center justify-between px-6">
             <Link to="/" className="flex items-center gap-3">
-              <img src="/rtm logo.png" alt="RTM Global Canada" className="h-10 w-auto" />
+              <img src="/rtm-logo.png" alt="RTM Global Canada" className="h-10 w-auto" />
               <div className="hidden lg:block">
                 <div className="flex items-center gap-2">
                   <div className="text-sm font-semibold uppercase tracking-[0.2em] text-primary">RTM Global Canada</div>
