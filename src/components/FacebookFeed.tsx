@@ -66,9 +66,6 @@ const FacebookFeed = () => {
                 />
               </div>
 
-              <p className="mt-5 text-center text-sm text-slate-400">
-                If the feed does not render, Facebook is usually blocking it because of page privacy, regional restrictions, or browser cookie settings.
-              </p>
             </CardContent>
           </Card>
         </div>

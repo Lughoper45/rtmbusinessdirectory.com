@@ -79,8 +79,10 @@ const HeroSection = () => {
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: `url(${heroBackground})` }}
       />
-      {/* Overlay gradient for readability */}
-      <div className="absolute inset-0 bg-gradient-to-b from-background/80 via-background/60 to-background" />
+      {/* Keep the image visible while protecting the text area */}
+      <div className="absolute inset-0 bg-gradient-to-br from-slate-950/30 via-slate-950/10 to-transparent" />
+      <div className="absolute inset-y-0 left-0 w-full bg-gradient-to-r from-background/95 via-background/82 to-background/18 lg:w-[62%]" />
+      <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-background via-background/65 to-transparent" />
       
       {/* Animated particles */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -115,7 +117,7 @@ const HeroSection = () => {
       </div>
 
       <div className="container mx-auto max-w-[1280px] px-6 py-16 md:py-20 relative z-10">
-        <div className="text-center max-w-[900px] mx-auto">
+        <div className="mx-auto max-w-[900px] rounded-[2rem] px-4 py-6 text-center backdrop-blur-[1px] md:px-8 md:py-8">
           {/* Live counter badge */}
           <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-full px-4 py-2 mb-8 animate-fade-up">
             <span className="relative flex h-2 w-2">

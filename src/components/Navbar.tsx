@@ -147,9 +147,9 @@ const Navbar = () => {
                 <Globe className="h-4 w-4" />
                 EN / FR
               </button>
-              <a href="tel:+14161234567" className="inline-flex items-center gap-1.5 text-slate-300 hover:text-white transition-colors">
+              <a href="tel:+14169008728" className="inline-flex items-center gap-1.5 text-slate-300 hover:text-white transition-colors">
                 <Phone className="h-4 w-4" />
-                1-416-123-4567
+                +1 416 900 8728
               </a>
               <span className="text-slate-600">|</span>
               <div className="inline-flex items-center gap-1.5 text-slate-300">
