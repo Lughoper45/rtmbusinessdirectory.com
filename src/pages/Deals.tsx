@@ -26,7 +26,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { FALLBACK_MEMBERSHIP_PLANS, type MembershipPlan } from "@/data/membershipPlans";
-import { createMembershipCheckout } from "@/services/payment";
+import { openMembershipJoin } from "@/lib/site";
 import { toast } from "sonner";
 
 interface Deal {
@@ -73,7 +73,6 @@ const Deals = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [isLoading, setIsLoading] = useState(true);
-  const [checkoutPlanId, setCheckoutPlanId] = useState<string | null>(null);
 
   useEffect(() => {
     void loadPage();
@@ -140,20 +139,7 @@ const Deals = () => {
   };
 
   const loadMembershipPlans = async () => {
-    const { data, error } = await supabase
-      .from("membership_plans")
-      .select("id, name, description, price, interval, features")
-      .eq("is_active", true)
-      .order("price");
-
-    if (error) {
-      console.error(error);
-      setMembershipPlans(FALLBACK_MEMBERSHIP_PLANS);
-      toast.error("Live membership plans were unavailable. Showing the current RTM catalog.");
-      return;
-    }
-
-    setMembershipPlans(data && data.length > 0 ? data : FALLBACK_MEMBERSHIP_PLANS);
+    setMembershipPlans(FALLBACK_MEMBERSHIP_PLANS);
   };
 
   const loadUserMembership = async (userId: string) => {
@@ -218,21 +204,8 @@ const Deals = () => {
     toast.success(`Deal code copied: ${code}`);
   };
 
-  const handleMembershipCheckout = async (plan: MembershipPlan) => {
-    if (!user) {
-      navigate("/auth");
-      return;
-    }
-    try {
-      setCheckoutPlanId(plan.id);
-      const checkoutUrl = await createMembershipCheckout(plan.id, user.id);
-      window.location.href = checkoutUrl;
-    } catch (error) {
-      console.error(error);
-      toast.error(error instanceof Error ? error.message : "Unable to start checkout.");
-    } finally {
-      setCheckoutPlanId(null);
-    }
+  const handleMembershipCheckout = async (_plan: MembershipPlan) => {
+    openMembershipJoin();
   };
 
   const heroMetrics = [
@@ -594,10 +567,9 @@ const Deals = () => {
                       <Button
                         className="w-full"
                         variant={index === 1 ? "hero" : "outline"}
-                        disabled={checkoutPlanId === plan.id}
                         onClick={() => void handleMembershipCheckout(plan)}
                       >
-                        {checkoutPlanId === plan.id ? "Starting checkout..." : user ? "Choose Plan" : "Sign In to Join"}
+                        Purchase membership - $100 CAD
                       </Button>
                     </CardFooter>
                   </Card>

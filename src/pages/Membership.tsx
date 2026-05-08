@@ -4,13 +4,11 @@ import { useNavigate } from "react-router-dom";
 import type { User } from "@supabase/supabase-js";
 import {
   ArrowRight,
-  BadgeDollarSign,
   CalendarClock,
   Car,
   Check,
   Clock3,
   Crown,
-  Gem,
   HeartPulse,
   MapPin,
   ShieldCheck,
@@ -27,8 +25,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
-import { createMembershipCheckout } from "@/services/payment";
 import { FALLBACK_MEMBERSHIP_PLANS, type MembershipPlan } from "@/data/membershipPlans";
+import { openMembershipJoin } from "@/lib/site";
 import { toast } from "sonner";
 
 interface UserMembership {
@@ -47,8 +45,8 @@ const heroHighlights = [
 const stats = [
   { value: "5,000+", label: "Participating businesses across Canada" },
   { value: "5-50%", label: "Discount range by partner and plan" },
-  { value: "$99.99", label: "Entry point for annual membership" },
-  { value: "Instant", label: "Digital card access after checkout" },
+  { value: "$100 CAD", label: "One-time membership purchase" },
+  { value: "Instant", label: "Dashboard access after checkout" },
 ];
 
 const painPoints = [
@@ -60,17 +58,17 @@ const painPoints = [
 const solutions = [
   "One RTM membership gives members a simple savings mechanic across multiple categories.",
   "Digital-first access makes redemption easier while preserving the card concept.",
-  "A recurring annual membership creates a stronger loyalty loop for RTM and its partners.",
+  "A clear $100 CAD membership creates one simple conversion path for RTM and its partners.",
 ];
 
 const howItWorks = [
   {
     title: "Choose a plan",
-    description: "Select the membership tier that matches the level of savings and perks you want.",
+    description: "Start with the $100 CAD RTM membership and create your account.",
   },
   {
     title: "Activate instantly",
-    description: "Complete checkout and unlock your digital membership access right away.",
+    description: "Complete secure Stripe checkout in the RTM membership app.",
   },
   {
     title: "Use your card",
@@ -118,7 +116,7 @@ const faqs = [
   {
     question: "How does RTM membership work?",
     answer:
-      "You choose an annual plan, activate your digital access after checkout, and use your RTM card at participating businesses to unlock member pricing.",
+      "You purchase the $100 CAD RTM membership, activate your dashboard after checkout, and use your RTM access at participating businesses.",
   },
   {
     question: "How many businesses accept the RTM card?",
@@ -126,9 +124,9 @@ const faqs = [
       "The public positioning targets more than 5,000 participating businesses across categories including dining, retail, services, travel, and wellness.",
   },
   {
-    question: "What changes between membership tiers?",
+    question: "Are there multiple membership tiers?",
     answer:
-      "Higher tiers support stronger discount ranges and additional perks. The exact features come from the plan configuration loaded into the page.",
+      "The first live payment product is a single $100 CAD membership so the launch flow stays simple and easy to trust.",
   },
   {
     question: "When do I get access?",
@@ -148,7 +146,6 @@ const Membership = () => {
   const [user, setUser] = useState<User | null>(null);
   const [plans, setPlans] = useState<MembershipPlan[]>([]);
   const [membership, setMembership] = useState<UserMembership | null>(null);
-  const [checkoutPlanId, setCheckoutPlanId] = useState<string | null>(null);
   const [dineOut, setDineOut] = useState(4);
   const [shopping, setShopping] = useState(500);
   const [services, setServices] = useState(200);
@@ -164,12 +161,6 @@ const Membership = () => {
     const currentUser = session?.user ?? null;
     setUser(currentUser);
 
-    const plansPromise = supabase
-      .from("membership_plans")
-      .select("id, name, description, price, interval, features")
-      .eq("is_active", true)
-      .order("price");
-
     const membershipPromise = currentUser
       ? supabase
           .from("user_memberships")
@@ -180,16 +171,9 @@ const Membership = () => {
           .maybeSingle()
       : Promise.resolve({ data: null, error: null });
 
-    const [{ data: plansData, error: plansError }, { data: membershipData }] = await Promise.all([
-      plansPromise,
-      membershipPromise,
-    ]);
+    const { data: membershipData } = await membershipPromise;
 
-    if (plansError) {
-      toast.error("Live membership plans were unavailable. Showing the current RTM catalog.");
-    }
-
-    setPlans(plansData && plansData.length > 0 ? plansData : FALLBACK_MEMBERSHIP_PLANS);
+    setPlans(FALLBACK_MEMBERSHIP_PLANS);
     setMembership(membershipData);
   };
 
@@ -219,22 +203,8 @@ const Membership = () => {
     };
   }, [dineOut, plans, services, shopping]);
 
-  const handleCheckout = async (plan: MembershipPlan) => {
-    if (!user) {
-      navigate("/auth");
-      return;
-    }
-
-    try {
-      setCheckoutPlanId(plan.id);
-      const checkoutUrl = await createMembershipCheckout(plan.id, user.id);
-      window.location.href = checkoutUrl;
-    } catch (error) {
-      console.error(error);
-      toast.error(error instanceof Error ? error.message : "Unable to start membership checkout.");
-    } finally {
-      setCheckoutPlanId(null);
-    }
+  const handleCheckout = async (_plan: MembershipPlan) => {
+    openMembershipJoin();
   };
 
   const scrollTo = (id: string) => {
@@ -561,13 +531,13 @@ const Membership = () => {
                 </Badge>
                 <h2 className="mt-4 text-3xl font-black tracking-tight md:text-5xl">Choose your RTM membership plan</h2>
                 <p className="mt-4 text-lg text-white/70">
-                  This keeps the redesigned pricing structure while staying connected to live RTM plan data and checkout.
+                  Purchase the live RTM membership through the dedicated membership app and activate your dashboard after Stripe checkout.
                 </p>
               </div>
 
               <div className="mt-12 grid gap-6 lg:grid-cols-3">
                 {plans.map((plan, index) => {
-                  const isFeatured = index === 1;
+                  const isFeatured = true;
 
                   return (
                     <Card
@@ -584,21 +554,13 @@ const Membership = () => {
 
                       <CardHeader className="pb-4">
                         <div className="flex items-center gap-3">
-                          {index === 0 ? (
-                            <BadgeDollarSign className="h-5 w-5 text-primary" />
-                          ) : index === 1 ? (
-                            <Crown className="h-5 w-5 text-primary" />
-                          ) : (
-                            <Gem className="h-5 w-5 text-primary" />
-                          )}
+                          <Crown className="h-5 w-5 text-primary" />
                           <CardTitle className="text-2xl">{plan.name}</CardTitle>
                         </div>
                         <CardDescription>{plan.description ?? "Annual RTM membership access."}</CardDescription>
                         <div className="pt-4">
                           <div className="text-5xl font-black tracking-tight text-primary">${plan.price.toFixed(2)}</div>
-                          <div className="mt-1 text-sm font-medium uppercase tracking-[0.14em] text-muted-foreground">
-                            per {plan.interval}
-                          </div>
+                          <div className="mt-1 text-sm font-medium uppercase tracking-[0.14em] text-muted-foreground">CAD per member</div>
                         </div>
                       </CardHeader>
 
@@ -630,10 +592,9 @@ const Membership = () => {
                         <Button
                           className="w-full"
                           variant={isFeatured ? "hero" : "outline"}
-                          disabled={checkoutPlanId === plan.id}
                           onClick={() => void handleCheckout(plan)}
                         >
-                          {checkoutPlanId === plan.id ? "Starting checkout..." : user ? "Sign Up to Join" : "Sign In to Join"}
+                          Purchase membership - $100 CAD
                         </Button>
                       </CardFooter>
                     </Card>

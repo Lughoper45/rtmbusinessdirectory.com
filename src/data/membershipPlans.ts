@@ -9,41 +9,17 @@ export interface MembershipPlan {
 
 export const FALLBACK_MEMBERSHIP_PLANS: MembershipPlan[] = [
   {
-    id: "basic",
-    name: "Basic",
-    description: "Access to all business deals and discounts",
-    price: 99.99,
-    interval: "year",
+    id: "rtm-member",
+    name: "RTM Member",
+    description: "One membership for savings, referral earnings, and community support access",
+    price: 100,
+    interval: "one-time",
     features: [
-      "Access to exclusive deals",
+      "Digital member dashboard",
       "5-50% discounts at participating businesses",
-      "Priority customer support",
-    ],
-  },
-  {
-    id: "premium",
-    name: "Premium",
-    description: "Basic plus early access to new deals",
-    price: 149.99,
-    interval: "year",
-    features: [
-      "All Basic features",
-      "Early access to new deals",
-      "Featured deals",
-      "Deal notifications",
-    ],
-  },
-  {
-    id: "pro",
-    name: "Pro",
-    description: "Premium plus affiliate earnings",
-    price: 199.99,
-    interval: "year",
-    features: [
-      "All Premium features",
-      "30% affiliate commission eligibility",
-      "Unlimited referrals",
-      "Business listing included",
+      "30% direct referral commission",
+      "10% second-level referral commission",
+      "70% contribution to the Member Benefit Pool",
     ],
   },
 ];

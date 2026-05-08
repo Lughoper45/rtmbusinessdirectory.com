@@ -29,6 +29,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { User as SupabaseUser } from "@supabase/supabase-js";
 import BusinessListingWizard from "./BusinessListingWizard";
+import { openMembershipJoin, SITE_CONTACT } from "@/lib/site";
 import { toast } from "sonner";
 
 const Navbar = () => {
@@ -66,7 +67,7 @@ const Navbar = () => {
 
   const handleJoinMembership = () => {
     setIsOpen(false);
-    navigate("/membership");
+    openMembershipJoin();
   };
 
   const resourcesItems = [
@@ -147,14 +148,14 @@ const Navbar = () => {
                 <Globe className="h-4 w-4" />
                 EN / FR
               </button>
-              <a href="tel:+14169008728" className="inline-flex items-center gap-1.5 text-slate-300 hover:text-white transition-colors">
+              <a href={SITE_CONTACT.phoneHref} className="inline-flex items-center gap-1.5 text-slate-300 hover:text-white transition-colors">
                 <Phone className="h-4 w-4" />
-                +1 416 900 8728
+                {SITE_CONTACT.phoneDisplay}
               </a>
               <span className="text-slate-600">|</span>
               <div className="inline-flex items-center gap-1.5 text-slate-300">
                 <MapPin className="h-4 w-4" />
-                Toronto, ON
+                {SITE_CONTACT.officeAddressCompact}
               </div>
             </div>
 
