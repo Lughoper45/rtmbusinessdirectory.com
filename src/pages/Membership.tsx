@@ -37,42 +37,42 @@ interface UserMembership {
 }
 
 const heroHighlights = [
-  { value: "Up to 50%", label: "Savings at checkout" },
-  { value: "5,000+", label: "Partner businesses" },
-  { value: "50,000+", label: "Canadian families reached" },
+  { value: "$100 CAD", label: "Annual member fee" },
+  { value: "5-50%", label: "Partner discounts" },
+  { value: "Same day", label: "Digital card access" },
 ];
 
 const stats = [
-  { value: "5,000+", label: "Participating businesses across Canada" },
-  { value: "5-50%", label: "Discount range by partner and plan" },
-  { value: "$100 CAD", label: "One-time membership purchase" },
-  { value: "Instant", label: "Dashboard access after checkout" },
+  { value: "$100 CAD", label: "Join once per year" },
+  { value: "5-50%", label: "Save at partner stores" },
+  { value: "90 days", label: "Community fund waiting period" },
+  { value: "$1,000", label: "Maximum aid request" },
 ];
 
 const painPoints = [
-  "Household expenses keep climbing while everyday spending keeps repeating.",
-  "Loyalty programs are fragmented, inconsistent, and hard to remember.",
-  "Most discount offers feel temporary instead of giving ongoing value.",
+  "You want to know if RTM is real before you pay.",
+  "You need savings you can use right away, not complicated points.",
+  "You want honest rules around the fund, referrals, and what is not guaranteed.",
 ];
 
 const solutions = [
-  "One RTM membership gives members a simple savings mechanic across multiple categories.",
-  "Digital-first access makes redemption easier while preserving the card concept.",
-  "A clear $100 CAD membership creates one simple conversion path for RTM and its partners.",
+  "The day you join, you get a digital RTM Member Card for partner discounts.",
+  "After 90 days, active members can apply to the RTM Community Fund when life gets hard.",
+  "70 cents of every $100 membership goes directly into the shared member fund.",
 ];
 
 const howItWorks = [
   {
-    title: "Choose a plan",
-    description: "Start with the $100 CAD RTM membership and create your account.",
-  },
-  {
-    title: "Activate instantly",
-    description: "Complete secure Stripe checkout in the RTM membership app.",
+    title: "Join for $100",
+    description: "Create your account and pay the annual RTM membership fee.",
   },
   {
     title: "Use your card",
-    description: "Present your RTM card when shopping, dining, or booking services with partners.",
+    description: "Show your digital RTM Member Card at partner stores and save 5% to 50%.",
+  },
+  {
+    title: "Get backup",
+    description: "After 90 days of active membership, apply for community support if something unexpected hits.",
   },
 ];
 
@@ -114,24 +114,24 @@ const testimonials = [
 
 const faqs = [
   {
-    question: "How does RTM membership work?",
+    question: "When does my card work?",
     answer:
-      "You purchase the $100 CAD RTM membership, activate your dashboard after checkout, and use your RTM access at participating businesses.",
+      "The same day you pay. Your digital RTM Member Card is available immediately after membership activation.",
   },
   {
-    question: "How many businesses accept the RTM card?",
+    question: "Is this a pyramid scheme?",
     answer:
-      "The public positioning targets more than 5,000 participating businesses across categories including dining, retail, services, travel, and wellness.",
+      "No. Members can earn from people they directly invite and one level below them. That is where it stops by design.",
   },
   {
-    question: "Are there multiple membership tiers?",
+    question: "What if I never need the fund?",
     answer:
-      "The first live payment product is a single $100 CAD membership so the launch flow stays simple and easy to trust.",
+      "You still save money whenever you shop at a participating partner store. The fund is backup, not the only reason to join.",
   },
   {
-    question: "When do I get access?",
+    question: "Is my money guaranteed?",
     answer:
-      "Digital access is intended to be immediate after checkout, while a physical card can follow as an operational add-on if RTM supports it.",
+      "No. The fund helps members based on available money and reviewed applications. It is community aid, not insurance.",
   },
 ];
 
@@ -217,7 +217,7 @@ const Membership = () => {
         <title>RTM Membership | Save More Across Canada</title>
         <meta
           name="description"
-          content="Join RTM membership to unlock savings across Canadian businesses, compare plans, and estimate your annual value with the RTM savings calculator."
+          content="Join RTM for $100/year, get a digital discount card, save 5% to 50% at partner stores, and become eligible for community aid after 90 days."
         />
       </Helmet>
 
@@ -231,13 +231,13 @@ const Membership = () => {
               <div className="mx-auto max-w-4xl text-center">
                 <Badge className="border-white/20 bg-white/15 px-4 py-2 text-sm font-semibold text-white backdrop-blur">
                   <Sparkles className="mr-2 h-4 w-4" />
-                  RTM membership redesigned for conversion
+                  RTM membership
                 </Badge>
                 <h1 className="mt-6 text-4xl font-black leading-[1.02] tracking-tight text-white md:text-6xl">
-                  Save up to 50% at 5,000+ Canadian businesses with one RTM membership
+                  Pay $100. Save real money at local stores. Get backup when life gets hard.
                 </h1>
                 <p className="mx-auto mt-6 max-w-3xl text-lg text-white/85 md:text-2xl">
-                  The RTM card is now presented as a strong consumer savings product with clearer value, stronger proof points, and a direct path into checkout.
+                  RTM is a members-only discount card and community fund. Join once a year. Use it every week.
                 </p>
 
                 <div className="mt-10 grid gap-4 sm:grid-cols-3">
@@ -251,7 +251,7 @@ const Membership = () => {
 
                 <div className="mt-10 flex flex-col justify-center gap-4 sm:flex-row">
                   <Button variant="heroWhite" size="xl" onClick={() => scrollTo("plans")}>
-                    Choose Your Plan
+                    Join RTM - $100/year
                     <ArrowRight className="h-5 w-5" />
                   </Button>
                   <Button variant="heroOutline" size="xl" onClick={() => scrollTo("calculator")}>
@@ -260,7 +260,7 @@ const Membership = () => {
                 </div>
 
                 <p className="mt-5 text-sm font-medium text-white/75">
-                  Join RTM to unlock digital-first access and use your member card across the network.
+                  Takes 5 minutes. Discount card is ready immediately.
                 </p>
               </div>
             </div>
@@ -283,21 +283,21 @@ const Membership = () => {
             <div className="container mx-auto max-w-[1280px] px-6">
               <div className="mx-auto max-w-3xl text-center">
                 <Badge variant="outline" className="border-primary/20 bg-primary/5 text-primary">
-                  Why it matters
+                  What you get immediately
                 </Badge>
                 <h2 className="mt-4 text-3xl font-black tracking-tight md:text-5xl">
-                  Position membership around repeat savings, not a generic annual fee
+                  Your digital RTM Member Card starts working the day you join
                 </h2>
                 <p className="mt-4 text-lg text-muted-foreground">
-                  The redesign is strongest when the page explains the spending problem clearly, then ties RTM to a simpler, ongoing savings mechanic.
+                  Show it at any partner store and get 5% to 50% off groceries, services, restaurants, and more. No points. No complicated app to figure out. Just show the card and save.
                 </p>
               </div>
 
               <div className="mt-12 grid gap-6 lg:grid-cols-2">
                 <Card className="border-primary/20 shadow-medium">
                   <CardHeader>
-                    <CardTitle className="text-2xl text-primary">What members feel now</CardTitle>
-                    <CardDescription>These are the friction points the page should answer immediately.</CardDescription>
+                    <CardTitle className="text-2xl text-primary">What people need to know first</CardTitle>
+                    <CardDescription>Simple answers before anyone pays.</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <ul className="space-y-4">
@@ -317,7 +317,7 @@ const Membership = () => {
                   <CardHeader>
                     <CardTitle className="text-2xl">How RTM answers it</CardTitle>
                     <CardDescription className="text-white/80">
-                      A cleaner conversion story with tangible value at the center.
+                      Clear benefits, clear rules, and no income promises.
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
@@ -343,9 +343,9 @@ const Membership = () => {
                 <Badge variant="outline" className="border-primary/20 bg-primary/5 text-primary">
                   How it works
                 </Badge>
-                <h2 className="mt-4 text-3xl font-black tracking-tight md:text-5xl">A simpler membership flow from plan to redemption</h2>
+                <h2 className="mt-4 text-3xl font-black tracking-tight md:text-5xl">Join once, save right away, apply for support after 90 days</h2>
                 <p className="mt-4 text-lg text-muted-foreground">
-                  The original HTML had the right structure. This version keeps that flow while aligning with the app and existing checkout behavior.
+                  The membership flow is simple: pay, receive your digital card, use your savings, and become eligible for community support after the waiting period.
                 </p>
               </div>
 
@@ -369,13 +369,13 @@ const Membership = () => {
             <div className="container mx-auto max-w-[1280px] px-6">
               <div className="mx-auto max-w-3xl text-center">
                 <Badge variant="outline" className="border-primary/20 bg-primary/5 text-primary">
-                  Savings calculator
+                  What you can save
                 </Badge>
                 <h2 className="mt-4 text-3xl font-black tracking-tight md:text-5xl">
                   Will you save more than your membership cost?
                 </h2>
                 <p className="mt-4 text-lg text-muted-foreground">
-                  Use typical monthly habits to estimate how quickly RTM membership can justify itself.
+                  Most members are looking for everyday value first. Use typical monthly habits to estimate how quickly RTM can pay for itself.
                 </p>
               </div>
 
@@ -478,7 +478,7 @@ const Membership = () => {
                           : "Adjust the sliders to estimate break-even timing"}
                       </div>
                       <p className="mt-2 text-sm text-white/70">
-                        This is directional math for the page narrative, not a guarantee of savings.
+                      This is an estimate, not a guarantee. Actual savings depend on where and how often you use your card.
                       </p>
                     </div>
                   </CardContent>
@@ -491,11 +491,11 @@ const Membership = () => {
             <div className="container mx-auto max-w-[1280px] px-6">
               <div className="mx-auto max-w-3xl text-center">
                 <Badge variant="outline" className="border-primary/20 bg-primary/5 text-primary">
-                  Where you save
+                  Where members save
                 </Badge>
-                <h2 className="mt-4 text-3xl font-black tracking-tight md:text-5xl">Savings categories members can recognize immediately</h2>
+                <h2 className="mt-4 text-3xl font-black tracking-tight md:text-5xl">Use your RTM card for everyday spending</h2>
                 <p className="mt-4 text-lg text-muted-foreground">
-                  Category framing helps explain the breadth of the network before a user ever gets to plan pricing.
+                  RTM is strongest when members can use it in normal weekly life: food, services, retail, wellness, automotive, and travel.
                 </p>
               </div>
 
@@ -527,11 +527,11 @@ const Membership = () => {
             <div className="container mx-auto max-w-[1280px] px-6">
               <div className="mx-auto max-w-3xl text-center">
                 <Badge className="border-white/15 bg-white/10 text-white">
-                  Membership plans
+                  Join RTM
                 </Badge>
-                <h2 className="mt-4 text-3xl font-black tracking-tight md:text-5xl">Choose your RTM membership plan</h2>
+                <h2 className="mt-4 text-3xl font-black tracking-tight md:text-5xl">Join RTM - $100/year</h2>
                 <p className="mt-4 text-lg text-white/70">
-                  Purchase the live RTM membership through the dedicated membership app and activate your dashboard after Stripe checkout.
+                  One annual membership unlocks your digital card, your dashboard, optional referral earnings, and future Community Fund eligibility.
                 </p>
               </div>
 
@@ -548,7 +548,7 @@ const Membership = () => {
                     >
                       {isFeatured ? (
                         <div className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[linear-gradient(135deg,hsl(352_82%_49%)_0%,hsl(43_100%_56%)_100%)] px-4 py-2 text-xs font-bold uppercase tracking-[0.16em] text-white">
-                          Most popular
+                          Active offer
                         </div>
                       ) : null}
 
@@ -594,7 +594,7 @@ const Membership = () => {
                           variant={isFeatured ? "hero" : "outline"}
                           onClick={() => void handleCheckout(plan)}
                         >
-                          Purchase membership - $100 CAD
+                          Join RTM - $100/year
                         </Button>
                       </CardFooter>
                     </Card>
@@ -631,10 +631,10 @@ const Membership = () => {
 
                 <Card className="border-white/10 bg-[linear-gradient(135deg,rgba(255,255,255,0.12),rgba(255,255,255,0.06))] text-white shadow-medium">
                   <CardContent className="p-8">
-                    <div className="text-sm font-semibold uppercase tracking-[0.16em] text-amber-300">Conversion note</div>
-                    <h3 className="mt-3 text-2xl font-black">The page now sells the value before it asks for checkout.</h3>
+                    <div className="text-sm font-semibold uppercase tracking-[0.16em] text-amber-300">Community Fund</div>
+                    <h3 className="mt-3 text-2xl font-black">After 90 days, active members can apply for backup.</h3>
                     <p className="mt-3 text-white/70">
-                      The static redesign content is integrated into the live route, but plan pricing and checkout are still controlled by the current app logic.
+                      If something unexpected hits - a medical bill, job loss, or car repair - you can apply for up to $1,000. This is not insurance. It is neighbours helping neighbours through a shared pool.
                     </p>
                   </CardContent>
                 </Card>
@@ -646,11 +646,11 @@ const Membership = () => {
             <div className="container mx-auto max-w-[1280px] px-6">
               <div className="mx-auto max-w-3xl text-center">
                 <Badge variant="outline" className="border-primary/20 bg-primary/5 text-primary">
-                  Testimonials
+                  Member proof
                 </Badge>
-                <h2 className="mt-4 text-3xl font-black tracking-tight md:text-5xl">Real-member style social proof</h2>
+                <h2 className="mt-4 text-3xl font-black tracking-tight md:text-5xl">Why people join</h2>
                 <p className="mt-4 text-lg text-muted-foreground">
-                  These remain presentational for now, but the page has the trust-building structure from the redesign.
+                  People should join for savings first, community backup second, and optional referral earnings third.
                 </p>
               </div>
 
@@ -686,9 +686,7 @@ const Membership = () => {
                   FAQ
                 </Badge>
                 <h2 className="mt-4 text-3xl font-black tracking-tight md:text-5xl">Frequently asked questions</h2>
-                <p className="mt-4 text-lg text-muted-foreground">
-                  The redesign included a standard FAQ block, so this route now carries that section natively.
-                </p>
+                <p className="mt-4 text-lg text-muted-foreground">Plain answers before you join.</p>
               </div>
 
               <div className="mt-12 grid gap-4">
@@ -706,14 +704,14 @@ const Membership = () => {
 
           <section className="bg-[linear-gradient(135deg,hsl(352_82%_49%)_0%,hsl(0_83%_26%)_100%)] py-20 text-white">
             <div className="container mx-auto max-w-[1280px] px-6 text-center">
-              <h2 className="text-3xl font-black tracking-tight md:text-5xl">Ready to start saving with RTM?</h2>
+              <h2 className="text-3xl font-black tracking-tight md:text-5xl">Join RTM - $100/year</h2>
               <p className="mx-auto mt-4 max-w-2xl text-lg text-white/80 md:text-xl">
-                The membership route now has a clearer funnel: proof, calculator, categories, plans, and checkout.
+                Takes 5 minutes. Your discount card is ready immediately after membership activation.
               </p>
 
               <div className="mt-8 flex flex-col justify-center gap-4 sm:flex-row">
                 <Button variant="heroWhite" size="xl" onClick={() => scrollTo("plans")}>
-                  Choose Your Plan
+                  Join RTM - $100/year
                   <ArrowRight className="h-5 w-5" />
                 </Button>
                 <Button variant="heroOutline" size="xl" onClick={() => navigate("/deals")}>
@@ -722,7 +720,7 @@ const Membership = () => {
               </div>
 
               <div className="mx-auto mt-8 inline-flex rounded-2xl border border-white/15 bg-white/10 px-5 py-3 text-sm font-semibold text-white/90 backdrop-blur">
-                Limited-time messaging can be swapped in here once RTM has a real campaign to support.
+                RTM is community aid, not insurance or an investment. Income is not guaranteed.
               </div>
             </div>
           </section>
