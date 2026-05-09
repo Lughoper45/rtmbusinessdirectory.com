@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { Facebook, Instagram, Linkedin, Twitter, Youtube } from "lucide-react";
+import { SITE_CONTACT } from "@/lib/site";
 
 const Footer = () => {
   const productLinks = [
@@ -46,6 +47,9 @@ const Footer = () => {
             </Link>
             <div className="text-lg font-semibold text-primary-foreground">RTM Business Directory</div>
             <p className="mb-6 mt-2 leading-relaxed text-primary-foreground/60">Your Trusted Business Directory</p>
+            <p className="mb-6 max-w-sm text-sm leading-relaxed text-primary-foreground/50">
+              {SITE_CONTACT.officeLabel}: {SITE_CONTACT.officeAddress}
+            </p>
             <div className="flex gap-4">
               {socialLinks.map((social) => (
                 <a

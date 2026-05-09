@@ -1,15 +1,8 @@
 import { motion } from 'framer-motion';
-import { Rocket, DollarSign, Target, Zap, ArrowRight, Sparkles } from 'lucide-react';
+import { Rocket, DollarSign, Target, Zap, ArrowRight, Building2, Search } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
-interface GrantPilotHeroProps {
-  onStartProfile: () => void;
-}
-
-const GrantPilotHero = ({ onStartProfile }: GrantPilotHeroProps) => {
-  const fundingPotential = 487000;
-  const grantsMatched = 23;
-  const timeSaved = 35;
-
+const GrantPilotHero = () => {
   return (
     <motion.section
       initial={{ opacity: 0, y: 20 }}
@@ -32,8 +25,8 @@ const GrantPilotHero = ({ onStartProfile }: GrantPilotHeroProps) => {
             transition={{ delay: 0.2 }}
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/30 mb-6"
           >
-            <Sparkles className="w-4 h-4 text-primary" />
-            <span className="text-sm font-medium text-primary">AI-Powered Grant Discovery</span>
+            <Building2 className="w-4 h-4 text-primary" />
+            <span className="text-sm font-medium text-primary">Canadian Business Grants Directory</span>
           </motion.div>
 
           <div className="grid lg:grid-cols-2 gap-8 items-center">
@@ -43,29 +36,12 @@ const GrantPilotHero = ({ onStartProfile }: GrantPilotHeroProps) => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
-                className="font-orbitron text-4xl lg:text-5xl font-bold mb-4"
+                className="font-orbitron text-4xl lg:text-5xl font-bold mb-6"
               >
-                <span className="text-foreground">Your Funding</span>
+                <span className="text-foreground">Discover Grants for</span>
                 <br />
-                <span className="text-gradient">Potential</span>
+                <span className="text-gradient">Your Canadian Business</span>
               </motion.h1>
-
-              <motion.div
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.4, type: 'spring' }}
-                className="mb-6"
-              >
-                <div className="flex items-baseline gap-2">
-                  <span className="text-5xl lg:text-7xl font-orbitron font-bold text-success text-shadow-glow">
-                    ${fundingPotential.toLocaleString()}
-                  </span>
-                </div>
-                <p className="text-muted-foreground mt-2">
-                  Based on your profile, you're eligible for{' '}
-                  <span className="text-primary font-semibold">{grantsMatched} grants</span>
-                </p>
-              </motion.div>
 
               <motion.p
                 initial={{ opacity: 0 }}
@@ -73,7 +49,8 @@ const GrantPilotHero = ({ onStartProfile }: GrantPilotHeroProps) => {
                 transition={{ delay: 0.5 }}
                 className="text-lg text-muted-foreground mb-8 max-w-md"
               >
-                GrantPilot finds, fills, and submits grant applications while you focus on building your business.
+                Explore federal, provincial, and municipal grants available to Canadian businesses. 
+                Find funding opportunities that match your industry and business stage.
               </motion.p>
 
               <motion.div
@@ -82,20 +59,14 @@ const GrantPilotHero = ({ onStartProfile }: GrantPilotHeroProps) => {
                 transition={{ delay: 0.6 }}
                 className="flex flex-wrap gap-4"
               >
-                <button
-                  onClick={onStartProfile}
+                <Link
+                  to="/membership"
                   className="group px-6 py-3 rounded-xl bg-gradient-to-r from-primary to-primary/80 text-primary-foreground font-semibold flex items-center gap-2 hover:shadow-lg hover:shadow-primary/25 transition-all"
                 >
-                  <Rocket className="w-5 h-5" />
-                  Explore Grants
+                  <Search className="w-5 h-5" />
+                  Browse Grants
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                </button>
-                <button
-                  onClick={onStartProfile}
-                  className="px-6 py-3 rounded-xl border border-primary/50 text-primary font-semibold hover:bg-primary/10 transition-colors"
-                >
-                  Complete Profile
-                </button>
+                </Link>
               </motion.div>
             </div>
 
@@ -109,12 +80,12 @@ const GrantPilotHero = ({ onStartProfile }: GrantPilotHeroProps) => {
               {/* Stat Card 1 */}
               <div className="p-6 rounded-2xl bg-secondary/50 border border-border hover:border-primary/30 transition-colors group">
                 <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                  <Target className="w-6 h-6 text-primary" />
+                  <Building2 className="w-6 h-6 text-primary" />
                 </div>
                 <div className="font-orbitron text-3xl font-bold text-foreground mb-1">
-                  {grantsMatched}
+                  3
                 </div>
-                <p className="text-sm text-muted-foreground">Grants Matched</p>
+                <p className="text-sm text-muted-foreground">Government Levels</p>
               </div>
 
               {/* Stat Card 2 */}
@@ -123,31 +94,31 @@ const GrantPilotHero = ({ onStartProfile }: GrantPilotHeroProps) => {
                   <DollarSign className="w-6 h-6 text-success" />
                 </div>
                 <div className="font-orbitron text-3xl font-bold text-foreground mb-1">
-                  94%
+                  $100B+
                 </div>
-                <p className="text-sm text-muted-foreground">Ready to Apply</p>
+                <p className="text-sm text-muted-foreground">Available Annually</p>
               </div>
 
               {/* Stat Card 3 */}
               <div className="p-6 rounded-2xl bg-secondary/50 border border-border hover:border-warning/30 transition-colors group">
                 <div className="w-12 h-12 rounded-xl bg-warning/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                  <Zap className="w-6 h-6 text-warning" />
+                  <Target className="w-6 h-6 text-warning" />
                 </div>
                 <div className="font-orbitron text-3xl font-bold text-foreground mb-1">
-                  {timeSaved}h
+                  50+
                 </div>
-                <p className="text-sm text-muted-foreground">Time Saved</p>
+                <p className="text-sm text-muted-foreground">Grant Programs</p>
               </div>
 
               {/* Stat Card 4 */}
               <div className="p-6 rounded-2xl bg-secondary/50 border border-border hover:border-accent/30 transition-colors group">
                 <div className="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                  <Rocket className="w-6 h-6 text-accent" />
+                  <Zap className="w-6 h-6 text-accent" />
                 </div>
                 <div className="font-orbitron text-3xl font-bold text-foreground mb-1">
-                  40%
+                  80%
                 </div>
-                <p className="text-sm text-muted-foreground">Success Rate</p>
+                <p className="text-sm text-muted-foreground">Go Unclaimed</p>
               </div>
             </motion.div>
           </div>
@@ -167,7 +138,7 @@ const GrantPilotHero = ({ onStartProfile }: GrantPilotHeroProps) => {
           </div>
           <div>
             <p className="text-xs text-muted-foreground">Federal</p>
-            <p className="font-semibold text-foreground">8 grants</p>
+            <p className="font-semibold text-foreground">National programs</p>
           </div>
         </div>
         <div className="flex items-center gap-3 p-4 rounded-xl glass-panel">
@@ -176,7 +147,7 @@ const GrantPilotHero = ({ onStartProfile }: GrantPilotHeroProps) => {
           </div>
           <div>
             <p className="text-xs text-muted-foreground">Provincial</p>
-            <p className="font-semibold text-foreground">10 grants</p>
+            <p className="font-semibold text-foreground">Region-specific</p>
           </div>
         </div>
         <div className="flex items-center gap-3 p-4 rounded-xl glass-panel">
@@ -185,7 +156,7 @@ const GrantPilotHero = ({ onStartProfile }: GrantPilotHeroProps) => {
           </div>
           <div>
             <p className="text-xs text-muted-foreground">Municipal</p>
-            <p className="font-semibold text-foreground">3 grants</p>
+            <p className="font-semibold text-foreground">Local opportunities</p>
           </div>
         </div>
         <div className="flex items-center gap-3 p-4 rounded-xl glass-panel">
@@ -194,7 +165,7 @@ const GrantPilotHero = ({ onStartProfile }: GrantPilotHeroProps) => {
           </div>
           <div>
             <p className="text-xs text-muted-foreground">Industry</p>
-            <p className="font-semibold text-foreground">2 grants</p>
+            <p className="font-semibold text-foreground">Sector-specific</p>
           </div>
         </div>
       </motion.div>

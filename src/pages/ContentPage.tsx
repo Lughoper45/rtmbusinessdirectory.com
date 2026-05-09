@@ -6,6 +6,7 @@ import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { SITE_CONTACT } from "@/lib/site";
 
 type PageConfig = {
   title: string;
@@ -414,19 +415,26 @@ const ContentPage = () => {
                   <p className="mt-3 text-muted-foreground">
                     This page now exists as a real destination in the footer and can be expanded with full product or legal content later.
                   </p>
+                  <p className="mt-4 text-sm text-muted-foreground">
+                    <span className="font-semibold text-foreground">{SITE_CONTACT.officeLabel}:</span> {SITE_CONTACT.officeAddress}
+                  </p>
                 </CardContent>
               </Card>
 
               {slug === "contact" ? (
                 <Card className="border-border/70 shadow-medium">
                   <CardContent className="grid gap-4 p-8 text-sm text-muted-foreground">
+                    <div>
+                      <div className="font-semibold text-foreground">{SITE_CONTACT.officeLabel}</div>
+                      <div className="mt-1">{SITE_CONTACT.officeAddress}</div>
+                    </div>
                     <div className="flex items-center gap-3">
                       <Mail className="h-4 w-4 text-primary" />
-                      <span>info@rtmbusinessdirectory.com</span>
+                      <span>{SITE_CONTACT.email}</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <Phone className="h-4 w-4 text-primary" />
-                      <span>+1 (416) 123-4567</span>
+                      <span>{SITE_CONTACT.phoneDisplay}</span>
                     </div>
                   </CardContent>
                 </Card>
