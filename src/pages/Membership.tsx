@@ -4,18 +4,23 @@ import { useNavigate } from "react-router-dom";
 import type { User } from "@supabase/supabase-js";
 import {
   ArrowRight,
+  BadgeDollarSign,
   CalendarClock,
   Car,
   Check,
   Clock3,
   Crown,
+  Globe2,
+  Handshake,
   HeartPulse,
+  Mail,
   MapPin,
+  Megaphone,
+  Phone,
   ShieldCheck,
   ShoppingBag,
   Sparkles,
   Store,
-  Ticket,
   UtensilsCrossed,
   Wallet,
 } from "lucide-react";
@@ -27,7 +32,6 @@ import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { FALLBACK_MEMBERSHIP_PLANS, type MembershipPlan } from "@/data/membershipPlans";
 import { openMembershipJoin } from "@/lib/site";
-import { toast } from "sonner";
 
 interface UserMembership {
   id: string;
@@ -40,6 +44,18 @@ const heroHighlights = [
   { value: "$100 CAD", label: "Annual member fee" },
   { value: "5-50%", label: "Partner discounts" },
   { value: "Same day", label: "Digital card access" },
+];
+
+const introBenefits = [
+  "Join RTM for $100/year and unlock exclusive savings at registered businesses and stores.",
+  "Use the RTM Business Directory Discount Program to support local merchants that support the community.",
+  "Become an affiliate and earn 30% commission as an RTM Advertising Representative.",
+];
+
+const affiliateIntro = [
+  { title: "Connect", description: "Meet business owners in person and online.", icon: Handshake },
+  { title: "Promote", description: "Share RTM advertising packages with local businesses.", icon: Megaphone },
+  { title: "Grow", description: "Help merchants reach new customers through the directory.", icon: BadgeDollarSign },
 ];
 
 const stats = [
@@ -225,43 +241,105 @@ const Membership = () => {
         <Navbar />
 
         <main>
-          <section className="relative overflow-hidden bg-[linear-gradient(135deg,hsl(352_82%_49%)_0%,hsl(0_83%_26%)_100%)] text-primary-foreground">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.18),transparent_20%),radial-gradient(circle_at_80%_0%,rgba(255,255,255,0.12),transparent_24%),radial-gradient(circle_at_50%_100%,rgba(0,0,0,0.16),transparent_36%)]" />
-            <div className="container relative z-10 mx-auto max-w-[1280px] px-6 py-16 md:py-24">
-              <div className="mx-auto max-w-4xl text-center">
-                <Badge className="border-white/20 bg-white/15 px-4 py-2 text-sm font-semibold text-white backdrop-blur">
+          <section className="relative overflow-hidden bg-[#06233f] text-white">
+            <div className="absolute inset-0 bg-[linear-gradient(120deg,rgba(143,190,58,0.18),transparent_32%),linear-gradient(180deg,rgba(0,0,0,0.08),rgba(0,0,0,0.28))]" />
+            <div className="container relative z-10 mx-auto grid max-w-[1280px] gap-10 px-6 py-12 lg:grid-cols-[0.9fr_1.1fr] lg:items-center lg:py-16">
+              <div>
+                <Badge className="border-[#97c93d]/40 bg-[#97c93d] px-4 py-2 text-sm font-black uppercase tracking-[0.12em] text-[#06233f]">
                   <Sparkles className="mr-2 h-4 w-4" />
-                  RTM membership
+                  For RTM members
                 </Badge>
-                <h1 className="mt-6 text-4xl font-black leading-[1.02] tracking-tight text-white md:text-6xl">
-                  Pay $100. Save real money at local stores. Get backup when life gets hard.
+                <h1 className="mt-6 text-5xl font-black leading-[0.98] tracking-tight text-white md:text-7xl">
+                  Join RTM for $100/year
                 </h1>
-                <p className="mx-auto mt-6 max-w-3xl text-lg text-white/85 md:text-2xl">
-                  RTM is a members-only discount card and community fund. Join once a year. Use it every week.
+                <p className="mt-6 max-w-2xl text-lg font-medium leading-8 text-white/86 md:text-xl">
+                  Unlock exclusive savings at hundreds of registered businesses and stores, then help grow the RTM Business Directory by sharing the affiliate opportunity.
                 </p>
 
-                <div className="mt-10 grid gap-4 sm:grid-cols-3">
-                  {heroHighlights.map((item) => (
-                    <div key={item.label} className="rounded-3xl border border-white/15 bg-white/10 px-5 py-5 backdrop-blur">
-                      <div className="text-3xl font-black text-white">{item.value}</div>
-                      <div className="mt-1 text-sm uppercase tracking-[0.16em] text-white/70">{item.label}</div>
+                <div className="mt-8 grid gap-3">
+                  {introBenefits.map((item) => (
+                    <div key={item} className="flex items-start gap-3 rounded-lg border border-white/12 bg-white/8 p-4 backdrop-blur">
+                      <span className="mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#97c93d] text-[#06233f]">
+                        <Check className="h-4 w-4" />
+                      </span>
+                      <span className="text-sm leading-6 text-white/84 md:text-base">{item}</span>
                     </div>
                   ))}
                 </div>
 
-                <div className="mt-10 flex flex-col justify-center gap-4 sm:flex-row">
+                <div className="mt-8 grid gap-4 sm:grid-cols-3">
+                  {heroHighlights.map((item) => (
+                    <div key={item.label} className="rounded-lg border border-white/15 bg-white/10 px-4 py-4 backdrop-blur">
+                      <div className="text-2xl font-black text-[#a7d23f]">{item.value}</div>
+                      <div className="mt-1 text-xs font-semibold uppercase tracking-[0.14em] text-white/68">{item.label}</div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                   <Button variant="heroWhite" size="xl" onClick={() => scrollTo("plans")}>
                     Join RTM - $100/year
                     <ArrowRight className="h-5 w-5" />
                   </Button>
-                  <Button variant="heroOutline" size="xl" onClick={() => scrollTo("calculator")}>
-                    Calculate Savings
+                  <Button variant="heroOutline" size="xl" onClick={() => navigate("/affiliate")}>
+                    Become an Affiliate
                   </Button>
                 </div>
+              </div>
 
-                <p className="mt-5 text-sm font-medium text-white/75">
-                  Takes 5 minutes. Discount card is ready immediately.
-                </p>
+              <div className="flex justify-center overflow-hidden rounded-lg border border-white/15 bg-white p-2 shadow-heavy">
+                <img
+                  src="/membership-affiliate-intro.jpeg"
+                  alt="RTM membership and affiliate opportunity flyer"
+                  className="max-h-[760px] w-auto max-w-full object-contain"
+                />
+              </div>
+            </div>
+          </section>
+
+          <section className="bg-white py-10">
+            <div className="container mx-auto max-w-[1280px] px-6">
+              <div className="grid gap-4 lg:grid-cols-[0.85fr_1.15fr] lg:items-center">
+                <div>
+                  <div className="text-sm font-black uppercase tracking-[0.16em] text-primary">Earn with us</div>
+                  <h2 className="mt-2 text-3xl font-black tracking-tight text-[#06233f] md:text-5xl">
+                    Become an RTM affiliate
+                  </h2>
+                  <p className="mt-3 max-w-2xl text-muted-foreground">
+                    Make 30% commission as an RTM Advertising Representative by connecting with business owners, promoting advertising packages, and helping them reach new customers.
+                  </p>
+                </div>
+
+                <div className="grid gap-4 md:grid-cols-3">
+                  {affiliateIntro.map((item) => {
+                    const Icon = item.icon;
+
+                    return (
+                      <div key={item.title} className="rounded-lg border border-border/80 bg-stone-50 p-5">
+                        <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#06233f] text-white">
+                          <Icon className="h-5 w-5" />
+                        </div>
+                        <h3 className="mt-4 text-lg font-black text-[#06233f]">{item.title}</h3>
+                        <p className="mt-2 text-sm leading-6 text-muted-foreground">{item.description}</p>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="mt-8 grid gap-4 border-t border-border pt-6 md:grid-cols-3">
+                <a href="https://rtmbusinessdirectory.com" className="flex items-center gap-3 text-sm font-semibold text-[#06233f] hover:text-primary">
+                  <Globe2 className="h-5 w-5 text-primary" />
+                  RTMBusinessDirectory.com
+                </a>
+                <a href="tel:+14169008728" className="flex items-center gap-3 text-sm font-semibold text-[#06233f] hover:text-primary">
+                  <Phone className="h-5 w-5 text-primary" />
+                  416-900-8728
+                </a>
+                <a href="mailto:info@rtmbusinessdirectory.com" className="flex items-center gap-3 text-sm font-semibold text-[#06233f] hover:text-primary">
+                  <Mail className="h-5 w-5 text-primary" />
+                  info@rtmbusinessdirectory.com
+                </a>
               </div>
             </div>
           </section>
@@ -535,71 +613,86 @@ const Membership = () => {
                 </p>
               </div>
 
-              <div className="mt-12 grid gap-6 lg:grid-cols-3">
-                {plans.map((plan, index) => {
-                  const isFeatured = true;
+              <div className="mt-12 grid gap-6 lg:grid-cols-[360px_1fr] lg:items-stretch">
+                <div>
+                  {plans.map((plan) => {
+                    const isFeatured = true;
 
-                  return (
-                    <Card
-                      key={plan.id}
-                      className={`relative overflow-hidden border bg-white text-foreground shadow-heavy transition-transform duration-300 ${
-                        isFeatured ? "scale-[1.02] border-amber-400" : "border-white/10"
-                      }`}
-                    >
-                      {isFeatured ? (
-                        <div className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[linear-gradient(135deg,hsl(352_82%_49%)_0%,hsl(43_100%_56%)_100%)] px-4 py-2 text-xs font-bold uppercase tracking-[0.16em] text-white">
-                          Active offer
-                        </div>
-                      ) : null}
-
-                      <CardHeader className="pb-4">
-                        <div className="flex items-center gap-3">
-                          <Crown className="h-5 w-5 text-primary" />
-                          <CardTitle className="text-2xl">{plan.name}</CardTitle>
-                        </div>
-                        <CardDescription>{plan.description ?? "Annual RTM membership access."}</CardDescription>
-                        <div className="pt-4">
-                          <div className="text-5xl font-black tracking-tight text-primary">${plan.price.toFixed(2)}</div>
-                          <div className="mt-1 text-sm font-medium uppercase tracking-[0.14em] text-muted-foreground">CAD per member</div>
-                        </div>
-                      </CardHeader>
-
-                      <CardContent className="space-y-5">
-                        <ul className="space-y-3">
-                          {plan.features.map((feature) => (
-                            <li key={feature} className="flex items-start gap-3 text-sm text-muted-foreground">
-                              <div className="mt-0.5 rounded-full bg-emerald-100 p-1 text-emerald-600">
-                                <Check className="h-3.5 w-3.5" />
-                              </div>
-                              <span>{feature}</span>
-                            </li>
-                          ))}
-                        </ul>
-
-                        <div className="grid gap-3 rounded-3xl bg-muted/50 p-4 text-sm text-muted-foreground">
-                          <div className="flex items-center gap-2">
-                            <ShieldCheck className="h-4 w-4 text-primary" />
-                            Checkout remains tied to RTM membership fulfillment.
+                    return (
+                      <Card
+                        key={plan.id}
+                        className={`relative h-full overflow-hidden border bg-white text-foreground shadow-heavy transition-transform duration-300 ${
+                          isFeatured ? "scale-[1.02] border-amber-400" : "border-white/10"
+                        }`}
+                      >
+                        {isFeatured ? (
+                          <div className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[linear-gradient(135deg,hsl(352_82%_49%)_0%,hsl(43_100%_56%)_100%)] px-4 py-2 text-xs font-bold uppercase tracking-[0.16em] text-white">
+                            Active offer
                           </div>
-                          <div className="flex items-center gap-2">
-                            <CalendarClock className="h-4 w-4 text-primary" />
-                            Annual billing keeps the page aligned with the current product model.
-                          </div>
-                        </div>
-                      </CardContent>
+                        ) : null}
 
-                      <CardFooter className="pt-2">
-                        <Button
-                          className="w-full"
-                          variant={isFeatured ? "hero" : "outline"}
-                          onClick={() => void handleCheckout(plan)}
-                        >
-                          Join RTM - $100/year
-                        </Button>
-                      </CardFooter>
-                    </Card>
-                  );
-                })}
+                        <CardHeader className="pb-4">
+                          <div className="flex items-center gap-3">
+                            <Crown className="h-5 w-5 text-primary" />
+                            <CardTitle className="text-2xl">{plan.name}</CardTitle>
+                          </div>
+                          <CardDescription>{plan.description ?? "Annual RTM membership access."}</CardDescription>
+                          <div className="pt-4">
+                            <div className="text-5xl font-black tracking-tight text-primary">${plan.price.toFixed(2)}</div>
+                            <div className="mt-1 text-sm font-medium uppercase tracking-[0.14em] text-muted-foreground">CAD per member</div>
+                          </div>
+                        </CardHeader>
+
+                        <CardContent className="space-y-5">
+                          <ul className="space-y-3">
+                            {plan.features.map((feature) => (
+                              <li key={feature} className="flex items-start gap-3 text-sm text-muted-foreground">
+                                <div className="mt-0.5 rounded-full bg-emerald-100 p-1 text-emerald-600">
+                                  <Check className="h-3.5 w-3.5" />
+                                </div>
+                                <span>{feature}</span>
+                              </li>
+                            ))}
+                          </ul>
+
+                          <div className="grid gap-3 rounded-3xl bg-muted/50 p-4 text-sm text-muted-foreground">
+                            <div className="flex items-center gap-2">
+                              <ShieldCheck className="h-4 w-4 text-primary" />
+                              Checkout remains tied to RTM membership fulfillment.
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <CalendarClock className="h-4 w-4 text-primary" />
+                              Annual billing keeps the page aligned with the current product model.
+                            </div>
+                          </div>
+                        </CardContent>
+
+                        <CardFooter className="pt-2">
+                          <Button
+                            className="w-full"
+                            variant={isFeatured ? "hero" : "outline"}
+                            onClick={() => void handleCheckout(plan)}
+                          >
+                            Join RTM - $100/year
+                          </Button>
+                        </CardFooter>
+                      </Card>
+                    );
+                  })}
+                </div>
+
+                <div className="relative min-h-[420px] overflow-hidden rounded-2xl border border-white/10 bg-zinc-900 shadow-heavy">
+                  <img
+                    src="/computer.png"
+                    alt="RTM member dashboard across laptop, phone, and member card"
+                    className="absolute inset-0 h-full w-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(0,0,0,0.7)_0%,rgba(0,0,0,0.22)_42%,rgba(0,0,0,0)_100%)]" />
+                  <div className="relative z-10 max-w-sm p-8">
+                    <div className="text-sm font-black uppercase tracking-[0.16em] text-amber-300">RTM dashboard</div>
+                    <h3 className="mt-3 text-3xl font-black text-white">Your member card, savings, and referrals in one place.</h3>
+                  </div>
+                </div>
               </div>
 
               <div className="mt-8 grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
@@ -629,13 +722,21 @@ const Membership = () => {
                   </CardContent>
                 </Card>
 
-                <Card className="border-white/10 bg-[linear-gradient(135deg,rgba(255,255,255,0.12),rgba(255,255,255,0.06))] text-white shadow-medium">
-                  <CardContent className="p-8">
-                    <div className="text-sm font-semibold uppercase tracking-[0.16em] text-amber-300">Community Fund</div>
-                    <h3 className="mt-3 text-2xl font-black">After 90 days, active members can apply for backup.</h3>
-                    <p className="mt-3 text-white/70">
-                      If something unexpected hits - a medical bill, job loss, or car repair - you can apply for up to $1,000. This is not insurance. It is neighbours helping neighbours through a shared pool.
-                    </p>
+                <Card className="overflow-hidden border-white/10 bg-zinc-900 text-white shadow-medium">
+                  <CardContent className="relative min-h-[260px] p-0">
+                    <img
+                      src="/computer.png"
+                      alt="RTM member dashboard shown on laptop and mobile"
+                      className="absolute inset-0 h-full w-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(0,0,0,0.88)_0%,rgba(0,0,0,0.58)_48%,rgba(0,0,0,0.16)_100%)]" />
+                    <div className="relative z-10 max-w-md p-8">
+                      <div className="text-sm font-semibold uppercase tracking-[0.16em] text-amber-300">Community Fund</div>
+                      <h3 className="mt-3 text-2xl font-black">After 90 days, active members can apply for backup.</h3>
+                      <p className="mt-3 text-white/78">
+                        If something unexpected hits - a medical bill, job loss, or car repair - you can apply for up to $1,000. This is not insurance. It is neighbours helping neighbours through a shared pool.
+                      </p>
+                    </div>
                   </CardContent>
                 </Card>
               </div>

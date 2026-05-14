@@ -11,6 +11,8 @@ import BusinessMap from "@/components/directory/BusinessMap";
 import DiscoverySwipe from "@/components/directory/DiscoverySwipe";
 import StoryMode from "@/components/directory/StoryMode";
 import BusinessList from "@/components/directory/BusinessList";
+import BusinessListingWizard from "@/components/BusinessListingWizard";
+import { Button } from "@/components/ui/button";
 import { Business, DiscoveryMode, FilterState } from "@/types/directory";
 import { fetchPaginatedBusinesses, fetchBusinessesByIds } from "@/data/database";
 import { businessProfilePath } from "@/lib/slug";
@@ -27,7 +29,7 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Database, TriangleAlert } from "lucide-react";
+import { ArrowRight, Building2, Database, Megaphone, TriangleAlert, Users } from "lucide-react";
 
 const PAGE_SIZE = 24;
 const showDirectorySourceNotice =
@@ -71,6 +73,7 @@ const Directory = () => {
   const [databaseEmpty, setDatabaseEmpty] = useState(false);
   const [sourceMode, setSourceMode] = useState<"hybrid" | "database" | "local">("hybrid");
   const [localStats, setLocalStats] = useState({ total: 0, rtmCount: 0, generatedCount: 0 });
+  const [isListingWizardOpen, setIsListingWizardOpen] = useState(false);
 
   // Load user
   useEffect(() => {
@@ -271,12 +274,56 @@ const Directory = () => {
       </Helmet>
       <div className="min-h-screen bg-background">
         <Navbar />
+        <section className="border-b border-border bg-gradient-to-br from-slate-950 via-slate-900 to-primary text-white">
+          <div className="container mx-auto grid max-w-[1440px] gap-8 px-4 py-12 md:px-6 lg:grid-cols-[1fr_360px] lg:items-center lg:py-16">
+            <div className="max-w-4xl">
+              <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm font-semibold text-white/90">
+                <Megaphone className="h-4 w-4" />
+                Advertise on RTM Business Directory
+              </div>
+              <h1 className="text-4xl font-black leading-tight tracking-tight md:text-5xl lg:text-6xl">
+                Put your business in the conversation.
+              </h1>
+              <p className="mt-5 max-w-3xl text-lg leading-8 text-white/80 md:text-xl">
+                Tap into 100,000+ passionate communities shaping what people research, discuss, and buy. Connect directly with engaged audiences across every industry, from tech and finance to food and fashion. RTM users do not just scroll. They influence.
+              </p>
+              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+                <Button variant="heroWhite" size="lg" onClick={() => setIsListingWizardOpen(true)}>
+                  Add your listing
+                  <ArrowRight className="h-5 w-5" />
+                </Button>
+                <Button variant="heroOutline" size="lg" asChild>
+                  <a href="#directory-results">Visit existing advertisers</a>
+                </Button>
+              </div>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
+              <div className="rounded-lg border border-white/15 bg-white/10 p-5 backdrop-blur">
+                <div className="flex items-center gap-3 text-white/75">
+                  <Users className="h-5 w-5" />
+                  <span className="text-sm font-semibold uppercase tracking-[0.16em]">Communities</span>
+                </div>
+                <div className="mt-3 text-4xl font-black">100,000+</div>
+                <p className="mt-2 text-sm leading-6 text-white/70">Passionate communities across high-intent categories.</p>
+              </div>
+              <div className="rounded-lg border border-white/15 bg-white/10 p-5 backdrop-blur">
+                <div className="flex items-center gap-3 text-white/75">
+                  <Building2 className="h-5 w-5" />
+                  <span className="text-sm font-semibold uppercase tracking-[0.16em]">Brand Visits</span>
+                </div>
+                <div className="mt-3 text-4xl font-black">100K+</div>
+                <p className="mt-2 text-sm leading-6 text-white/70">Brand visits last month from people ready to discover, compare, and buy.</p>
+              </div>
+            </div>
+          </div>
+        </section>
         <DirectorySearchBar searchQuery={searchQuery} setSearchQuery={handleSearchChange} />
         <DiscoveryModeSelector mode={mode} setMode={setMode} viewType={viewType} setViewType={setViewType} />
         {!["discovery", "story"].includes(mode) && (
           <SmartFilters filters={filters} setFilters={handleFiltersChange} resultCount={totalCount} />
         )}
-        <main className="container mx-auto px-4 py-6">
+        <main id="directory-results" className="container mx-auto px-4 py-6">
           {showDirectorySourceNotice && dataSource === "local" && (
             <Alert className="mb-6 border-amber-200 bg-amber-50 text-amber-950">
               <TriangleAlert className="h-4 w-4" />
@@ -304,6 +351,7 @@ const Directory = () => {
           {renderPagination()}
         </main>
         <Footer />
+        <BusinessListingWizard isOpen={isListingWizardOpen} onClose={() => setIsListingWizardOpen(false)} />
       </div>
     </>
   );

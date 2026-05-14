@@ -9,7 +9,6 @@ import {
   ClipboardCopy,
   Globe2,
   HandCoins,
-  Link2,
   Rocket,
   ShieldCheck,
   Sparkles,
@@ -43,49 +42,49 @@ interface AffiliateReferral {
 }
 
 const proofStats = [
-  { value: "$30", label: "Direct member referral" },
-  { value: "$10", label: "Second-level, year 1 only" },
-  { value: "1 link", label: "Personal referral link" },
+  { value: "30%", label: "Affiliate commission" },
+  { value: "$100", label: "Annual membership" },
+  { value: "5-50%", label: "Member discounts" },
 ];
 
 const affiliateBenefits = [
-  "Tell people about real discounts at real local stores.",
-  "Share one personal link by text, WhatsApp, Instagram, or in person.",
-  "Earn $30 when someone joins through your link.",
-  "Keep the message honest: no quotas, no pressure, and no guaranteed income.",
+  "Earn while you build community through the RTM Business Directory Discount Program.",
+  "Earn 30% commission on every new member you refer and every business you enroll.",
+  "Help fund outreach and reward people who strengthen the RTM network.",
+  "Promote a program built around local savings, business visibility, and shared success.",
 ];
 
 const audiences = [
   {
-    title: "Community organizers",
-    description: "People who already talk to neighbours, local groups, and families who need practical savings.",
+    title: "Affiliate partners",
+    description: "People who can introduce RTM membership and business enrollment to their local network.",
   },
   {
-    title: "Church and group leaders",
-    description: "Trusted local voices who can explain RTM without turning it into a hard sales pitch.",
+    title: "Business partners",
+    description: "Local operators who want more visibility while supporting customers through RTM discounts.",
   },
   {
-    title: "Small business owners",
-    description: "People who already meet local customers and can recommend a discount card they believe is worth $100.",
+    title: "Community builders",
+    description: "Members who believe local commerce grows faster when customers, businesses, and partners work together.",
   },
 ];
 
 const steps = [
   {
-    title: "Join as a member",
-    description: "You sign up for the same $100 RTM membership and get the same benefits.",
+    title: "Join RTM",
+    description: "Become an RTM member for $100/year and unlock the same customer benefits you promote.",
   },
   {
-    title: "Get your link",
-    description: "Your personal referral link is tied to your account so referrals can be tracked.",
+    title: "Share the program",
+    description: "Invite customers, members, and businesses into the RTM Business Directory community.",
   },
   {
-    title: "Share naturally",
-    description: "Send it by text, WhatsApp, Instagram, or in person.",
+    title: "Enroll new members",
+    description: "Help people save 5% to 50% at participating businesses and support local commerce.",
   },
   {
-    title: "Earn when they join",
-    description: "Every person who joins through your link earns you $30.",
+    title: "Earn 30%",
+    description: "Receive commission on tracked new members and businesses you bring into RTM.",
   },
 ];
 
@@ -93,17 +92,17 @@ const faqs = [
   {
     question: "Who is the RTM affiliate program for?",
     answer:
-      "It works best for community organizers, church groups, neighbourhood leaders, small business owners, and people who already talk to a lot of locals.",
+      "It is for affiliates, business partners, local connectors, and community builders who can help RTM reach more members and businesses.",
   },
   {
     question: "What do I actually earn?",
     answer:
-      "You earn $30 when someone joins through your link, $10 when someone they refer joins during year 1, and 30% when a business signs up through you.",
+      "The flyer offer is 30% commission paid on every new member you refer and every business you enroll in the RTM Business Directory Discount Program.",
   },
   {
-    question: "Is income guaranteed?",
+    question: "What does a member receive?",
     answer:
-      "No. Most affiliates may earn $0-$300/month. Some active affiliates can earn more, but RTM does not guarantee income.",
+      "Members pay $100/year and unlock exclusive discounts, mutual aid access after 90 days of active membership, and a community focused on local savings.",
   },
   {
     question: "Where is RTM based?",
@@ -231,10 +230,10 @@ const Affiliate = () => {
   return (
     <>
       <Helmet>
-        <title>RTM Affiliate Program | Earn With Referrals</title>
+        <title>RTM Affiliate Program | Earn 30% Commission</title>
         <meta
           name="description"
-          content="Become an RTM Affiliate, share your personal link, and earn $30 when someone joins RTM through your referral."
+          content="Become an RTM Affiliate or business partner, earn 30% commission, and help grow a member-driven community built on local savings and shared success."
         />
       </Helmet>
 
@@ -242,26 +241,29 @@ const Affiliate = () => {
         <Navbar />
 
         <main>
-          <section className="relative overflow-hidden bg-[linear-gradient(135deg,hsl(152_69%_20%)_0%,hsl(222_47%_11%)_55%,hsl(352_82%_49%)_140%)] text-white">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.12),transparent_26%),radial-gradient(circle_at_bottom_right,rgba(249,115,22,0.18),transparent_26%)]" />
+          <section className="relative overflow-hidden bg-[#06233f] text-white">
+            <div className="absolute inset-0 bg-[linear-gradient(120deg,rgba(143,190,58,0.2),transparent_34%),linear-gradient(180deg,rgba(0,0,0,0.02),rgba(0,0,0,0.24))]" />
             <div className="container relative z-10 mx-auto max-w-[1280px] px-6 py-16 md:py-24">
               <div className="grid items-start gap-8 lg:grid-cols-[1.05fr_0.95fr]">
                 <div className="max-w-3xl">
-                  <Badge className="border-white/15 bg-white/10 text-white">
+                  <Badge className="border-[#97c93d]/40 bg-[#97c93d] px-4 py-2 text-sm font-black uppercase tracking-[0.12em] text-[#06233f]">
                     <Sparkles className="mr-2 h-4 w-4" />
-                    RTM affiliate program
+                    For affiliates & business partners
                   </Badge>
                   <h1 className="mt-6 text-4xl font-black leading-[1.03] tracking-tight md:text-6xl">
-                    Earn $30 every time you help someone join RTM.
+                    Earn while you build community.
                   </h1>
                   <p className="mt-6 max-w-2xl text-lg text-white/80 md:text-xl">
-                    No sales pitch needed. You are just telling people about real discounts at real local stores.
+                    Join RTM Business Directory and help people grow their business, save money, and support the community. Earn 30% commission on every new member you refer and every business you enroll in the RTM Business Directory Discount Program.
+                  </p>
+                  <p className="mt-4 max-w-2xl text-base font-semibold text-[#b4df55] md:text-lg">
+                    More than a directory. We are a member-driven community focused on real savings, financial support, and shared success.
                   </p>
 
                   <div className="mt-10 grid gap-4 sm:grid-cols-3">
                     {proofStats.map((item) => (
-                      <div key={item.label} className="rounded-3xl border border-white/12 bg-white/10 px-5 py-5 backdrop-blur">
-                        <div className="text-3xl font-black text-emerald-300">{item.value}</div>
+                      <div key={item.label} className="rounded-lg border border-white/12 bg-white/10 px-5 py-5 backdrop-blur">
+                        <div className="text-3xl font-black text-[#b4df55]">{item.value}</div>
                         <div className="mt-1 text-sm uppercase tracking-[0.16em] text-white/65">{item.label}</div>
                       </div>
                     ))}
@@ -280,7 +282,7 @@ const Affiliate = () => {
                       </Button>
                     ) : (
                       <Button variant="heroOutline" size="xl" onClick={() => navigate("/membership")}>
-                        See Membership
+                        View $100 Membership
                       </Button>
                     )}
                   </div>
@@ -290,45 +292,13 @@ const Affiliate = () => {
                   </p>
                 </div>
 
-                <Card className="overflow-hidden border-white/10 bg-white/95 text-foreground shadow-heavy">
-                  <CardHeader className="border-b border-border/60 pb-4">
-                    <CardTitle className="flex items-center gap-2 text-xl">
-                      <Link2 className="h-5 w-5 text-primary" />
-                      Affiliate snapshot
-                    </CardTitle>
-                    <CardDescription>Your live referral position inside RTM.</CardDescription>
-                  </CardHeader>
-                  <CardContent className="grid gap-4 p-6">
-                    <div className="grid gap-4 sm:grid-cols-2">
-                      <div className="rounded-2xl bg-muted/50 p-4">
-                        <div className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Status</div>
-                        <div className="mt-2 text-2xl font-black">{affiliate?.status ?? "Not active yet"}</div>
-                      </div>
-                      <div className="rounded-2xl bg-muted/50 p-4">
-                        <div className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Referral code</div>
-                        <div className="mt-2 text-2xl font-black">{affiliate?.referral_code ?? "Pending"}</div>
-                      </div>
-                    </div>
-
-                    <div className="rounded-2xl bg-muted/50 p-4">
-                      <div className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Shareable affiliate link</div>
-                      <div className="mt-2 break-all text-sm font-medium text-foreground">
-                        {shareUrl ?? "Available immediately after affiliate activation"}
-                      </div>
-                      <div className="mt-4 flex flex-col gap-3 sm:flex-row">
-                        <Button variant="outline" onClick={() => void handleCopyLink()} disabled={!shareUrl}>
-                          <ClipboardCopy className="h-4 w-4" />
-                          Copy referral link
-                        </Button>
-                        {!affiliate ? (
-                          <Button variant="hero" onClick={() => void handleCreateAffiliate()} disabled={isCreatingAffiliate}>
-                            {isCreatingAffiliate ? "Activating..." : "Activate now"}
-                          </Button>
-                        ) : null}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                <div className="overflow-hidden rounded-lg border border-white/15 bg-white p-2 shadow-heavy">
+                  <img
+                    src="/affiliate-flyer.jpeg"
+                    alt="Join RTM Business Directory affiliate and membership flyer"
+                    className="max-h-[760px] w-full object-contain"
+                  />
+                </div>
               </div>
             </div>
           </section>
@@ -358,10 +328,10 @@ const Affiliate = () => {
                   What you actually earn
                 </Badge>
                 <h2 className="mt-4 text-3xl font-black tracking-tight md:text-5xl">
-                  Simple commissions, clear limits, no income promises
+                  Customers save. Affiliates earn. Businesses grow.
                 </h2>
                 <p className="mt-4 text-lg text-muted-foreground">
-                  Most affiliates earn $0-$300/month. A few active ones do more. There is no guarantee. We say this clearly because trust matters more than hype.
+                  RTM brings members, local businesses, and affiliate partners into one community built around practical savings, outreach, and shared success.
                 </p>
               </div>
 
@@ -369,7 +339,7 @@ const Affiliate = () => {
                 <Card className="border-primary/20 bg-primary/5 shadow-medium">
                   <CardHeader>
                     <CardTitle className="text-2xl">What you share</CardTitle>
-                    <CardDescription>A practical $100 membership with discounts, backup, and optional referral earnings.</CardDescription>
+                    <CardDescription>A $100/year membership with discounts, mutual aid access, and a community-first business directory.</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <ul className="space-y-4">
@@ -435,35 +405,35 @@ const Affiliate = () => {
                   <CardHeader>
                     <CardTitle className="text-3xl">Affiliate positioning</CardTitle>
                     <CardDescription className="text-white/65">
-                      Keep it honest, simple, and local.
+                      Earn while helping RTM grow stronger together.
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-5 text-white/80">
                     <div className="rounded-3xl border border-white/10 bg-white/5 p-5">
                       <div className="flex items-center gap-3 text-lg font-semibold text-white">
                         <Rocket className="h-5 w-5 text-emerald-300" />
-                        Someone joins through your link
+                        A new member joins
                       </div>
                       <p className="mt-2 text-sm">
-                        You earn $30 when a new member pays for RTM through your referral link.
+                        Members pay $100/year to unlock exclusive discounts, community impact, and mutual aid access after 90 active days.
                       </p>
                     </div>
                     <div className="rounded-3xl border border-white/10 bg-white/5 p-5">
                       <div className="flex items-center gap-3 text-lg font-semibold text-white">
                         <ShieldCheck className="h-5 w-5 text-emerald-300" />
-                        Someone they refer joins
+                        A business joins the discount program
                       </div>
                       <p className="mt-2 text-sm">
-                        You earn $10 for second-level referrals in year 1 only. The program stops at two levels by design.
+                        Businesses gain directory visibility and a reason for RTM members to discover, visit, and support them.
                       </p>
                     </div>
                     <div className="rounded-3xl border border-white/10 bg-white/5 p-5">
                       <div className="flex items-center gap-3 text-lg font-semibold text-white">
                         <Globe2 className="h-5 w-5 text-emerald-300" />
-                        A business signs up through you
+                        You strengthen the network
                       </div>
                       <p className="mt-2 text-sm">
-                        You earn 30% of their package when the business signup is tracked to your referral.
+                        Affiliates earn 30% commission while RTM invests in outreach and rewards people who help strengthen the community.
                       </p>
                     </div>
                   </CardContent>
