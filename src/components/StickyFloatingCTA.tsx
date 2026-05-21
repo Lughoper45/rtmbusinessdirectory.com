@@ -33,7 +33,7 @@ const StickyFloatingCTA = () => {
   if (!isVisible) return null;
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-2">
+    <div className="fixed bottom-6 left-6 z-40 flex flex-col items-start gap-2">
       {isExpanded && (
         <div className="bg-background border border-border rounded-2xl shadow-xl p-4 w-80 animate-scale-up origin-bottom-right">
           <button

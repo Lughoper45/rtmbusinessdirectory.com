@@ -1,6 +1,8 @@
 import { AdminLayout } from "./AdminLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Building2, Users, TrendingUp, Eye, Star, MapPin } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Building2, Users, TrendingUp, Eye, Star, MapPin, CreditCard, ArrowRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { businessStats, allBusinesses } from "@/data/index";
 
 const stats = [
@@ -47,11 +49,20 @@ export default function AdminDashboard() {
   return (
     <AdminLayout>
       <div className="p-6 lg:p-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold">Dashboard</h1>
-          <p className="text-gray-600 dark:text-gray-400">
-            Overview of the local directory bundle used for fallback and demo states
-          </p>
+        <div className="mb-8 flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold">Dashboard</h1>
+            <p className="text-gray-600 dark:text-gray-400">
+              Platform overview — directory listings and membership operations
+            </p>
+          </div>
+          <Button asChild>
+            <Link to="/admin/membership">
+              <CreditCard className="w-4 h-4 mr-2" />
+              Membership ops
+              <ArrowRight className="w-4 h-4 ml-2" />
+            </Link>
+          </Button>
         </div>
 
         {/* Stats Grid */}

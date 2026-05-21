@@ -5,6 +5,7 @@ import {
   Users, 
   Settings, 
   BarChart3,
+  CreditCard,
   Loader2,
   ShieldAlert,
   X,
@@ -20,6 +21,7 @@ const navItems = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/businesses", label: "Businesses", icon: Building2 },
   { href: "/admin/users", label: "Users", icon: Users },
+  { href: "/admin/membership", label: "Membership", icon: CreditCard },
   { href: "/admin/analytics", label: "Analytics", icon: BarChart3 },
   { href: "/admin/settings", label: "Settings", icon: Settings },
 ];

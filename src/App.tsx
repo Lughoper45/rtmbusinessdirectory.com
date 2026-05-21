@@ -12,6 +12,7 @@ import ResetPassword from "./pages/ResetPassword";
 import Profile from "./pages/Profile";
 import Dashboard from "./pages/Dashboard";
 import GrantPilot from "./pages/GrantPilot";
+import GrantDetail from "./pages/GrantDetail";
 import Deals from "./pages/Deals";
 import Membership from "./pages/Membership";
 import Affiliate from "./pages/Affiliate";
@@ -20,6 +21,7 @@ import NotFound from "./pages/NotFound";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminBusinesses from "./pages/admin/AdminBusinesses";
 import AdminUsers from "./pages/admin/AdminUsers";
+import AdminMembership from "./pages/admin/AdminMembership";
 import AdminAnalytics from "./pages/admin/AdminAnalytics";
 import AdminSettings from "./pages/admin/AdminSettings";
 import WorldCupRedirect from "./pages/WorldCupRedirect";
@@ -40,6 +42,7 @@ const App = () => (
             <Route path="/profile" element={<Profile />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/grants" element={<GrantPilot />} />
+            <Route path="/grants/:id" element={<GrantDetail />} />
             <Route path="/deals" element={<Deals />} />
             <Route path="/membership" element={<Membership />} />
             <Route path="/affiliate" element={<Affiliate />} />
@@ -65,6 +68,7 @@ const App = () => (
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/admin/businesses" element={<AdminBusinesses />} />
             <Route path="/admin/users" element={<AdminUsers />} />
+            <Route path="/admin/membership" element={<AdminMembership />} />
             <Route path="/admin/analytics" element={<AdminAnalytics />} />
             <Route path="/admin/settings" element={<AdminSettings />} />
             <Route path="*" element={<NotFound />} />

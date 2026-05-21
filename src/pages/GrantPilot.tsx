@@ -5,7 +5,6 @@ import Navbar from '@/components/Navbar';
 import ParticleBackground from '@/components/ParticleBackground';
 import GrantPipeline from '@/components/grantpilot/GrantPipeline';
 import GrantDiscovery from '@/components/grantpilot/GrantDiscovery';
-import { ApplicationTracker } from '@/components/grantpilot/ApplicationTracker';
 
 const grantFlyerPoints = [
   {
@@ -139,8 +138,6 @@ const GrantPilot = () => {
             {/* Grant Discovery */}
             <GrantDiscovery />
 
-            {/* Application Tracker */}
-            <ApplicationTracker />
           </div>
         </main>
       </div>

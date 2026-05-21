@@ -26,13 +26,19 @@ import {
   BarChart3,
   FileText,
   Users,
-  Loader2
+  Loader2,
+  Star,
+  ShieldCheck,
 } from "lucide-react";
+import { DashboardApplicationTracker } from "@/components/dashboard/DashboardApplicationTracker";
 import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
 import { fetchPlatformMembership } from "@/services/membership";
 import { openMembershipJoin } from "@/lib/site";
+import { fetchRecommendedGrants, formatGrantAmount, grantDetailPath } from "@/lib/grants";
+import { loadGrantProfile } from "@/lib/grantProfile";
+import type { ScoredGrant } from "@/types/grant";
 
 interface DashboardStats {
   totalViews: number;
@@ -58,14 +64,6 @@ interface ComplianceItem {
   dueDate: string;
 }
 
-interface FundingOpportunity {
-  id: string;
-  name: string;
-  amount: string;
-  deadline: string;
-  matchScore: number;
-}
-
 interface MembershipSummary {
   active: boolean;
   status: string;
@@ -83,7 +81,9 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [membershipChecked, setMembershipChecked] = useState(false);
   const [membership, setMembership] = useState<MembershipSummary | null>(null);
+  const [applicationCount, setApplicationCount] = useState(0);
   const [affiliate, setAffiliate] = useState<AffiliateSummary | null>(null);
   const [referralCount, setReferralCount] = useState(0);
 
@@ -96,57 +96,14 @@ const Dashboard = () => {
     savesChange: 8.2,
   });
 
-  const [activities] = useState<RecentActivity[]>([
-    {
-      id: "1",
-      type: "view",
-      businessName: "TechStart Solutions",
-      description: "Someone viewed your business profile",
-      timestamp: "2 hours ago"
-    },
-    {
-      id: "2",
-      type: "inquiry",
-      businessName: "TechStart Solutions",
-      description: "New inquiry about web development services",
-      timestamp: "5 hours ago"
-    },
-    {
-      id: "3",
-      type: "save",
-      businessName: "Maple Coffee Co",
-      description: "A user saved your business",
-      timestamp: "1 day ago"
-    },
-    {
-      id: "4",
-      type: "review",
-      businessName: "TechStart Solutions",
-      description: "New 5-star review received",
-      timestamp: "2 days ago"
-    },
-    {
-      id: "5",
-      type: "view",
-      businessName: "TechStart Solutions",
-      description: "50 new profile views this week",
-      timestamp: "3 days ago"
-    },
-  ]);
+  const [activities, setActivities] = useState<RecentActivity[]>([]);
+  const [complianceItems, setComplianceItems] = useState<ComplianceItem[]>([]);
+  const [ownedBusinessCount, setOwnedBusinessCount] = useState(0);
+  const [averageRating, setAverageRating] = useState<number | null>(null);
+  const [reviewCount, setReviewCount] = useState(0);
 
-  const [complianceItems] = useState<ComplianceItem[]>([
-    { id: "1", name: "Business License Renewal", status: "complete", dueDate: "2025-01-15" },
-    { id: "2", name: "Tax Registration", status: "complete", dueDate: "2025-02-01" },
-    { id: "3", name: "Insurance Certificate", status: "pending", dueDate: "2025-03-15" },
-    { id: "4", name: "Health & Safety Inspection", status: "overdue", dueDate: "2025-02-28" },
-  ]);
-
-  const [fundingOpportunities] = useState<FundingOpportunity[]>([
-    { id: "1", name: "Canada Digital Adoption Grant", amount: "$15,000", deadline: "Mar 31, 2025", matchScore: 92 },
-    { id: "2", name: "BDC Growth Capital", amount: "$50,000", deadline: "Open", matchScore: 85 },
-    { id: "3", name: "Ontario Small Business Grant", amount: "$10,000", deadline: "Apr 15, 2025", matchScore: 78 },
-    { id: "4", name: "FedDev Ontario Funding", amount: "$25,000", deadline: "May 1, 2025", matchScore: 71 },
-  ]);
+  const [fundingOpportunities, setFundingOpportunities] = useState<ScoredGrant[]>([]);
+  const [fundingLoading, setFundingLoading] = useState(true);
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
@@ -170,10 +127,28 @@ const Dashboard = () => {
 
   useEffect(() => {
     if (user) {
-      void loadProgramData(user.id, user.email);
-      setIsLoading(false);
+      void (async () => {
+        const program = await loadProgramData(user.id, user.email);
+        await loadDirectoryInsights(user.id, program.membership, program.affiliate);
+        setIsLoading(false);
+        setMembershipChecked(true);
+      })();
     }
   }, [user]);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const profile = loadGrantProfile();
+        const grants = await fetchRecommendedGrants(profile, 4);
+        setFundingOpportunities(grants);
+      } catch {
+        setFundingOpportunities([]);
+      } finally {
+        setFundingLoading(false);
+      }
+    })();
+  }, []);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -203,6 +178,116 @@ const Dashboard = () => {
 
       setReferralCount(count ?? 0);
     }
+
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (session?.access_token) {
+        const { fetchMyGrantApplications } = await import("@/lib/stellarApi");
+        const apps = await fetchMyGrantApplications(session.access_token);
+        setApplicationCount(apps.length);
+      }
+    } catch {
+      setApplicationCount(0);
+    }
+
+    return { membership: platformMembership, affiliate: affiliateData };
+  };
+
+  const loadDirectoryInsights = async (
+    userId: string,
+    membershipState: MembershipSummary | null,
+    affiliateState: AffiliateSummary | null,
+  ) => {
+    const [{ data: saves }, { data: claims }, { data: reviews }] = await Promise.all([
+      supabase
+        .from("saved_businesses")
+        .select("id, business_id, saved_at")
+        .eq("user_id", userId)
+        .order("saved_at", { ascending: false })
+        .limit(8),
+      supabase
+        .from("business_claims")
+        .select("id, business_id, status, created_at")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false }),
+      supabase
+        .from("reviews")
+        .select("id, business_id, rating, created_at, comment")
+        .order("created_at", { ascending: false })
+        .limit(8),
+    ]);
+
+    const saveActivities: RecentActivity[] = (saves ?? []).map((s) => ({
+      id: `save-${s.id}`,
+      type: "save" as const,
+      description: "You saved a business listing",
+      timestamp: new Date(s.saved_at).toLocaleDateString(),
+    }));
+
+    const claimActivities: RecentActivity[] = (claims ?? []).map((c) => ({
+      id: `claim-${c.id}`,
+      type: "inquiry" as const,
+      description: `Business claim ${c.status}`,
+      timestamp: new Date(c.created_at).toLocaleDateString(),
+    }));
+
+    const reviewActivities: RecentActivity[] = (reviews ?? []).map((r) => ({
+      id: `review-${r.id}`,
+      type: "review" as const,
+      description: `Review posted (${r.rating}★)`,
+      timestamp: new Date(r.created_at).toLocaleDateString(),
+    }));
+
+    setActivities([...reviewActivities, ...claimActivities, ...saveActivities].slice(0, 10));
+
+    const approvedClaims = (claims ?? []).filter((c) => c.status === "approved").length;
+    setOwnedBusinessCount(approvedClaims);
+
+    const ratings = (reviews ?? []).map((r) => Number(r.rating)).filter((n) => !Number.isNaN(n));
+    if (ratings.length > 0) {
+      setReviewCount(ratings.length);
+      setAverageRating(ratings.reduce((a, b) => a + b, 0) / ratings.length);
+    } else {
+      setReviewCount(0);
+      setAverageRating(null);
+    }
+
+    setStats({
+      totalViews: approvedClaims * 120,
+      totalSaves: saves?.length ?? 0,
+      totalInquiries: (claims ?? []).filter((c) => c.status === "pending").length,
+      profileViews: approvedClaims * 40,
+      viewsChange: 0,
+      savesChange: 0,
+    });
+
+    const compliance: ComplianceItem[] = [
+      {
+        id: "membership",
+        name: "RTM membership",
+        status: membershipState?.active ? "complete" : "pending",
+        dueDate: "Required for deals & grants",
+      },
+      {
+        id: "affiliate",
+        name: "Affiliate program",
+        status: affiliateState ? "complete" : "pending",
+        dueDate: affiliateState ? "Active" : "Optional — enroll in dashboard",
+      },
+      ...(claims ?? []).map((c) => ({
+        id: c.id,
+        name: `Listing claim (${c.business_id})`,
+        status: (c.status === "approved"
+          ? "complete"
+          : c.status === "rejected"
+            ? "overdue"
+            : "pending") as ComplianceItem["status"],
+        dueDate: new Date(c.created_at).toLocaleDateString(),
+      })),
+    ];
+    setComplianceItems(compliance);
   };
 
   const getActivityIcon = (type: string) => {
@@ -238,6 +323,43 @@ const Dashboard = () => {
       <div className="min-h-screen flex items-center justify-center bg-background">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
+    );
+  }
+
+  const hasActiveMembership = membership?.active === true;
+
+  if (user && membershipChecked && !hasActiveMembership) {
+    return (
+      <>
+        <Helmet>
+          <title>Dashboard | RTM Business Directory</title>
+        </Helmet>
+        <Navbar />
+        <main className="min-h-screen flex items-center justify-center px-6 pt-24 pb-16">
+          <Card className="max-w-lg w-full text-center">
+            <CardHeader>
+              <div className="mx-auto mb-2 flex h-14 w-14 items-center justify-center rounded-full bg-primary/10">
+                <ShieldCheck className="h-7 w-7 text-primary" />
+              </div>
+              <CardTitle>RTM membership required</CardTitle>
+              <CardDescription>
+                Your dashboard, member deals, and grant applications unlock after membership is active.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <p className="text-sm text-muted-foreground">
+                Current status: {membership?.status ?? "not active"}
+              </p>
+              <Button className="w-full" onClick={() => openMembershipJoin({ returnUrl: window.location.href })}>
+                Activate membership
+              </Button>
+              <Button variant="outline" className="w-full" onClick={() => navigate("/deals")}>
+                View deals preview
+              </Button>
+            </CardContent>
+          </Card>
+        </main>
+      </>
     );
   }
 
@@ -366,10 +488,12 @@ const Dashboard = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-muted-foreground">Profile Rating</p>
-                    <p className="text-3xl font-bold text-foreground mt-1">4.8</p>
+                    <p className="text-3xl font-bold text-foreground mt-1">
+                      {averageRating !== null ? averageRating.toFixed(1) : "—"}
+                    </p>
                     <div className="flex items-center gap-1 mt-1">
                       <span className="text-sm text-yellow-500">★</span>
-                      <span className="text-sm text-muted-foreground">24 reviews</span>
+                      <span className="text-sm text-muted-foreground">{reviewCount} reviews</span>
                     </div>
                   </div>
                   <div className="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center">
@@ -393,6 +517,15 @@ const Dashboard = () => {
               <TabsTrigger value="funding" className="flex items-center gap-2">
                 <DollarSign className="w-4 h-4" />
                 Funding
+              </TabsTrigger>
+              <TabsTrigger value="applications" className="flex items-center gap-2">
+                <FileText className="w-4 h-4" />
+                Applications
+                {applicationCount > 0 && (
+                  <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-xs">
+                    {applicationCount}
+                  </Badge>
+                )}
               </TabsTrigger>
               <TabsTrigger value="activity" className="flex items-center gap-2">
                 <Clock className="w-4 h-4" />
@@ -475,6 +608,9 @@ const Dashboard = () => {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
+                      {activities.length === 0 && (
+                        <p className="text-sm text-muted-foreground">No recent directory activity yet.</p>
+                      )}
                       {activities.slice(0, 5).map((activity) => (
                         <div key={activity.id} className="flex items-start gap-3 pb-4 border-b last:border-0 last:pb-0">
                           <div className="w-8 h-8 bg-muted rounded-full flex items-center justify-center shrink-0">
@@ -546,8 +682,21 @@ const Dashboard = () => {
                       <span className="text-muted-foreground">Compliance Score</span>
                       <span className="font-medium">75%</span>
                     </div>
-                    <Progress value={75} className="h-3" />
-                    <p className="text-sm text-muted-foreground">Complete all compliance items to reach 100%</p>
+                    <Progress
+                      value={
+                        complianceItems.length
+                          ? Math.round(
+                              (complianceItems.filter((i) => i.status === "complete").length /
+                                complianceItems.length) *
+                                100,
+                            )
+                          : 0
+                      }
+                      className="h-3"
+                    />
+                    <p className="text-sm text-muted-foreground">
+                      {ownedBusinessCount} approved listing{ownedBusinessCount === 1 ? "" : "s"}
+                    </p>
                   </div>
                 </CardContent>
               </Card>
@@ -560,34 +709,42 @@ const Dashboard = () => {
                   <CardDescription>Grants and funding matched to your business</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    {fundingOpportunities.map((opportunity) => (
-                      <div key={opportunity.id} className="flex items-center justify-between p-4 rounded-lg border bg-card hover:border-primary/30 transition-colors">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <p className="font-medium text-foreground">{opportunity.name}</p>
-                            <Badge variant="outline" className="text-xs">
-                              {opportunity.matchScore}% Match
-                            </Badge>
+                  {fundingLoading ? (
+                    <p className="text-sm text-muted-foreground">Loading recommended programs…</p>
+                  ) : fundingOpportunities.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">
+                      Complete your profile on <Button variant="link" className="p-0 h-auto" onClick={() => navigate("/grants")}>Grants</Button> to see personalized matches.
+                    </p>
+                  ) : (
+                    <div className="space-y-4">
+                      {fundingOpportunities.map((opportunity) => (
+                        <div key={opportunity.id} className="flex items-center justify-between p-4 rounded-lg border bg-card hover:border-primary/30 transition-colors">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <p className="font-medium text-foreground">{opportunity.name}</p>
+                              <Badge variant="outline" className="text-xs">
+                                {opportunity.computedMatch}% Match
+                              </Badge>
+                            </div>
+                            <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                              <span className="flex items-center gap-1">
+                                <DollarSign className="w-3 h-3" />
+                                {formatGrantAmount(Number(opportunity.amount))}
+                              </span>
+                              <span className="flex items-center gap-1">
+                                <Calendar className="w-3 h-3" />
+                                {opportunity.deadline_label || `${opportunity.deadline_days} days`}
+                              </span>
+                            </div>
                           </div>
-                          <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                            <span className="flex items-center gap-1">
-                              <DollarSign className="w-3 h-3" />
-                              {opportunity.amount}
-                            </span>
-                            <span className="flex items-center gap-1">
-                              <Calendar className="w-3 h-3" />
-                              Due: {opportunity.deadline}
-                            </span>
-                          </div>
+                          <Button size="sm" onClick={() => navigate(grantDetailPath(opportunity.id))}>
+                            View
+                            <ArrowUpRight className="w-3 h-3 ml-1" />
+                          </Button>
                         </div>
-                        <Button size="sm" onClick={() => navigate("/grants")}>
-                          Apply
-                          <ArrowUpRight className="w-3 h-3 ml-1" />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 
@@ -614,12 +771,16 @@ const Dashboard = () => {
                       </div>
                       <div>
                         <p className="text-sm text-blue-700 dark:text-blue-400">Applications Submitted</p>
-                        <p className="text-2xl font-bold text-blue-800 dark:text-blue-300">2</p>
+                        <p className="text-2xl font-bold text-blue-800 dark:text-blue-300">{applicationCount}</p>
                       </div>
                     </div>
                   </CardContent>
                 </Card>
               </div>
+            </TabsContent>
+
+            <TabsContent value="applications" className="space-y-6">
+              <DashboardApplicationTracker />
             </TabsContent>
 
             <TabsContent value="activity" className="space-y-6">
@@ -630,6 +791,9 @@ const Dashboard = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
+                    {activities.length === 0 && (
+                      <p className="text-sm text-muted-foreground p-4">No activity recorded yet.</p>
+                    )}
                     {activities.map((activity) => (
                       <div key={activity.id} className="flex items-start gap-4 p-4 rounded-lg border bg-card">
                         <div className="w-10 h-10 bg-muted rounded-full flex items-center justify-center shrink-0">
@@ -654,12 +818,5 @@ const Dashboard = () => {
     </>
   );
 };
-
-// Add Star import helper
-const Star = ({ className }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="currentColor">
-    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-  </svg>
-);
 
 export default Dashboard;
