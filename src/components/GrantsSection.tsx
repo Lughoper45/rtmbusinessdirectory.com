@@ -222,7 +222,7 @@ const GrantsSection = () => {
             </p>
           </div>
         </div>
-        <Link to="/grantpilot">
+        <Link to="/grants">
           <motion.button
             whileHover={{ x: 5 }}
             className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-primary to-accent text-primary-foreground text-sm font-medium"

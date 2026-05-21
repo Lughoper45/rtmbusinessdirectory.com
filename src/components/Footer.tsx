@@ -5,7 +5,7 @@ import { GRANTS_APP_URL, SITE_CONTACT, WORLDCUP_APP_URL } from "@/lib/site";
 const Footer = () => {
   const productLinks = [
     { label: "Find Businesses", to: "/directory" },
-    { label: "Access Grants", href: `${GRANTS_APP_URL}/grantpilot` },
+    { label: "Access Grants", href: `${GRANTS_APP_URL}/grants` },
     { label: "Business Support", to: "/business-support" },
     { label: "AI Search", to: "/ai-search" },
     { label: "World Cup Ready", href: `${WORLDCUP_APP_URL}/worldcup` },

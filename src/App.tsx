@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import Index from "./pages/Index";
 import Directory from "./pages/Directory";
@@ -43,6 +43,7 @@ const App = () => (
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/grants" element={<GrantPilot />} />
             <Route path="/grants/:id" element={<GrantDetail />} />
+            <Route path="/grantpilot" element={<Navigate to="/grants" replace />} />
             <Route path="/deals" element={<Deals />} />
             <Route path="/membership" element={<Membership />} />
             <Route path="/affiliate" element={<Affiliate />} />

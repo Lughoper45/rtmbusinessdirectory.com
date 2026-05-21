@@ -30,7 +30,6 @@ import {
   Star,
   ShieldCheck,
 } from "lucide-react";
-import { DashboardApplicationTracker } from "@/components/dashboard/DashboardApplicationTracker";
 import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
@@ -518,15 +517,6 @@ const Dashboard = () => {
                 <DollarSign className="w-4 h-4" />
                 Funding
               </TabsTrigger>
-              <TabsTrigger value="applications" className="flex items-center gap-2">
-                <FileText className="w-4 h-4" />
-                Applications
-                {applicationCount > 0 && (
-                  <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-xs">
-                    {applicationCount}
-                  </Badge>
-                )}
-              </TabsTrigger>
               <TabsTrigger value="activity" className="flex items-center gap-2">
                 <Clock className="w-4 h-4" />
                 Activity
@@ -772,15 +762,14 @@ const Dashboard = () => {
                       <div>
                         <p className="text-sm text-blue-700 dark:text-blue-400">Applications Submitted</p>
                         <p className="text-2xl font-bold text-blue-800 dark:text-blue-300">{applicationCount}</p>
+                        <Button variant="link" className="p-0 h-auto mt-1 text-blue-700 dark:text-blue-400" onClick={() => navigate("/grants")}>
+                          Open tracker on Grants page →
+                        </Button>
                       </div>
                     </div>
                   </CardContent>
                 </Card>
               </div>
-            </TabsContent>
-
-            <TabsContent value="applications" className="space-y-6">
-              <DashboardApplicationTracker />
             </TabsContent>
 
             <TabsContent value="activity" className="space-y-6">

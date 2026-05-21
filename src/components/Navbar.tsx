@@ -71,7 +71,7 @@ const Navbar = () => {
   };
 
   const resourcesItems = [
-    { label: "Grants & Funding", icon: HandCoins, href: `${GRANTS_APP_URL}/grantpilot`, description: "GrantPilot applications" },
+    { label: "Grants & Funding", icon: HandCoins, href: `${GRANTS_APP_URL}/grants`, description: "GrantPilot applications" },
     { label: "World Cup Ready", icon: Globe, href: `${WORLDCUP_APP_URL}/worldcup`, description: "FIFA 2026 business portal" },
     { label: "Magazine", icon: Newspaper, action: () => openComingSoon("Magazine"), description: "Editorial and business stories" },
     { label: "Bookstore", icon: BookOpen, action: () => openComingSoon("Bookstore"), description: "Reading and learning resources" },
@@ -222,7 +222,7 @@ const Navbar = () => {
               </DropdownMenu>
 
               <a
-                href={`${GRANTS_APP_URL}/grantpilot`}
+                href={`${GRANTS_APP_URL}/grants`}
                 className="font-medium text-foreground transition-colors hover:text-primary"
               >
                 Grants
@@ -384,7 +384,7 @@ const Navbar = () => {
                 </div>
 
                 <a
-                  href={`${GRANTS_APP_URL}/grantpilot`}
+                  href={`${GRANTS_APP_URL}/grants`}
                   className="rounded-xl border px-4 py-3 font-medium block"
                   onClick={() => setIsOpen(false)}
                 >
