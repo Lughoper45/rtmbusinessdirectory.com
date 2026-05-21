@@ -22,6 +22,7 @@ import AdminBusinesses from "./pages/admin/AdminBusinesses";
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminAnalytics from "./pages/admin/AdminAnalytics";
 import AdminSettings from "./pages/admin/AdminSettings";
+import WorldCupRedirect from "./pages/WorldCupRedirect";
 
 const queryClient = new QueryClient();
 
@@ -45,7 +46,7 @@ const App = () => (
             <Route path="/directory" element={<Directory />} />
             <Route path="/business-support" element={<ContentPage />} />
             <Route path="/ai-search" element={<ContentPage />} />
-            <Route path="/world-cup-hub" element={<ContentPage />} />
+            <Route path="/world-cup-hub" element={<WorldCupRedirect />} />
             <Route path="/marketplace" element={<ContentPage />} />
             <Route path="/pricing" element={<ContentPage />} />
             <Route path="/about" element={<ContentPage />} />

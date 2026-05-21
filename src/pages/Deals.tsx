@@ -27,7 +27,9 @@ import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { FALLBACK_MEMBERSHIP_PLANS, type MembershipPlan } from "@/data/membershipPlans";
 import { openMembershipJoin } from "@/lib/site";
+import { fetchPlatformMembership } from "@/services/membership";
 import { toast } from "sonner";
+import { AFFILIATE_DIRECT_COMMISSION_LABEL, DISCOUNT_RANGE_LABEL, MEMBERSHIP_PRICE_LABEL } from "@/content/siteCopy";
 
 interface Deal {
   id: string;
@@ -49,11 +51,10 @@ interface Deal {
   };
 }
 
-interface UserMembership {
-  id: string;
-  plan_id: string | null;
+interface PlatformMembershipState {
+  active: boolean;
   status: string;
-  expires_at: string;
+  source: string;
 }
 
 interface AffiliateSummary {
@@ -68,7 +69,7 @@ const Deals = () => {
   const [user, setUser] = useState<User | null>(null);
   const [deals, setDeals] = useState<Deal[]>([]);
   const [membershipPlans, setMembershipPlans] = useState<MembershipPlan[]>([]);
-  const [userMembership, setUserMembership] = useState<UserMembership | null>(null);
+  const [platformMembership, setPlatformMembership] = useState<PlatformMembershipState | null>(null);
   const [affiliateSummary, setAffiliateSummary] = useState<AffiliateSummary | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
@@ -98,7 +99,7 @@ const Deals = () => {
 
     const tasks: Promise<unknown>[] = [loadDeals(), loadMembershipPlans()];
     if (currentUser) {
-      tasks.push(loadUserMembership(currentUser.id), loadAffiliateSummary(currentUser.id));
+      tasks.push(loadPlatformMembership(currentUser.id, currentUser.email), loadAffiliateSummary(currentUser.id));
     }
     await Promise.all(tasks);
     setIsLoading(false);
@@ -142,16 +143,9 @@ const Deals = () => {
     setMembershipPlans(FALLBACK_MEMBERSHIP_PLANS);
   };
 
-  const loadUserMembership = async (userId: string) => {
-    const { data } = await supabase
-      .from("user_memberships")
-      .select("id, plan_id, status, expires_at")
-      .eq("user_id", userId)
-      .eq("status", "active")
-      .gt("expires_at", new Date().toISOString())
-      .maybeSingle();
-
-    setUserMembership(data);
+  const loadPlatformMembership = async (userId: string, email?: string | null) => {
+    const membership = await fetchPlatformMembership(userId, email);
+    setPlatformMembership(membership);
   };
 
   const loadAffiliateSummary = async (userId: string) => {
@@ -182,7 +176,8 @@ const Deals = () => {
     });
   }, [deals, searchQuery, selectedCategory]);
 
-  const activePlan = membershipPlans.find((plan) => plan.id === userMembership?.plan_id) ?? null;
+  const hasActiveMembership = platformMembership?.active === true;
+  const activePlan = hasActiveMembership ? membershipPlans[0] ?? null : null;
 
   const scrollToSection = (id: string) => {
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -194,9 +189,9 @@ const Deals = () => {
       navigate("/auth");
       return;
     }
-    if (!userMembership) {
+    if (!hasActiveMembership) {
       toast.error("You need an active RTM membership to unlock this deal.");
-      scrollToSection("membership");
+      openMembershipJoin({ returnUrl: window.location.href });
       return;
     }
     const code = deal.code || "RTMDEAL";
@@ -210,8 +205,8 @@ const Deals = () => {
 
   const heroMetrics = [
     { icon: Ticket, label: "Live deals", value: `${deals.length}+` },
-    { icon: Crown, label: "Member savings", value: "5% - 50%" },
-    { icon: HandCoins, label: "Affiliate payout", value: `${affiliateSummary?.commission_rate ?? 30}%` },
+    { icon: Crown, label: "Member savings", value: DISCOUNT_RANGE_LABEL },
+    { icon: HandCoins, label: "Affiliate payout", value: affiliateSummary ? `${affiliateSummary.commission_rate}%` : AFFILIATE_DIRECT_COMMISSION_LABEL },
     { icon: ShieldCheck, label: "Trusted network", value: "Canada-wide" },
   ];
 
@@ -238,20 +233,20 @@ const Deals = () => {
                 <div className="max-w-3xl">
                   <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary/15 bg-primary/5 px-4 py-2 text-sm font-medium text-foreground">
                     <Sparkles className="h-4 w-4 text-primary" />
-                    RTM deals, digital membership, and affiliate earnings in one ecosystem
+                    RTM deals from participating businesses
                   </div>
                   <h1 className="mb-6 text-4xl font-extrabold leading-[1.05] text-foreground md:text-5xl lg:text-6xl">
-                    Premium deals discovery built into the RTM experience
+                    Browse offers from businesses in the RTM network
                   </h1>
                   <p className="mb-8 max-w-2xl text-lg text-muted-foreground md:text-xl">
-                    Discover exclusive offers from RTM businesses, activate your digital membership, and give affiliates a conversion path that feels native to the platform.
+                    Search current offers, find participating businesses, and unlock deal codes when your RTM membership is active.
                   </p>
                   <div className="mb-8 flex flex-col gap-3 sm:flex-row">
                     <Button variant="hero" size="xl" onClick={() => scrollToSection("deals-grid")}>
                       Browse Deals
                       <ArrowRight className="h-5 w-5" />
                     </Button>
-                    <Button variant="outline" size="xl" onClick={() => scrollToSection("membership")}>
+                    <Button variant="outline" size="xl" onClick={() => navigate("/membership")}>
                       Get Membership
                     </Button>
                   </div>
@@ -305,7 +300,7 @@ const Deals = () => {
                     <CardContent className="grid gap-4 p-6 sm:grid-cols-2">
                       <div className="rounded-2xl bg-muted/50 p-4">
                         <div className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Status</div>
-                        <div className="mt-2 text-2xl font-bold text-foreground">{userMembership ? "Active" : "Not Active"}</div>
+                        <div className="mt-2 text-2xl font-bold text-foreground">{hasActiveMembership ? "Active" : "Not Active"}</div>
                       </div>
                       <div className="rounded-2xl bg-muted/50 p-4">
                         <div className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Current Plan</div>
@@ -314,7 +309,7 @@ const Deals = () => {
                       <div className="rounded-2xl bg-muted/50 p-4">
                         <div className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Valid Until</div>
                         <div className="mt-2 text-lg font-semibold text-foreground">
-                          {userMembership ? new Date(userMembership.expires_at).toLocaleDateString() : "No active access"}
+                          {hasActiveMembership ? "RTM membership active" : "No active access"}
                         </div>
                       </div>
                       <div className="rounded-2xl bg-muted/50 p-4">
@@ -362,9 +357,9 @@ const Deals = () => {
                   <Tag className="h-4 w-4" />
                   Premium offer discovery
                 </div>
-                <h2 className="mb-4 text-3xl font-bold text-foreground md:text-4xl">Designed to fit the existing RTM product language</h2>
+                <h2 className="mb-4 text-3xl font-bold text-foreground md:text-4xl">Designed for quick local savings</h2>
                 <p className="text-lg text-muted-foreground">
-                  This page now follows the same design grammar as the home and directory experiences: layered gradients, strong hierarchy, premium cards, and conversion-driven CTAs.
+                  Deals should help members act quickly: find the offer, understand the business, and use the code when their membership is active.
                 </p>
               </div>
               <div className="grid gap-6 md:grid-cols-3">
@@ -498,7 +493,7 @@ const Deals = () => {
                       </CardContent>
                       <CardFooter className="p-6 pt-0">
                         <Button className="w-full" variant="card" onClick={() => handleGetDeal(deal)}>
-                          {userMembership ? "Copy Deal Code" : "Unlock With Membership"}
+                          {hasActiveMembership ? "Copy Deal Code" : "Unlock With Membership"}
                           <ArrowRight className="h-4 w-4" />
                         </Button>
                       </CardFooter>
@@ -517,12 +512,12 @@ const Deals = () => {
                     <Crown className="h-4 w-4" />
                     Digital membership plans
                   </div>
-                  <h2 className="text-3xl font-bold text-foreground md:text-4xl">Memberships that look premium and convert cleanly</h2>
+                  <h2 className="text-3xl font-bold text-foreground md:text-4xl">Want member access?</h2>
                   <p className="mt-3 text-lg text-muted-foreground">
-                    Annual plans are presented as premium products while keeping the existing RTM membership model intact.
+                    RTM membership is {MEMBERSHIP_PRICE_LABEL}. Active members can unlock deal codes and use participating business discounts.
                   </p>
                   <p className="mt-2 text-sm text-muted-foreground">
-                    <span className="font-semibold text-primary">RTM Benefit Card:</span> Get exclusive 5-50% discounts at participating businesses across restaurants, retail, travel, and more.
+                    <span className="font-semibold text-primary">RTM Benefit Card:</span> Get {DISCOUNT_RANGE_LABEL} discounts where participating businesses offer member pricing.
                   </p>
                 </div>
                 <div className="rounded-2xl border border-primary/15 bg-primary/5 px-5 py-4 text-sm text-foreground">
@@ -587,9 +582,9 @@ const Deals = () => {
                       <HandCoins className="h-4 w-4" />
                       Earn with RTM
                     </div>
-                    <h2 className="text-3xl font-bold md:text-4xl">Affiliate growth is a first-class feature</h2>
+                      <h2 className="text-3xl font-bold md:text-4xl">Affiliate details live on the affiliate page</h2>
                     <p className="mt-4 max-w-xl text-primary-foreground/80">
-                      Promote memberships, refer businesses, and build recurring commissions inside a cleaner public-facing funnel.
+                      Members who want to share RTM can review the affiliate program separately. Deals stays focused on savings and participating businesses.
                     </p>
                     <div className="mt-8 grid gap-4 sm:grid-cols-2">
                       <div className="rounded-2xl bg-white/10 p-5">
@@ -609,7 +604,7 @@ const Deals = () => {
                         </Link>
                       </Button>
                       <Button variant="heroOutline" size="lg" onClick={() => scrollToSection("membership")}>
-                        Become a Member
+                        Review Membership
                       </Button>
                     </div>
                   </CardContent>
@@ -640,7 +635,7 @@ const Deals = () => {
                       <div className="max-w-2xl">
                         <h3 className="text-2xl font-bold text-foreground">This now fits the RTM standard</h3>
                         <p className="mt-2 text-muted-foreground">
-                          The page now follows the established RTM visual system instead of looking like a patched one-off page.
+                          Deals, membership, and affiliate tracking now have clearer jobs instead of repeating the same pitch.
                         </p>
                       </div>
                       <Button variant="hero" size="lg" onClick={() => scrollToSection("deals-grid")}>

@@ -18,6 +18,27 @@ const FALLBACK_PLAN_CATALOG = {
   pro: { id: "pro", name: "Pro", price: 199.99 },
 } as const;
 
+async function requireUser(req: Request, supabaseUrl: string) {
+  const authHeader = req.headers.get("Authorization");
+  if (!authHeader?.startsWith("Bearer ")) {
+    throw new Error("Unauthorized");
+  }
+
+  const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
+  if (!anonKey) {
+    throw new Error("Supabase anon key not configured");
+  }
+
+  const authClient = createClient(supabaseUrl, anonKey, {
+    global: { headers: { Authorization: authHeader } },
+  });
+  const { data, error } = await authClient.auth.getUser();
+  if (error || !data.user) {
+    throw new Error("Unauthorized");
+  }
+  return data.user;
+}
+
 function resolveStripePriceId(plan: { name: string; stripe_price_id?: string | null }) {
   if (plan.stripe_price_id && !PLACEHOLDER_PRICE_IDS.has(plan.stripe_price_id)) {
     return plan.stripe_price_id;
@@ -45,10 +66,10 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { planId, userId } = await req.json();
+    const { planId } = await req.json();
 
-    if (!planId || !userId) {
-      throw new Error("Missing planId or userId");
+    if (!planId) {
+      throw new Error("Missing planId");
     }
 
     const stripeSecretKey = Deno.env.get("STRIPE_SECRET_KEY");
@@ -61,6 +82,7 @@ Deno.serve(async (req) => {
     });
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const user = await requireUser(req, supabaseUrl);
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
@@ -75,10 +97,6 @@ Deno.serve(async (req) => {
     const plan = planRow ?? fallbackPlan;
 
     if (!plan) throw new Error("Plan not found");
-
-    const {
-      data: { user },
-    } = await supabase.auth.admin.getUserById(userId);
 
     const customerEmail = user?.email;
 
@@ -111,7 +129,7 @@ Deno.serve(async (req) => {
       success_url: `${baseUrl}/dashboard?session_id={CHECKOUT_SESSION_ID}&success=true`,
       cancel_url: `${baseUrl}/deals?canceled=true`,
       metadata: {
-        userId,
+        userId: user.id,
         planId,
         planName: plan.name,
       },

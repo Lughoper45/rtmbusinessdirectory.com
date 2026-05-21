@@ -1,17 +1,16 @@
 const TrustBar = () => {
   const partners = [
-    { name: "Government of Canada", abbr: "GOV" },
-    { name: "BDC", abbr: "BDC" },
-    { name: "Innovation Canada", abbr: "INNOV" },
-    { name: "Export Development Canada", abbr: "EDC" },
-    { name: "IRAP", abbr: "IRAP" },
+    { name: "Business Directory", abbr: "Directory" },
+    { name: "Member Deals", abbr: "Deals" },
+    { name: "Grant Guidance", abbr: "Grants" },
+    { name: "Business Support", abbr: "Support" },
   ];
 
   return (
     <section className="py-10 bg-surface-light border-y border-border">
       <div className="container mx-auto max-w-[1280px] px-6">
         <p className="text-center text-sm font-medium text-muted-foreground mb-8">
-          Trusted by Canadian businesses and partners
+          Built around practical Canadian business discovery
         </p>
         <div className="flex flex-wrap justify-center items-center gap-8 md:gap-12">
           {partners.map((partner) => (

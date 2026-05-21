@@ -1,11 +1,12 @@
+import { DIRECTORY_COUNT_LABEL } from "@/content/siteCopy";
 import { useEffect, useState, useRef } from "react";
 
 const StatsSection = () => {
   const stats = [
-    { value: 50000, suffix: "+", label: "Businesses Listed" },
-    { value: 2.3, prefix: "$", suffix: "B+", label: "in Grants Available", decimals: 1 },
-    { value: 127000, suffix: "+", label: "Success Stories", display: "127K" },
-    { value: 98, suffix: "%", label: "Verified Listings" },
+    { value: 10000, suffix: "+", label: "Canadian Business Listings" },
+    { value: 13, suffix: "", label: "Provinces and Territories" },
+    { value: 5, suffix: "-50%", label: "Member Discount Range" },
+    { value: 4, suffix: "", label: "Core Discovery Paths" },
   ];
 
   const [isVisible, setIsVisible] = useState(false);
@@ -108,7 +109,7 @@ const StatsSection = () => {
         </div>
 
         <p className="text-center text-primary-foreground/50 text-sm mt-12">
-          Updated daily
+          {DIRECTORY_COUNT_LABEL} with directory, deals, grants guidance, and support pathways.
         </p>
       </div>
     </section>

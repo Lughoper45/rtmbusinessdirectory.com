@@ -6,16 +6,37 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+async function requireUser(req: Request, supabaseUrl: string) {
+  const authHeader = req.headers.get("Authorization");
+  if (!authHeader?.startsWith("Bearer ")) {
+    throw new Error("Unauthorized");
+  }
+
+  const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
+  if (!anonKey) {
+    throw new Error("Supabase anon key not configured");
+  }
+
+  const authClient = createClient(supabaseUrl, anonKey, {
+    global: { headers: { Authorization: authHeader } },
+  });
+  const { data, error } = await authClient.auth.getUser();
+  if (error || !data.user) {
+    throw new Error("Unauthorized");
+  }
+  return data.user;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { priceId, userId } = await req.json();
+    const { priceId } = await req.json();
 
-    if (!priceId || !userId) {
-      throw new Error("Missing priceId or userId");
+    if (!priceId) {
+      throw new Error("Missing priceId");
     }
 
     const stripeSecretKey = Deno.env.get("STRIPE_SECRET_KEY");
@@ -28,12 +49,7 @@ Deno.serve(async (req) => {
     });
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
-
-    const {
-      data: { user },
-    } = await supabase.auth.admin.getUserById(userId);
+    const user = await requireUser(req, supabaseUrl);
 
     const customerEmail = user?.email;
 
@@ -52,7 +68,7 @@ Deno.serve(async (req) => {
       success_url: `${baseUrl}/dashboard?session_id={CHECKOUT_SESSION_ID}&success=true`,
       cancel_url: `${baseUrl}/pricing?canceled=true`,
       metadata: {
-        userId,
+        userId: user.id,
       },
     });
 

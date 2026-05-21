@@ -70,7 +70,7 @@ const modes = [
       'LaunchPad team takes over completely',
       'Professional grant writer review',
       'We submit on your behalf',
-      'Quality guarantee or money back',
+      'Clear scope and review process',
       'Follow-up with grantor if needed',
     ],
     cta: 'Let Us Handle It',

@@ -31,6 +31,8 @@ import {
 import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
+import { fetchPlatformMembership } from "@/services/membership";
+import { openMembershipJoin } from "@/lib/site";
 
 interface DashboardStats {
   totalViews: number;
@@ -65,12 +67,9 @@ interface FundingOpportunity {
 }
 
 interface MembershipSummary {
-  id: string;
-  plan_id: string | null;
+  active: boolean;
   status: string;
-  expires_at: string;
-  plan_name?: string | null;
-  plan_price?: number | null;
+  source: string;
 }
 
 interface AffiliateSummary {
@@ -171,7 +170,7 @@ const Dashboard = () => {
 
   useEffect(() => {
     if (user) {
-      void loadProgramData(user.id);
+      void loadProgramData(user.id, user.email);
       setIsLoading(false);
     }
   }, [user]);
@@ -183,15 +182,9 @@ const Dashboard = () => {
     }
   }, []);
 
-  const loadProgramData = async (userId: string) => {
-    const [{ data: membershipData }, { data: affiliateData }] = await Promise.all([
-      supabase
-        .from("user_memberships")
-        .select("id, plan_id, status, expires_at")
-        .eq("user_id", userId)
-        .order("expires_at", { ascending: false })
-        .limit(1)
-        .maybeSingle(),
+  const loadProgramData = async (userId: string, email?: string | null) => {
+    const [platformMembership, { data: affiliateData }] = await Promise.all([
+      fetchPlatformMembership(userId, email),
       supabase
         .from("affiliates")
         .select("id, referral_code, total_earnings, commission_rate")
@@ -199,23 +192,7 @@ const Dashboard = () => {
         .maybeSingle(),
     ]);
 
-    let membershipSummary: MembershipSummary | null = (membershipData as MembershipSummary | null) ?? null;
-
-    if (membershipSummary?.plan_id) {
-      const { data: planData } = await supabase
-        .from("membership_plans")
-        .select("name, price")
-        .eq("id", membershipSummary.plan_id)
-        .maybeSingle();
-
-      membershipSummary = {
-        ...membershipSummary,
-        plan_name: planData?.name ?? null,
-        plan_price: planData?.price ?? null,
-      };
-    }
-
-    setMembership(membershipSummary);
+    setMembership(platformMembership);
     setAffiliate(affiliateData);
 
     if (affiliateData?.id) {
@@ -297,9 +274,11 @@ const Dashboard = () => {
             <Card className="border-blue-200 bg-blue-50/60">
               <CardContent className="pt-6">
                 <p className="text-sm text-muted-foreground">Membership</p>
-                <p className="mt-1 text-2xl font-bold text-foreground">{membership?.plan_name ?? "None"}</p>
+                <p className="mt-1 text-2xl font-bold text-foreground">{membership?.active ? "RTM Member" : "None"}</p>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  {membership ? `Valid until ${new Date(membership.expires_at).toLocaleDateString()}` : "Purchase a plan from /deals"}
+                  {membership?.active
+                    ? `Status: ${membership.status}`
+                    : "Join at membership.rtmbusinessdirectory.com"}
                 </p>
               </CardContent>
             </Card>

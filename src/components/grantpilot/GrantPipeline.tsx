@@ -17,7 +17,7 @@ const GrantPipeline = () => {
     {
       id: 'federal',
       label: 'Federal Grants',
-      description: 'Nationwide programs from Government of Canada',
+      description: 'Nationwide programs from federal departments and agencies',
       icon: <Building2 className="w-5 h-5" />,
       color: 'text-primary',
       bgColor: 'bg-primary/10',

@@ -32,35 +32,41 @@ import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { FALLBACK_MEMBERSHIP_PLANS, type MembershipPlan } from "@/data/membershipPlans";
 import { openMembershipJoin } from "@/lib/site";
+import { fetchPlatformMembership } from "@/services/membership";
+import {
+  AID_WAITING_PERIOD_LABEL,
+  AFFILIATE_DIRECT_COMMISSION_LABEL,
+  COMPLIANCE_COPY,
+  DISCOUNT_RANGE_LABEL,
+  MEMBERSHIP_PRICE_LABEL,
+} from "@/content/siteCopy";
 
-interface UserMembership {
-  id: string;
-  plan_id: string | null;
+interface PlatformMembershipState {
+  active: boolean;
   status: string;
-  expires_at: string;
 }
 
 const heroHighlights = [
   { value: "$100 CAD", label: "Annual member fee" },
-  { value: "5-50%", label: "Partner discounts" },
+  { value: DISCOUNT_RANGE_LABEL, label: "Partner discounts" },
   { value: "Same day", label: "Digital card access" },
 ];
 
 const introBenefits = [
-  "Join RTM for $100/year and unlock exclusive savings at registered businesses and stores.",
+  `Join RTM for ${MEMBERSHIP_PRICE_LABEL} and unlock savings at participating businesses and stores.`,
   "Use the RTM Business Directory Discount Program to support local merchants that support the community.",
-  "Become an affiliate and earn 30% commission as an RTM Advertising Representative.",
+  "Referral earnings are optional; the core value is savings, local discovery, and community support.",
 ];
 
 const affiliateIntro = [
-  { title: "Connect", description: "Meet business owners in person and online.", icon: Handshake },
-  { title: "Promote", description: "Share RTM advertising packages with local businesses.", icon: Megaphone },
-  { title: "Grow", description: "Help merchants reach new customers through the directory.", icon: BadgeDollarSign },
+  { title: "Optional", description: "Share RTM only with people who would benefit from the membership.", icon: Handshake },
+  { title: "Clear", description: `Direct referrals can earn ${AFFILIATE_DIRECT_COMMISSION_LABEL}.`, icon: Megaphone },
+  { title: "Separate", description: "Full affiliate details stay on the affiliate page.", icon: BadgeDollarSign },
 ];
 
 const stats = [
   { value: "$100 CAD", label: "Join once per year" },
-  { value: "5-50%", label: "Save at partner stores" },
+  { value: DISCOUNT_RANGE_LABEL, label: "Save at partner stores" },
   { value: "90 days", label: "Community fund waiting period" },
   { value: "$1,000", label: "Maximum aid request" },
 ];
@@ -68,7 +74,7 @@ const stats = [
 const painPoints = [
   "You want to know if RTM is real before you pay.",
   "You need savings you can use right away, not complicated points.",
-  "You want honest rules around the fund, referrals, and what is not guaranteed.",
+  "You want honest rules around the fund, referrals, and what is not promised.",
 ];
 
 const solutions = [
@@ -84,7 +90,7 @@ const howItWorks = [
   },
   {
     title: "Use your card",
-    description: "Show your digital RTM Member Card at partner stores and save 5% to 50%.",
+    description: `Show your digital RTM Member Card at participating stores and save ${DISCOUNT_RANGE_LABEL}.`,
   },
   {
     title: "Get backup",
@@ -145,7 +151,7 @@ const faqs = [
       "You still save money whenever you shop at a participating partner store. The fund is backup, not the only reason to join.",
   },
   {
-    question: "Is my money guaranteed?",
+    question: "Is aid automatic?",
     answer:
       "No. The fund helps members based on available money and reviewed applications. It is community aid, not insurance.",
   },
@@ -161,7 +167,7 @@ const Membership = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
   const [plans, setPlans] = useState<MembershipPlan[]>([]);
-  const [membership, setMembership] = useState<UserMembership | null>(null);
+  const [membership, setMembership] = useState<PlatformMembershipState | null>(null);
   const [dineOut, setDineOut] = useState(4);
   const [shopping, setShopping] = useState(500);
   const [services, setServices] = useState(200);
@@ -177,26 +183,18 @@ const Membership = () => {
     const currentUser = session?.user ?? null;
     setUser(currentUser);
 
-    const membershipPromise = currentUser
-      ? supabase
-          .from("user_memberships")
-          .select("id, plan_id, status, expires_at")
-          .eq("user_id", currentUser.id)
-          .eq("status", "active")
-          .gt("expires_at", new Date().toISOString())
-          .maybeSingle()
-      : Promise.resolve({ data: null, error: null });
-
-    const { data: membershipData } = await membershipPromise;
+    if (currentUser) {
+      const platformMembership = await fetchPlatformMembership(currentUser.id, currentUser.email);
+      setMembership(platformMembership);
+    } else {
+      setMembership(null);
+    }
 
     setPlans(FALLBACK_MEMBERSHIP_PLANS);
-    setMembership(membershipData);
   };
 
-  const activePlan = useMemo(
-    () => plans.find((plan) => plan.id === membership?.plan_id) ?? null,
-    [membership, plans],
-  );
+  const hasActiveMembership = membership?.active === true;
+  const activePlan = hasActiveMembership ? plans[0] ?? null : null;
 
   const calculator = useMemo(() => {
     const diningMonthly = dineOut * 40 * 0.15;
@@ -250,10 +248,10 @@ const Membership = () => {
                   For RTM members
                 </Badge>
                 <h1 className="mt-6 text-5xl font-black leading-[0.98] tracking-tight text-white md:text-7xl">
-                  Join RTM for $100/year
+                  Join RTM for {MEMBERSHIP_PRICE_LABEL}
                 </h1>
                 <p className="mt-6 max-w-2xl text-lg font-medium leading-8 text-white/86 md:text-xl">
-                  Unlock exclusive savings at hundreds of registered businesses and stores, then help grow the RTM Business Directory by sharing the affiliate opportunity.
+                  Unlock member savings at participating businesses, receive your digital card, and become eligible for community aid after the waiting period.
                 </p>
 
                 <div className="mt-8 grid gap-3">
@@ -303,10 +301,10 @@ const Membership = () => {
                 <div>
                   <div className="text-sm font-black uppercase tracking-[0.16em] text-primary">Earn with us</div>
                   <h2 className="mt-2 text-3xl font-black tracking-tight text-[#06233f] md:text-5xl">
-                    Become an RTM affiliate
+                    Optional referral earnings
                   </h2>
                   <p className="mt-3 max-w-2xl text-muted-foreground">
-                    Make 30% commission as an RTM Advertising Representative by connecting with business owners, promoting advertising packages, and helping them reach new customers.
+                    Referrals are optional and should support the membership value. Full affiliate terms and dashboard details live on the affiliate page.
                   </p>
                 </div>
 
@@ -367,7 +365,7 @@ const Membership = () => {
                   Your digital RTM Member Card starts working the day you join
                 </h2>
                 <p className="mt-4 text-lg text-muted-foreground">
-                  Show it at any partner store and get 5% to 50% off groceries, services, restaurants, and more. No points. No complicated app to figure out. Just show the card and save.
+                  Show it at participating businesses and get {DISCOUNT_RANGE_LABEL} off eligible offers. No points. No complicated app to figure out. Just show the card and save.
                 </p>
               </div>
 
@@ -556,7 +554,7 @@ const Membership = () => {
                           : "Adjust the sliders to estimate break-even timing"}
                       </div>
                       <p className="mt-2 text-sm text-white/70">
-                      This is an estimate, not a guarantee. Actual savings depend on where and how often you use your card.
+                      This is an estimate, not a promise. Actual savings depend on where and how often you use your card.
                       </p>
                     </div>
                   </CardContent>
@@ -609,7 +607,7 @@ const Membership = () => {
                 </Badge>
                 <h2 className="mt-4 text-3xl font-black tracking-tight md:text-5xl">Join RTM - $100/year</h2>
                 <p className="mt-4 text-lg text-white/70">
-                  One annual membership unlocks your digital card, your dashboard, optional referral earnings, and future Community Fund eligibility.
+                  One annual membership unlocks your digital card, your dashboard, optional referral earnings, and Community Fund eligibility after the waiting period.
                 </p>
               </div>
 
@@ -707,16 +705,16 @@ const Membership = () => {
                   <CardContent className="grid gap-4 sm:grid-cols-3">
                     <div className="rounded-2xl bg-white/10 p-4">
                       <div className="text-xs uppercase tracking-[0.16em] text-white/55">Status</div>
-                      <div className="mt-2 text-2xl font-black">{membership ? "Active" : "Inactive"}</div>
+                      <div className="mt-2 text-2xl font-black">{hasActiveMembership ? "Active" : "Inactive"}</div>
                     </div>
                     <div className="rounded-2xl bg-white/10 p-4">
                       <div className="text-xs uppercase tracking-[0.16em] text-white/55">Plan</div>
-                      <div className="mt-2 text-2xl font-black">{activePlan?.name ?? "None"}</div>
+                      <div className="mt-2 text-2xl font-black">{activePlan?.name ?? "RTM Annual"}</div>
                     </div>
                     <div className="rounded-2xl bg-white/10 p-4">
-                      <div className="text-xs uppercase tracking-[0.16em] text-white/55">Valid until</div>
+                      <div className="text-xs uppercase tracking-[0.16em] text-white/55">Access</div>
                       <div className="mt-2 text-lg font-bold">
-                        {membership ? new Date(membership.expires_at).toLocaleDateString() : "Activate a plan"}
+                        {hasActiveMembership ? "Platform membership active" : "Join on membership site"}
                       </div>
                     </div>
                   </CardContent>
@@ -821,7 +819,7 @@ const Membership = () => {
               </div>
 
               <div className="mx-auto mt-8 inline-flex rounded-2xl border border-white/15 bg-white/10 px-5 py-3 text-sm font-semibold text-white/90 backdrop-blur">
-                RTM is community aid, not insurance or an investment. Income is not guaranteed.
+                {COMPLIANCE_COPY.membership}
               </div>
             </div>
           </section>

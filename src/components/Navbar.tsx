@@ -29,7 +29,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { User as SupabaseUser } from "@supabase/supabase-js";
 import BusinessListingWizard from "./BusinessListingWizard";
-import { openMembershipJoin, SITE_CONTACT } from "@/lib/site";
+import { GRANTS_APP_URL, openMembershipJoin, SITE_CONTACT, WORLDCUP_APP_URL } from "@/lib/site";
 import { toast } from "sonner";
 
 const Navbar = () => {
@@ -61,7 +61,7 @@ const Navbar = () => {
   };
 
   const openComingSoon = (label: string) => {
-    toast.message(`${label} is planned for the next content rollout.`);
+    toast.message(`${label} content is being prepared by the RTM team.`);
     setIsOpen(false);
   };
 
@@ -71,7 +71,8 @@ const Navbar = () => {
   };
 
   const resourcesItems = [
-    { label: "Grants & Funding", icon: HandCoins, to: "/grants", description: "Funding guidance and discovery" },
+    { label: "Grants & Funding", icon: HandCoins, href: `${GRANTS_APP_URL}/grantpilot`, description: "GrantPilot applications" },
+    { label: "World Cup Ready", icon: Globe, href: `${WORLDCUP_APP_URL}/worldcup`, description: "FIFA 2026 business portal" },
     { label: "Magazine", icon: Newspaper, action: () => openComingSoon("Magazine"), description: "Editorial and business stories" },
     { label: "Bookstore", icon: BookOpen, action: () => openComingSoon("Bookstore"), description: "Reading and learning resources" },
     { label: "Support Center", icon: CircleHelp, href: "/#support", description: "Help, contact, and onboarding" },
@@ -143,7 +144,7 @@ const Navbar = () => {
               <button
                 type="button"
                 className="inline-flex items-center gap-2 text-slate-300 transition-colors hover:text-white"
-                onClick={() => toast.message("English and French language switching will be enabled in a later release.")}
+                onClick={() => toast.message("English and French language switching is being prepared by the RTM team.")}
               >
                 <Globe className="h-4 w-4" />
                 EN / FR
@@ -220,9 +221,12 @@ const Navbar = () => {
                 </DropdownMenuContent>
               </DropdownMenu>
 
-              <Link to="/grants" className="font-medium text-foreground transition-colors hover:text-primary">
+              <a
+                href={`${GRANTS_APP_URL}/grantpilot`}
+                className="font-medium text-foreground transition-colors hover:text-primary"
+              >
                 Grants
-              </Link>
+              </a>
 
               <DropdownMenu>
                 <DropdownMenuTrigger className="inline-flex items-center gap-1 font-medium text-foreground transition-colors hover:text-primary">
@@ -293,7 +297,7 @@ const Navbar = () => {
                     <button
                       type="button"
                       className="inline-flex items-center gap-2 text-sm text-slate-300"
-                      onClick={() => toast.message("English and French language switching will be enabled in a later release.")}
+                      onClick={() => toast.message("English and French language switching is being prepared by the RTM team.")}
                     >
                       <Globe className="h-4 w-4" />
                       EN / FR
@@ -379,9 +383,20 @@ const Navbar = () => {
                   ) : null}
                 </div>
 
-                <Link to="/grants" className="rounded-xl border px-4 py-3 font-medium" onClick={() => setIsOpen(false)}>
+                <a
+                  href={`${GRANTS_APP_URL}/grantpilot`}
+                  className="rounded-xl border px-4 py-3 font-medium block"
+                  onClick={() => setIsOpen(false)}
+                >
                   Grants
-                </Link>
+                </a>
+                <a
+                  href={`${WORLDCUP_APP_URL}/worldcup`}
+                  className="rounded-xl border px-4 py-3 font-medium block"
+                  onClick={() => setIsOpen(false)}
+                >
+                  World Cup Ready
+                </a>
 
                 <div className="rounded-xl border">
                   <button

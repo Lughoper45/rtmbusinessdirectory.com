@@ -1,5 +1,6 @@
 import { loadStripe, Stripe } from "@stripe/stripe-js";
 import { supabase } from "@/integrations/supabase/client";
+import { getMembershipJoinUrl } from "@/lib/site";
 
 let stripePromise: Promise<Stripe | null>;
 
@@ -91,59 +92,35 @@ export interface MembershipCheckoutResponse {
   url?: string;
 }
 
-export const createCheckoutSession = async (priceId: string, userId: string) => {
-  const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-checkout`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-    },
-    body: JSON.stringify({ priceId, userId }),
+export const createCheckoutSession = async (priceId: string, _userId?: string) => {
+  const { data, error } = await supabase.functions.invoke<{ sessionId?: string; error?: string }>("create-checkout", {
+    body: { priceId },
   });
 
-  const { sessionId, error } = await response.json();
-  if (error) throw new Error(error);
-  return sessionId;
+  if (error) throw new Error(error.message);
+  if (data?.error) throw new Error(data.error);
+  return data?.sessionId;
 };
 
-export const createPortalSession = async (userId: string) => {
-  const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-portal-session`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-    },
-    body: JSON.stringify({ userId }),
-  });
+export const createPortalSession = async (_userId?: string) => {
+  const { data, error } = await supabase.functions.invoke<{ url?: string; error?: string }>("create-portal-session");
 
-  const { url, error } = await response.json();
-  if (error) throw new Error(error);
-  return url;
+  if (error) throw new Error(error.message);
+  if (data?.error) throw new Error(data.error);
+  if (!data?.url) {
+    throw new Error("Portal session URL was not returned.");
+  }
+  return data.url;
 };
 
 export const redirectToCheckout = async (priceId: string) => {
-  const sessionId = await createCheckoutSession(priceId, "demo-user");
+  const sessionId = await createCheckoutSession(priceId);
   window.location.href = `https://checkout.stripe.com/pay/${sessionId}`;
 };
 
-export const createMembershipCheckout = async (planId: string, userId: string) => {
-  const { data, error } = await supabase.functions.invoke<MembershipCheckoutResponse>("membership-checkout", {
-    body: { planId, userId },
-  });
-
-  if (error) {
-    const message =
-      typeof error.context === "string"
-        ? error.context
-        : error.message || "Membership checkout failed.";
-    throw new Error(message);
-  }
-
-  if (!data?.url) {
-    throw new Error("Membership checkout URL was not returned.");
-  }
-
-  return data.url;
+/** @deprecated Use membership.rtmbusinessdirectory.com signup instead. */
+export const createMembershipCheckout = async (_planId: string, _userId?: string) => {
+  return getMembershipJoinUrl({ returnUrl: typeof window !== "undefined" ? window.location.href : null });
 };
 
 export const getSubscriptionStatus = async (userId: string): Promise<Subscription | null> => {

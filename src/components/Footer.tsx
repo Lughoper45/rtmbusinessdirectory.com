@@ -1,14 +1,14 @@
 import { Link } from "react-router-dom";
 import { Facebook, Instagram, Linkedin, Twitter, Youtube } from "lucide-react";
-import { SITE_CONTACT } from "@/lib/site";
+import { GRANTS_APP_URL, SITE_CONTACT, WORLDCUP_APP_URL } from "@/lib/site";
 
 const Footer = () => {
   const productLinks = [
     { label: "Find Businesses", to: "/directory" },
-    { label: "Access Grants", to: "/grants" },
+    { label: "Access Grants", href: `${GRANTS_APP_URL}/grantpilot` },
     { label: "Business Support", to: "/business-support" },
     { label: "AI Search", to: "/ai-search" },
-    { label: "World Cup Hub", to: "/world-cup-hub" },
+    { label: "World Cup Ready", href: `${WORLDCUP_APP_URL}/worldcup` },
     { label: "Marketplace", to: "/marketplace" },
     { label: "Pricing", to: "/pricing" },
   ];
@@ -69,9 +69,21 @@ const Footer = () => {
             <ul className="space-y-3">
               {productLinks.map((link) => (
                 <li key={link.label}>
-                  <Link to={link.to} className="text-primary-foreground/60 transition-colors hover:text-primary-foreground">
-                    {link.label}
-                  </Link>
+                  {"href" in link && link.href ? (
+                    <a
+                      href={link.href}
+                      className="text-primary-foreground/60 transition-colors hover:text-primary-foreground"
+                    >
+                      {link.label}
+                    </a>
+                  ) : (
+                    <Link
+                      to={"to" in link ? link.to : "/"}
+                      className="text-primary-foreground/60 transition-colors hover:text-primary-foreground"
+                    >
+                      {link.label}
+                    </Link>
+                  )}
                 </li>
               ))}
             </ul>

@@ -25,7 +25,7 @@ const grantFlyerPoints = [
   },
   {
     icon: ShieldAlert,
-    title: 'No guarantees',
+    title: 'Program rules apply',
     description: "Grant eligibility depends on your business criteria and each grant program's rules.",
   },
 ];
@@ -127,7 +127,7 @@ const GrantPilot = () => {
                       <Globe2 className="h-5 w-5 text-red-700" />
                       www.rtmbusinessdirectory.com
                     </a>
-                    <span className="text-slate-400">No guarantees. Eligibility depends on your business criteria and the grant rules.</span>
+                    <span className="text-slate-400">Eligibility depends on your business criteria and the grant rules.</span>
                   </div>
                 </div>
               </div>

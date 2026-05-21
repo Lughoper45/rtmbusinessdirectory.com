@@ -24,6 +24,7 @@ import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { SITE_CONTACT } from "@/lib/site";
+import { AFFILIATE_DIRECT_COMMISSION_LABEL, COMPLIANCE_COPY, DISCOUNT_RANGE_LABEL, MEMBERSHIP_PRICE_LABEL } from "@/content/siteCopy";
 
 interface AffiliateSummary {
   id: string;
@@ -42,16 +43,16 @@ interface AffiliateReferral {
 }
 
 const proofStats = [
-  { value: "30%", label: "Affiliate commission" },
+  { value: "30%", label: "Direct commission" },
   { value: "$100", label: "Annual membership" },
-  { value: "5-50%", label: "Member discounts" },
+  { value: DISCOUNT_RANGE_LABEL, label: "Member discounts" },
 ];
 
 const affiliateBenefits = [
-  "Earn while you build community through the RTM Business Directory Discount Program.",
-  "Earn 30% commission on every new member you refer and every business you enroll.",
-  "Help fund outreach and reward people who strengthen the RTM network.",
-  "Promote a program built around local savings, business visibility, and shared success.",
+  "Share RTM with people who would benefit from the directory, member savings, and local business discovery.",
+  `Earn ${AFFILIATE_DIRECT_COMMISSION_LABEL} on qualified new members you directly refer.`,
+  "Keep the message savings-first so the program does not become income-first.",
+  "Use your dashboard to track referral codes, pending value, and paid commission.",
 ];
 
 const audiences = [
@@ -72,7 +73,7 @@ const audiences = [
 const steps = [
   {
     title: "Join RTM",
-    description: "Become an RTM member for $100/year and unlock the same customer benefits you promote.",
+    description: `Become an RTM member for ${MEMBERSHIP_PRICE_LABEL} and unlock the same customer benefits you promote.`,
   },
   {
     title: "Share the program",
@@ -84,7 +85,7 @@ const steps = [
   },
   {
     title: "Earn 30%",
-    description: "Receive commission on tracked new members and businesses you bring into RTM.",
+    description: "Receive commission on tracked qualified members you directly refer into RTM.",
   },
 ];
 
@@ -230,10 +231,10 @@ const Affiliate = () => {
   return (
     <>
       <Helmet>
-        <title>RTM Affiliate Program | Earn 30% Commission</title>
+        <title>RTM Affiliate Program | Optional Referral Earnings</title>
         <meta
           name="description"
-          content="Become an RTM Affiliate or business partner, earn 30% commission, and help grow a member-driven community built on local savings and shared success."
+          content="Become an RTM Affiliate, share a savings-first membership, and track optional direct referral commission."
         />
       </Helmet>
 
@@ -251,13 +252,13 @@ const Affiliate = () => {
                     For affiliates & business partners
                   </Badge>
                   <h1 className="mt-6 text-4xl font-black leading-[1.03] tracking-tight md:text-6xl">
-                    Earn while you build community.
+                    Earn direct commission by sharing RTM responsibly.
                   </h1>
                   <p className="mt-6 max-w-2xl text-lg text-white/80 md:text-xl">
-                    Join RTM Business Directory and help people grow their business, save money, and support the community. Earn 30% commission on every new member you refer and every business you enroll in the RTM Business Directory Discount Program.
+                    Share RTM with people who would benefit from local business discovery and member savings. Earn 30% direct commission on qualified new members you refer.
                   </p>
                   <p className="mt-4 max-w-2xl text-base font-semibold text-[#b4df55] md:text-lg">
-                    More than a directory. We are a member-driven community focused on real savings, financial support, and shared success.
+                    The program works best when savings and local value come first. Referral income is optional.
                   </p>
 
                   <div className="mt-10 grid gap-4 sm:grid-cols-3">
@@ -327,11 +328,11 @@ const Affiliate = () => {
                 <Badge variant="outline" className="border-primary/20 bg-primary/5 text-primary">
                   What you actually earn
                 </Badge>
-                <h2 className="mt-4 text-3xl font-black tracking-tight md:text-5xl">
-                  Customers save. Affiliates earn. Businesses grow.
+                  <h2 className="mt-4 text-3xl font-black tracking-tight md:text-5xl">
+                  Share RTM with clear expectations.
                 </h2>
                 <p className="mt-4 text-lg text-muted-foreground">
-                  RTM brings members, local businesses, and affiliate partners into one community built around practical savings, outreach, and shared success.
+                  The affiliate page explains earnings clearly while keeping the main RTM promise focused on directory discovery and member savings.
                 </p>
               </div>
 
@@ -339,7 +340,7 @@ const Affiliate = () => {
                 <Card className="border-primary/20 bg-primary/5 shadow-medium">
                   <CardHeader>
                     <CardTitle className="text-2xl">What you share</CardTitle>
-                    <CardDescription>A $100/year membership with discounts, mutual aid access, and a community-first business directory.</CardDescription>
+                    <CardDescription>A {MEMBERSHIP_PRICE_LABEL} membership with discounts, aid eligibility after 90 days, and a community-first business directory.</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <ul className="space-y-4">
@@ -433,7 +434,7 @@ const Affiliate = () => {
                         You strengthen the network
                       </div>
                       <p className="mt-2 text-sm">
-                        Affiliates earn 30% commission while RTM invests in outreach and rewards people who help strengthen the community.
+                        Affiliates earn direct commission while RTM keeps the public message focused on real savings and local business discovery.
                       </p>
                     </div>
                   </CardContent>
@@ -543,6 +544,9 @@ const Affiliate = () => {
               <h2 className="text-3xl font-black tracking-tight md:text-5xl">Become an RTM Affiliate</h2>
               <p className="mx-auto mt-4 max-w-3xl text-lg text-white/85 md:text-xl">
                 Join for $100/year. Get your member card and your affiliate link in one step.
+              </p>
+              <p className="mx-auto mt-3 max-w-3xl text-sm text-white/75">
+                {COMPLIANCE_COPY.affiliate}
               </p>
               <div className="mt-8 flex flex-col justify-center gap-4 sm:flex-row">
                 <Button variant="heroWhite" size="xl" asChild>

@@ -19,7 +19,7 @@ const grants: Grant[] = [
   {
     id: '1',
     name: 'Canada Small Business Financing',
-    organization: 'Government of Canada',
+    organization: 'Federal program',
     amount: 50000,
     matchScore: 87,
     deadline: 14,

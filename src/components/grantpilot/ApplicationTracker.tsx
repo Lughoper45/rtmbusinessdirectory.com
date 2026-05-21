@@ -94,8 +94,8 @@ export const ApplicationTracker = () => {
               <CheckCircle className="w-5 h-5 text-green-400" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-green-400">$100B+</p>
-              <p className="text-xs text-muted-foreground">Available Annually</p>
+              <p className="text-2xl font-bold text-green-400">3</p>
+              <p className="text-xs text-muted-foreground">Government Levels</p>
             </div>
           </div>
         </motion.div>
@@ -128,8 +128,8 @@ export const ApplicationTracker = () => {
               <AlertCircle className="w-5 h-5 text-foreground" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-foreground">80%</p>
-              <p className="text-xs text-muted-foreground">Go Unclaimed</p>
+              <p className="text-2xl font-bold text-foreground">Rules</p>
+              <p className="text-xs text-muted-foreground">Vary by Program</p>
             </div>
           </div>
         </motion.div>

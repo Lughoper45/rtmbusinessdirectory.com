@@ -8,9 +8,9 @@ const BusinessSupportHub = () => {
   const features = [
     {
       icon: DollarSign,
-      title: "AI Grants & Funding Finder",
-      description: "Match with $2.3B+ in grants. Get instant eligibility scores and application support.",
-      action: () => navigate("/directory?category=Financial+Services"),
+      title: "Grant Guidance",
+      description: "Review Canadian funding programs, eligibility notes, and practical application steps.",
+      action: () => navigate("/grants"),
     },
     {
       icon: BarChart3,
@@ -46,7 +46,7 @@ const BusinessSupportHub = () => {
             Everything Your Business Needs to Succeed
           </h2>
           <p className="text-lg md:text-xl text-primary-foreground/70 max-w-[700px] mx-auto">
-            From funding to compliance to growth strategies — all in one platform
+            From funding guidance to compliance and growth strategy in one RTM experience
           </p>
         </div>
 

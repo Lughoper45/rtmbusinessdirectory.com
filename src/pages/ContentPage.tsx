@@ -38,11 +38,11 @@ const contentPages: Record<string, PageConfig> = {
       },
       {
         title: "Growth tools",
-        body: "This section is designed to connect business owners with directory visibility, membership-driven demand, affiliate exposure, and future support workflows inside the RTM ecosystem.",
+        body: "This section connects business owners with directory visibility, membership-driven demand, affiliate exposure, and RTM support workflows.",
       },
       {
         title: "Next phase",
-        body: "The current page acts as a live destination for navigation and can expand later into onboarding, help articles, service packages, and partner resources.",
+        body: "Use this page to understand RTM support options and choose the next step for listing, grants guidance, or business growth.",
       },
     ],
     primaryCta: { label: "List Your Business", to: "/directory" },
@@ -62,8 +62,8 @@ const contentPages: Record<string, PageConfig> = {
         body: "Instead of guessing exact keywords, users can describe what they need and let RTM guide them to relevant businesses, deals, and support paths.",
       },
       {
-        title: "Roadmap-ready destination",
-        body: "This page gives the footer and navigation a real target today while leaving room for a fuller AI search experience later.",
+        title: "Search destination",
+        body: "Use AI Search as a guided entry point into directory results, deals, grants guidance, and business support content.",
       },
     ],
     primaryCta: { label: "Browse Directory", to: "/directory" },
@@ -84,7 +84,7 @@ const contentPages: Record<string, PageConfig> = {
       },
       {
         title: "Expandable structure",
-        body: "This version establishes the route and message now so it can later evolve into a richer event microsite without leaving the footer broken.",
+        body: "RTM uses this hub to organize event-related visibility, partner offers, and community programming in one place.",
       },
     ],
     primaryCta: { label: "Explore Businesses", to: "/directory" },
@@ -92,7 +92,7 @@ const contentPages: Record<string, PageConfig> = {
   },
   marketplace: {
     title: "Marketplace",
-    description: "A future RTM marketplace surface for offers, products, services, and partner promotions.",
+    description: "An RTM marketplace surface for offers, products, services, and partner promotions.",
     eyebrow: "Product",
     sections: [
       {
@@ -104,8 +104,8 @@ const contentPages: Record<string, PageConfig> = {
         body: "As RTM expands, the marketplace can work alongside directory listings and membership plans so visitors can browse, discover, and purchase within one ecosystem.",
       },
       {
-        title: "Live placeholder with room to grow",
-        body: "This page gives the product navigation a stable target today while preserving flexibility for future commerce and promotional features.",
+        title: "Partner promotion surface",
+        body: "The marketplace helps visitors move from business discovery to offers, services, and partner promotions.",
       },
     ],
     primaryCta: { label: "View Deals", to: "/deals" },
@@ -122,7 +122,7 @@ const contentPages: Record<string, PageConfig> = {
       },
       {
         title: "Business participation",
-        body: "As the platform grows, RTM can extend this area with merchant packages, promotional upgrades, sponsorship options, and partner service tiers.",
+        body: "RTM can use this area for merchant packages, promotional upgrades, sponsorship options, and partner service tiers.",
       },
       {
         title: "Current direction",
@@ -160,15 +160,15 @@ const contentPages: Record<string, PageConfig> = {
     sections: [
       {
         title: "Join the mission",
-        body: "RTM is building consumer and business experiences around visibility, deals, and growth. This page establishes a destination for future hiring and partner opportunities.",
+        body: "RTM is building consumer and business experiences around visibility, deals, and growth. This page explains the kind of work and partnerships that support that mission.",
       },
       {
         title: "What to expect",
-        body: "Career content can expand here over time to include role listings, contractor opportunities, and collaboration invites for marketing, operations, and product work.",
+        body: "Career content can include role listings, contractor opportunities, and collaboration invites for marketing, operations, and product work.",
       },
       {
         title: "Current status",
-        body: "No live jobs are listed yet, but the route is now active and ready for future openings.",
+        body: "Open roles are posted here when available. General collaboration inquiries can go through the contact page.",
       },
     ],
     primaryCta: { label: "Contact RTM", to: "/contact" },
@@ -189,7 +189,7 @@ const contentPages: Record<string, PageConfig> = {
       },
       {
         title: "Ready for expansion",
-        body: "This route gives the footer a working destination now and can later be upgraded into a full editorial archive.",
+        body: "The blog is the home for RTM updates, useful business education, community stories, and partner spotlights.",
       },
     ],
     primaryCta: { label: "Explore Businesses", to: "/directory" },
@@ -202,7 +202,7 @@ const contentPages: Record<string, PageConfig> = {
     sections: [
       {
         title: "Media-ready overview",
-        body: "Press Kit serves as the public destination for brand summaries, boilerplate copy, platform context, and future downloadable RTM assets.",
+        body: "Press Kit serves as the public destination for brand summaries, boilerplate copy, platform context, and RTM media assets.",
       },
       {
         title: "Partner communications",
@@ -210,7 +210,7 @@ const contentPages: Record<string, PageConfig> = {
       },
       {
         title: "Current use",
-        body: "The page is live now as a structured placeholder and can later be extended with downloadable logos, brand rules, and media contacts.",
+        body: "Use this page for RTM positioning, brand context, and media contact direction.",
       },
     ],
     primaryCta: { label: "Contact RTM", to: "/contact" },
@@ -231,7 +231,7 @@ const contentPages: Record<string, PageConfig> = {
       },
       {
         title: "Next step",
-        body: "The route is now active so the footer works properly and interested organizations have a clear place to start.",
+        body: "Interested organizations can start here, then contact RTM with a clear partnership proposal.",
       },
     ],
     primaryCta: { label: "Get in Touch", to: "/contact" },
@@ -248,11 +248,11 @@ const contentPages: Record<string, PageConfig> = {
       },
       {
         title: "Support routing",
-        body: "As RTM expands, this page can evolve into a structured contact center with forms, department routing, and response expectations.",
+        body: "Use the contact page for support questions, partnership requests, business listing help, and general RTM inquiries.",
       },
       {
         title: "Current point of contact",
-        body: "For now, the route gives the footer and top-level company navigation a working destination instead of a dead link.",
+        body: "Contact RTM by phone or email using the details on this page.",
       },
     ],
     primaryCta: { label: "Go to Support", to: "/business-support" },
@@ -269,11 +269,11 @@ const contentPages: Record<string, PageConfig> = {
       },
       {
         title: "Commercial relationships",
-        body: "Future updates can formalize billing, partner obligations, acceptable use rules, account access, and limitations of liability.",
+        body: "Terms should cover billing, partner obligations, acceptable use rules, account access, and limitations of liability.",
       },
       {
-        title: "Placeholder notice",
-        body: "This page is a live legal destination for navigation integrity and should be replaced with finalized legal copy before public reliance.",
+        title: "Legal review",
+        body: "This policy page should be reviewed by counsel before RTM relies on it as final legal language.",
       },
     ],
     primaryCta: { label: "View Privacy Policy", to: "/privacy" },
@@ -293,8 +293,8 @@ const contentPages: Record<string, PageConfig> = {
         body: "This can cover authentication, memberships, payments, inquiries, listings, analytics, and communications across the RTM platform.",
       },
       {
-        title: "Placeholder notice",
-        body: "The route is now live, but the text is still placeholder content and should be replaced by finalized policy language.",
+        title: "Legal review",
+        body: "This policy page should be reviewed by counsel before RTM relies on it as final legal language.",
       },
     ],
     primaryCta: { label: "Read Terms", to: "/terms" },
@@ -311,7 +311,7 @@ const contentPages: Record<string, PageConfig> = {
       },
       {
         title: "User awareness",
-        body: "This can later expand to include essential cookies, analytics tools, marketing technologies, and consent preferences if RTM enables them.",
+        body: "This can include essential cookies, analytics tools, marketing technologies, and consent preferences when RTM enables them.",
       },
       {
         title: "Placeholder notice",
@@ -332,11 +332,11 @@ const contentPages: Record<string, PageConfig> = {
       },
       {
         title: "Ongoing improvement",
-        body: "This destination can later contain formal accessibility statements, conformance targets, contact methods, and issue-reporting guidance.",
+        body: "This destination can contain formal accessibility statements, conformance targets, contact methods, and issue-reporting guidance.",
       },
       {
         title: "Current use",
-        body: "The page now exists so the footer has a real destination and the site has a visible accessibility policy surface.",
+        body: "Visitors can use this page to understand RTM accessibility practices and report usability barriers.",
       },
     ],
     primaryCta: { label: "Contact RTM", to: "/contact" },
@@ -413,7 +413,7 @@ const ContentPage = () => {
                   <div className="text-sm font-semibold uppercase tracking-[0.16em] text-primary">RTM Business Directory</div>
                   <h2 className="mt-3 text-2xl font-black text-foreground">Your Trusted Business Directory</h2>
                   <p className="mt-3 text-muted-foreground">
-                    This page now exists as a real destination in the footer and can be expanded with full product or legal content later.
+                    This page gives visitors a concise RTM destination with relevant next steps and contact context.
                   </p>
                   <p className="mt-4 text-sm text-muted-foreground">
                     <span className="font-semibold text-foreground">{SITE_CONTACT.officeLabel}:</span> {SITE_CONTACT.officeAddress}

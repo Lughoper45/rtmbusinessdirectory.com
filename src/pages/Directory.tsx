@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/pagination";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ArrowRight, Building2, Database, Megaphone, TriangleAlert, Users } from "lucide-react";
+import { DIRECTORY_COUNT_LABEL } from "@/content/siteCopy";
 
 const PAGE_SIZE = 24;
 const showDirectorySourceNotice =
@@ -270,7 +271,7 @@ const Directory = () => {
     <>
       <Helmet>
         <title>Discover Businesses | RTM Business Directory</title>
-        <meta name="description" content="Explore 10,000+ verified Canadian businesses. AI-powered search, multiple discovery modes, and personalized recommendations." />
+        <meta name="description" content={`Explore ${DIRECTORY_COUNT_LABEL}. Search by category, city, service, ownership, and local business needs.`} />
       </Helmet>
       <div className="min-h-screen bg-background">
         <Navbar />
@@ -282,10 +283,10 @@ const Directory = () => {
                 Advertise on RTM Business Directory
               </div>
               <h1 className="text-4xl font-black leading-tight tracking-tight md:text-5xl lg:text-6xl">
-                Put your business in the conversation.
+                Put your business where local customers search.
               </h1>
               <p className="mt-5 max-w-3xl text-lg leading-8 text-white/80 md:text-xl">
-                Tap into 100,000+ passionate communities shaping what people research, discuss, and buy. Connect directly with engaged audiences across every industry, from tech and finance to food and fashion. RTM users do not just scroll. They influence.
+                RTM helps people discover Canadian businesses by category, city, and service need. Add your listing so customers can find, compare, and contact you from the directory.
               </p>
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                 <Button variant="heroWhite" size="lg" onClick={() => setIsListingWizardOpen(true)}>
@@ -302,18 +303,18 @@ const Directory = () => {
               <div className="rounded-lg border border-white/15 bg-white/10 p-5 backdrop-blur">
                 <div className="flex items-center gap-3 text-white/75">
                   <Users className="h-5 w-5" />
-                  <span className="text-sm font-semibold uppercase tracking-[0.16em]">Communities</span>
+                  <span className="text-sm font-semibold uppercase tracking-[0.16em]">Listings</span>
                 </div>
-                <div className="mt-3 text-4xl font-black">100,000+</div>
-                <p className="mt-2 text-sm leading-6 text-white/70">Passionate communities across high-intent categories.</p>
+                <div className="mt-3 text-4xl font-black">10,000+</div>
+                <p className="mt-2 text-sm leading-6 text-white/70">Canadian business listings across high-intent categories.</p>
               </div>
               <div className="rounded-lg border border-white/15 bg-white/10 p-5 backdrop-blur">
                 <div className="flex items-center gap-3 text-white/75">
                   <Building2 className="h-5 w-5" />
-                  <span className="text-sm font-semibold uppercase tracking-[0.16em]">Brand Visits</span>
+                  <span className="text-sm font-semibold uppercase tracking-[0.16em]">Discovery</span>
                 </div>
-                <div className="mt-3 text-4xl font-black">100K+</div>
-                <p className="mt-2 text-sm leading-6 text-white/70">Brand visits last month from people ready to discover, compare, and buy.</p>
+                <div className="mt-3 text-4xl font-black">Local</div>
+                <p className="mt-2 text-sm leading-6 text-white/70">Search, compare, and connect with businesses by location and need.</p>
               </div>
             </div>
           </div>

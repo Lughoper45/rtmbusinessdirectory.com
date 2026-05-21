@@ -6,6 +6,27 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
+async function requireAdmin(req: Request, supabase: any) {
+  const token = req.headers.get("Authorization")?.replace("Bearer ", "");
+  if (!token) throw new Error("Unauthorized");
+
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser(token);
+  if (error || !user) throw new Error("Unauthorized");
+
+  const { data: profile, error: profileError } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (profileError || profile?.role !== "admin") {
+    throw new Error("Admin access required");
+  }
+}
+
 // Custom CSV parser that handles multi-line quoted fields and variable field counts
 function parseCSV(text: string): string[][] {
   const rows: string[][] = [];
@@ -145,6 +166,7 @@ Deno.serve(async (req) => {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, serviceRoleKey);
+    await requireAdmin(req, supabase);
 
     const { csvText, dryRun } = await req.json();
 

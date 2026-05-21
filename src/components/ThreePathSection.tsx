@@ -1,6 +1,7 @@
 import { Search, DollarSign, TrendingUp, ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { DIRECTORY_COUNT_LABEL } from "@/content/siteCopy";
 
 const ThreePathSection = () => {
   const navigate = useNavigate();
@@ -9,23 +10,23 @@ const ThreePathSection = () => {
     {
       icon: Search,
       title: "Find a Business",
-      description: "Search 50,000+ verified Canadian businesses with AI-powered discovery",
+      description: `Search ${DIRECTORY_COUNT_LABEL} by category, city, and service need`,
       cta: "Start Searching",
       action: () => navigate("/directory"),
     },
     {
       icon: DollarSign,
       title: "Access Grants & Funding",
-      description: "Discover $2.3B+ in available grants matched to your business",
+      description: "Review Canadian grant programs, eligibility notes, and application guidance",
       cta: "Find Funding",
-      action: () => navigate("/directory?category=Financial+Services"),
+      action: () => navigate("/grants"),
     },
     {
       icon: TrendingUp,
       title: "Grow My Business",
       description: "Get AI-powered support, tools, and insights to scale faster",
       cta: "Get Support",
-      action: () => navigate("/directory"),
+      action: () => navigate("/business-support"),
     },
   ];
 

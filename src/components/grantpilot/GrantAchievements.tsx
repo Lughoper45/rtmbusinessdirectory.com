@@ -51,7 +51,7 @@ const GrantAchievements = () => {
     {
       id: 'six-figure-club',
       name: 'Six-Figure Club',
-      description: 'Secure $100,000+ in funding',
+      description: 'Build a strong funding workflow',
       icon: <DollarSign className="w-6 h-6" />,
       earned: false,
       rarity: 'legendary',

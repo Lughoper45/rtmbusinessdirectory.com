@@ -1,7 +1,4 @@
-// Email service using Resend
-import { Resend } from 'resend';
-
-const resend = new Resend(import.meta.env.VITE_RESEND_API_KEY);
+import { supabase } from "@/integrations/supabase/client";
 
 interface EmailOptions {
   to: string;
@@ -11,15 +8,14 @@ interface EmailOptions {
 
 export const sendEmail = async ({ to, subject, html }: EmailOptions) => {
   try {
-    const result = await resend.emails.send({
-      from: 'RTM Directory <noreply@rtmbusinessdirectory.com>',
-      to,
-      subject,
-      html,
+    const { data, error } = await supabase.functions.invoke("send-email", {
+      body: { to, subject, html },
     });
-    return { success: true, data: result };
+
+    if (error) throw error;
+    return { success: true, data };
   } catch (error) {
-    console.error('Email send error:', error);
+    console.error("Email send error:", error);
     return { success: false, error };
   }
 };
@@ -74,7 +70,7 @@ export const sendWelcomeEmail = async (
 ) => {
   return sendEmail({
     to: email,
-    subject: 'Welcome to RTM Business Directory!',
+    subject: "Welcome to RTM Business Directory!",
     html: `
       <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
         <h2>Welcome, ${name}!</h2>

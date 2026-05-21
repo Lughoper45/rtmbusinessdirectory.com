@@ -302,12 +302,12 @@ const CanadaMapComponent = () => {
             {/* National Stats */}
             <div className="mt-6 grid grid-cols-2 gap-4">
               <div className="bg-white/5 border border-white/10 rounded-xl p-4 text-center">
-                <p className="text-3xl font-bold text-destructive">50K+</p>
-                <p className="text-xs text-white/50">Total Businesses</p>
+                <p className="text-3xl font-bold text-destructive">10K+</p>
+                <p className="text-xs text-white/50">Business Listings</p>
               </div>
               <div className="bg-white/5 border border-white/10 rounded-xl p-4 text-center">
-                <p className="text-3xl font-bold text-accent">$2.3B</p>
-                <p className="text-xs text-white/50">Grants Available</p>
+                <p className="text-3xl font-bold text-accent">Guides</p>
+                <p className="text-xs text-white/50">Grant Resources</p>
               </div>
             </div>
           </div>

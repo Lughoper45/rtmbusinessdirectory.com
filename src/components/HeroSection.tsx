@@ -4,23 +4,15 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import SuccessSimulator from "./SuccessSimulator";
 import heroBackground from "@/assets/hero-background.jpg";
+import { DIRECTORY_COUNT_LABEL, PUBLIC_POSITIONING } from "@/content/siteCopy";
 
 const HeroSection = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
-  const [businessesLaunched, setBusinessesLaunched] = useState(127);
   const [isSimulatorOpen, setIsSimulatorOpen] = useState(false);
   const [activeProvince, setActiveProvince] = useState<string | null>(null);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const heroRef = useRef<HTMLDivElement>(null);
-
-  // Live counter animation
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setBusinessesLaunched(prev => prev + Math.floor(Math.random() * 3) + 1);
-    }, 8000);
-    return () => clearInterval(interval);
-  }, []);
 
   // Parallax mouse effect
   useEffect(() => {
@@ -50,9 +42,9 @@ const HeroSection = () => {
   };
 
   const valuePills = [
-    { icon: Building2, text: "50,000+ Businesses", color: "text-primary", action: () => navigate("/directory") },
-    { icon: DollarSign, text: "$2.3B+ in Grants", color: "text-accent", action: () => navigate("/directory?category=Financial+Services") },
-    { icon: Bot, text: "AI Support Tools", color: "text-primary", action: () => navigate("/directory") },
+    { icon: Building2, text: DIRECTORY_COUNT_LABEL, color: "text-primary", action: () => navigate("/directory") },
+    { icon: DollarSign, text: "Grant guidance", color: "text-accent", action: () => navigate("/grants") },
+    { icon: Bot, text: "Business support tools", color: "text-primary", action: () => navigate("/business-support") },
     { icon: Trophy, text: "World Cup Ready", color: "text-accent", action: () => navigate("/directory?filter=world-cup") },
   ];
 
@@ -124,9 +116,7 @@ const HeroSection = () => {
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
             </span>
-            <span className="text-sm font-medium text-foreground">
-              <span className="text-primary font-bold">{businessesLaunched}</span> businesses launched today
-            </span>
+            <span className="text-sm font-medium text-foreground">Canadian business discovery, deals, and support</span>
             <TrendingUp className="w-4 h-4 text-primary" />
           </div>
 
@@ -141,7 +131,7 @@ const HeroSection = () => {
 
           {/* Subheadline */}
           <p className="text-lg md:text-xl text-muted-foreground max-w-[700px] mx-auto mb-8 animate-fade-up" style={{ animationDelay: "0.1s" }}>
-            Discover trusted businesses • Access funding • Get expert support • Grow faster
+            {PUBLIC_POSITIONING}
           </p>
 
           {/* Interactive Success Simulator Trigger */}
@@ -164,7 +154,7 @@ const HeroSection = () => {
                 <Search className="w-6 h-6 text-muted-foreground ml-4 shrink-0" />
                 <input
                   type="text"
-                  placeholder="Search businesses, grants, or ask anything..."
+                  placeholder="Search businesses, deals, grants guidance..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onKeyDown={handleSearchKeyDown}
