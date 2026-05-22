@@ -5,9 +5,9 @@ import Navbar from "@/components/Navbar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { fetchGrantById, formatGrantAmount, scoreGrantForProfile } from "@/lib/grants";
+import { fetchGrantById, formatGrantAmount, grantDetailPath, scoreGrantForProfile } from "@/lib/grants";
 import { loadGrantProfile } from "@/lib/grantProfile";
-import { GRANTS_APP_URL } from "@/lib/site";
+import { SITE_CONTACT } from "@/lib/site";
 import type { ScoredGrant } from "@/types/grant";
 import {
   Building2,
@@ -42,7 +42,10 @@ export default function GrantDetail() {
     })();
   }, [id]);
 
-  const applyUrl = grant ? `${GRANTS_APP_URL}/grants/${grant.id}` : GRANTS_APP_URL;
+  const applyHref = grant?.official_url
+    ?? (grant
+      ? `mailto:${SITE_CONTACT.email}?subject=${encodeURIComponent(`Grant application – ${grant.name}`)}`
+      : null);
 
   return (
     <>
@@ -76,9 +79,21 @@ export default function GrantDetail() {
                   <Building2 className="w-4 h-4" />
                   {grant.organization}
                 </p>
-                <Button asChild>
-                  <a href={applyUrl}>Start application on GrantPilot</a>
-                </Button>
+                {applyHref ? (
+                  <Button asChild>
+                    <a
+                      href={applyHref}
+                      target={grant.official_url ? "_blank" : undefined}
+                      rel={grant.official_url ? "noopener noreferrer" : undefined}
+                    >
+                      {grant.official_url ? "Apply on official site" : "Request application help"}
+                    </a>
+                  </Button>
+                ) : (
+                  <Button asChild>
+                    <Link to="/grants">Browse grants</Link>
+                  </Button>
+                )}
               </div>
 
               <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
@@ -184,9 +199,21 @@ export default function GrantDetail() {
                     <p className="text-sm text-muted-foreground mb-4">
                       Complete your application on GrantPilot with your RTM membership.
                     </p>
-                    <Button asChild className="w-full">
-                      <a href={applyUrl}>Apply on GrantPilot</a>
-                    </Button>
+                    {applyHref ? (
+                      <Button asChild className="w-full">
+                        <a
+                          href={applyHref}
+                          target={grant.official_url ? "_blank" : undefined}
+                          rel={grant.official_url ? "noopener noreferrer" : undefined}
+                        >
+                          {grant.official_url ? "Apply on official site" : "Request application help"}
+                        </a>
+                      </Button>
+                    ) : (
+                      <Button asChild className="w-full">
+                        <Link to={grantDetailPath(grant.id)}>View program details</Link>
+                      </Button>
+                    )}
                   </Card>
                 </div>
               </div>

@@ -29,7 +29,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { User as SupabaseUser } from "@supabase/supabase-js";
 import BusinessListingWizard from "./BusinessListingWizard";
-import { GRANTS_APP_URL, openMembershipJoin, SITE_CONTACT, WORLDCUP_APP_URL } from "@/lib/site";
+import { openMembershipJoin, SITE_CONTACT, WORLDCUP_APP_URL } from "@/lib/site";
 import { toast } from "sonner";
 
 const Navbar = () => {
@@ -71,7 +71,7 @@ const Navbar = () => {
   };
 
   const resourcesItems = [
-    { label: "Grants & Funding", icon: HandCoins, href: `${GRANTS_APP_URL}/grants`, description: "GrantPilot applications" },
+    { label: "Grants & Funding", icon: HandCoins, to: "/grants", description: "Canadian grants and funding programs" },
     { label: "World Cup Ready", icon: Globe, href: `${WORLDCUP_APP_URL}/worldcup`, description: "FIFA 2026 business portal" },
     { label: "Magazine", icon: Newspaper, action: () => openComingSoon("Magazine"), description: "Editorial and business stories" },
     { label: "Bookstore", icon: BookOpen, action: () => openComingSoon("Bookstore"), description: "Reading and learning resources" },
@@ -221,12 +221,12 @@ const Navbar = () => {
                 </DropdownMenuContent>
               </DropdownMenu>
 
-              <a
-                href={`${GRANTS_APP_URL}/grants`}
+              <Link
+                to="/grants"
                 className="font-medium text-foreground transition-colors hover:text-primary"
               >
                 Grants
-              </a>
+              </Link>
 
               <DropdownMenu>
                 <DropdownMenuTrigger className="inline-flex items-center gap-1 font-medium text-foreground transition-colors hover:text-primary">
@@ -383,13 +383,13 @@ const Navbar = () => {
                   ) : null}
                 </div>
 
-                <a
-                  href={`${GRANTS_APP_URL}/grants`}
+                <Link
+                  to="/grants"
                   className="rounded-xl border px-4 py-3 font-medium block"
                   onClick={() => setIsOpen(false)}
                 >
                   Grants
-                </a>
+                </Link>
                 <a
                   href={`${WORLDCUP_APP_URL}/worldcup`}
                   className="rounded-xl border px-4 py-3 font-medium block"

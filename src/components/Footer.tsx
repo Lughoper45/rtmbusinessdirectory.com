@@ -1,11 +1,11 @@
 import { Link } from "react-router-dom";
 import { Facebook, Instagram, Linkedin, Twitter, Youtube } from "lucide-react";
-import { GRANTS_APP_URL, SITE_CONTACT, WORLDCUP_APP_URL } from "@/lib/site";
+import { SITE_CONTACT, WORLDCUP_APP_URL } from "@/lib/site";
 
 const Footer = () => {
   const productLinks = [
     { label: "Find Businesses", to: "/directory" },
-    { label: "Access Grants", href: `${GRANTS_APP_URL}/grants` },
+    { label: "Access Grants", to: "/grants" },
     { label: "Business Support", to: "/business-support" },
     { label: "AI Search", to: "/ai-search" },
     { label: "World Cup Ready", href: `${WORLDCUP_APP_URL}/worldcup` },
