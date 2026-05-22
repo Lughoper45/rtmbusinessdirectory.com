@@ -8,7 +8,6 @@ import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchMyGrantApplications } from "@/lib/stellarApi";
 import { fetchGrantById, formatGrantAmount, grantDetailPath } from "@/lib/grants";
-import { GRANTS_APP_URL } from "@/lib/site";
 
 type Row = {
   id: string;
@@ -89,10 +88,10 @@ export function DashboardApplicationTracker() {
             <RefreshCw className="w-4 h-4" />
           </Button>
           <Button size="sm" asChild>
-            <a href={`${GRANTS_APP_URL}/grants`}>
+            <Link to="/grants">
               <Plus className="w-4 h-4 mr-1" />
               New
-            </a>
+            </Link>
           </Button>
         </div>
       </CardHeader>
@@ -135,13 +134,13 @@ export function DashboardApplicationTracker() {
                   <Calendar className="w-3 h-3" />
                   {new Date(row.submittedDate).toLocaleDateString()}
                 </span>
-                <a
-                  href={`${GRANTS_APP_URL}/grants/${row.itemId}`}
+                <Link
+                  to={grantDetailPath(row.itemId)}
                   className="inline-flex items-center gap-1 text-primary hover:underline"
                 >
-                  Continue on GrantPilot
+                  View grant
                   <ChevronRight className="w-3 h-3" />
-                </a>
+                </Link>
               </div>
             </div>
           ))}
