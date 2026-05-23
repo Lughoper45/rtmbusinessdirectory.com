@@ -42,6 +42,8 @@ Grant rows still live in `vinbf`; only identity and membership status use `kajwp
 | Function | Project | Purpose |
 |----------|---------|---------|
 | `check-membership` | launchpad (`kajwp`) | Returns `{ active, status, email }` for platform JWT or service key + email |
+| `list-admin-users` | launchpad (`kajwp`) | Admin-only profile list with auth emails |
+| `admin-grants-bff` | launchpad (`kajwp`) | Admin-only read of vinbf `applications` / `grants` (needs `STELLAR_*` secrets on kajwp) |
 | `verify-platform-membership` | stellar (`vinbf`) | Validates stellar user, calls platform `check-membership` by email |
 
 Set the same secret on both projects:

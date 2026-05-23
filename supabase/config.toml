@@ -38,3 +38,9 @@ verify_jwt = true
 
 [functions.check-membership]
 verify_jwt = false
+
+[functions.list-admin-users]
+verify_jwt = true
+
+[functions.admin-grants-bff]
+verify_jwt = true
