@@ -8,8 +8,28 @@ import {
   listMissingRules,
   type GrantRequirementItem,
 } from "../_shared/grantIntakeRules.ts";
+import { openRouterChat } from "../_shared/openrouter.ts";
 
 type Action = "analyze_readiness" | "generate_draft" | "list_missing";
+
+/** Narrative fields supported by Application Assistant generate_draft */
+const DRAFT_FIELD_KEYS = new Set([
+  "project_summary",
+  "use_of_funds",
+  "business_description",
+  "objectives",
+  "budget_notes",
+]);
+
+const DRAFT_FIELD_LABELS: Record<string, string> = {
+  project_summary: "Project or funding purpose summary",
+  use_of_funds: "Use of funds",
+  business_description: "Business description",
+  objectives: "Project objectives and outcomes",
+  budget_notes: "Budget notes and financial assumptions",
+};
+
+const MAX_DRAFTS_PER_HOUR = 12;
 
 async function requireUser(
   req: Request,
@@ -82,7 +102,9 @@ async function loadIntakeContext(
   ] = await Promise.all([
     kajwpAdmin
       .from("grants")
-      .select("id, required_fields, required_documents")
+      .select(
+        "id, name, organization, description, eligibility_summary, requirements, required_fields, required_documents",
+      )
       .eq("id", resolvedGrantId)
       .maybeSingle(),
     kajwpAdmin
@@ -92,7 +114,7 @@ async function loadIntakeContext(
       .maybeSingle(),
     kajwpAdmin
       .from("grant_intake_answers")
-      .select("field_key, value")
+      .select("field_key, value, source")
       .eq("intake_id", intakeId),
     kajwpAdmin
       .from("grant_documents")
@@ -105,12 +127,89 @@ async function loadIntakeContext(
 
   return {
     intake,
+    grant,
     requiredFields: parseRequirements(grant.required_fields),
     requiredDocuments: parseRequirements(grant.required_documents),
     profile: (profileRow?.profile ?? null) as Record<string, unknown> | null,
     answers: answers ?? [],
     documents: documents ?? [],
   };
+}
+
+function formatContextForDraft(ctx: Awaited<ReturnType<typeof loadIntakeContext>>): string {
+  const lines: string[] = [];
+  lines.push(`Grant: ${ctx.grant.name}`);
+  if (ctx.grant.organization) lines.push(`Program administrator: ${ctx.grant.organization}`);
+  if (ctx.grant.eligibility_summary) {
+    lines.push(`Eligibility: ${ctx.grant.eligibility_summary}`);
+  }
+  if (ctx.grant.description) lines.push(`Program description: ${ctx.grant.description}`);
+
+  if (ctx.profile && Object.keys(ctx.profile).length) {
+    lines.push("\nMember profile:");
+    lines.push(JSON.stringify(ctx.profile, null, 0));
+  }
+
+  const answerLines = ctx.answers
+    .filter((a) => a.value != null && String(a.value).length > 2)
+    .map((a) => `- ${a.field_key}: ${typeof a.value === "string" ? a.value : JSON.stringify(a.value)}`);
+
+  if (answerLines.length) {
+    lines.push("\nIntake answers so far:");
+    lines.push(answerLines.join("\n"));
+  }
+
+  return lines.join("\n");
+}
+
+async function enforceDraftRateLimit(
+  kajwpAdmin: ReturnType<typeof createClient>,
+  intakeId: string,
+  userId: string,
+) {
+  const since = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+  const { count, error } = await kajwpAdmin
+    .from("grant_intake_answers")
+    .select("id", { count: "exact", head: true })
+    .eq("intake_id", intakeId)
+    .eq("source", "ai_suggested")
+    .gte("updated_at", since);
+
+  if (error) throw error;
+  if ((count ?? 0) >= MAX_DRAFTS_PER_HOUR) {
+    throw new Error("Draft limit reached. Try again in an hour or edit fields manually.");
+  }
+
+  void userId;
+}
+
+async function generateDraftForField(
+  ctx: Awaited<ReturnType<typeof loadIntakeContext>>,
+  fieldKey: string,
+): Promise<string> {
+  const label = DRAFT_FIELD_LABELS[fieldKey] ?? fieldKey;
+  const contextBlock = formatContextForDraft(ctx);
+
+  const system = `You are the RTM Application Assistant helping a Canadian business prepare a grant application.
+Write factual, professional prose for the "${label}" section. Use only information from the context; do not invent revenue, headcount, or amounts not provided.
+If data is missing, use neutral placeholders like "[amount to confirm]" rather than fabricating numbers.
+Output plain text only (no markdown code fences). Target 120–220 words unless the field is budget_notes (shorter bullet-style is OK).`;
+
+  const user = `${contextBlock}
+
+---
+Write the "${label}" section for this grant application. Field key: ${fieldKey}.`;
+
+  const { text } = await openRouterChat({
+    messages: [
+      { role: "system", content: system },
+      { role: "user", content: user },
+    ],
+    maxTokens: 700,
+    temperature: 0.35,
+  });
+
+  return text;
 }
 
 Deno.serve(async (req) => {
@@ -135,6 +234,7 @@ Deno.serve(async (req) => {
     const action = body?.action as Action | undefined;
     const intakeId = body?.intake_id ? String(body.intake_id) : "";
     const grantId = body?.grant_id ? String(body.grant_id) : undefined;
+    const fieldKey = body?.field_key ? String(body.field_key) : "";
 
     if (!action || !["analyze_readiness", "generate_draft", "list_missing"].includes(action)) {
       return jsonResponse(
@@ -145,14 +245,56 @@ Deno.serve(async (req) => {
     }
 
     if (action === "generate_draft") {
-      return jsonResponse(
-        req,
-        {
-          error: "Application Assistant draft generation is not available yet (Phase 2).",
-          phase: 2,
-        },
-        501,
-      );
+      if (!intakeId) {
+        return jsonResponse(req, { error: "intake_id is required." }, 400);
+      }
+      if (!fieldKey || !DRAFT_FIELD_KEYS.has(fieldKey)) {
+        return jsonResponse(
+          req,
+          {
+            error:
+              "field_key is required. Use project_summary, use_of_funds, business_description, objectives, or budget_notes.",
+          },
+          400,
+        );
+      }
+
+      const kajwpAdmin = createClient(kajwpUrl, kajwpService);
+      const ctx = await loadIntakeContext(kajwpAdmin, intakeId, grantId);
+
+      const isOwner = ctx.intake.user_id === user.id;
+      const isAdmin = await requireAdmin(kajwpAdmin, user.id);
+      if (!isOwner && !isAdmin) {
+        return jsonResponse(req, { error: "Forbidden" }, 403);
+      }
+
+      await enforceDraftRateLimit(kajwpAdmin, intakeId, user.id);
+
+      const draft = await generateDraftForField(ctx, fieldKey);
+
+      const { error: upsertError } = await kajwpAdmin
+        .from("grant_intake_answers")
+        .upsert(
+          {
+            intake_id: intakeId,
+            field_key: fieldKey,
+            value: draft,
+            source: "ai_suggested",
+          },
+          { onConflict: "intake_id,field_key" },
+        );
+
+      if (upsertError) throw upsertError;
+
+      return jsonResponse(req, {
+        intake_id: intakeId,
+        field_key: fieldKey,
+        draft,
+        source: "ai_suggested",
+        assistant: "Application Assistant",
+        disclaimer:
+          "Review and edit this draft before submitting. RTM does not submit applications on your behalf.",
+      });
     }
 
     if (!intakeId) {
@@ -235,7 +377,11 @@ Deno.serve(async (req) => {
           ? 403
           : message === "Intake not found" || message === "Grant not found"
             ? 404
-            : 500;
+            : message.includes("Draft limit")
+              ? 429
+              : message.includes("not configured")
+                ? 503
+                : 500;
     return jsonResponse(req, { error: message }, status);
   }
 });

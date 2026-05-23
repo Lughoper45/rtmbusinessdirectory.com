@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar, ClipboardList, Copy, FileText, Loader2, Mail, Search } from "lucide-react";
+import { Calendar, ClipboardList, Copy, FileText, Inbox, Loader2, Mail, Search } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -36,14 +36,33 @@ type GrantApplicationRow = {
   updated_at: string;
 };
 
+type GrantIntakeRow = {
+  id: string;
+  user_id: string;
+  email: string | null;
+  grant_id: string;
+  grant_name: string;
+  package_id: string | null;
+  status: string;
+  readiness_score: number;
+  readiness_status: string;
+  source: string;
+  created_at: string;
+  updated_at: string;
+};
+
 export default function AdminGrants() {
   const [applications, setApplications] = useState<GrantApplicationRow[]>([]);
+  const [intakes, setIntakes] = useState<GrantIntakeRow[]>([]);
   const [leads, setLeads] = useState<GrantChecklistLead[]>([]);
   const [loadingApps, setLoadingApps] = useState(true);
+  const [loadingIntakes, setLoadingIntakes] = useState(true);
   const [loadingLeads, setLoadingLeads] = useState(true);
   const [search, setSearch] = useState("");
+  const [intakeSearch, setIntakeSearch] = useState("");
   const [leadSearch, setLeadSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [intakeStatusFilter, setIntakeStatusFilter] = useState("all");
   const [leadStatusFilter, setLeadStatusFilter] = useState("all");
   const [savingLeadId, setSavingLeadId] = useState<string | null>(null);
   const [applicationsWarning, setApplicationsWarning] = useState<string | null>(null);
@@ -51,6 +70,7 @@ export default function AdminGrants() {
 
   useEffect(() => {
     void loadApplications();
+    void loadIntakes();
     void loadLeads();
   }, []);
 
@@ -83,6 +103,29 @@ export default function AdminGrants() {
     }
   };
 
+  const loadIntakes = async () => {
+    setLoadingIntakes(true);
+    try {
+      const { data: payload, error } = await supabase.functions.invoke("admin-grants-bff", {
+        body: { action: "list-intakes" },
+      });
+
+      if (payload?.error) throw new Error(payload.error);
+      if (error) throw new Error(await getEdgeFunctionErrorMessage(error, payload));
+
+      setIntakes((payload?.intakes ?? []) as GrantIntakeRow[]);
+    } catch (e) {
+      console.error(e);
+      toast.error(
+        e instanceof Error
+          ? e.message
+          : "Failed to load grant intakes. Apply grant_intake_hub migration and deploy admin-grants-bff.",
+      );
+    } finally {
+      setLoadingIntakes(false);
+    }
+  };
+
   const loadLeads = async () => {
     setLoadingLeads(true);
     try {
@@ -110,6 +153,25 @@ export default function AdminGrants() {
       return matchesSearch && matchesStatus;
     });
   }, [applications, search, statusFilter]);
+
+  const filteredIntakes = useMemo(() => {
+    return intakes.filter((row) => {
+      const q = intakeSearch.toLowerCase();
+      const matchesSearch =
+        !q ||
+        row.email?.toLowerCase().includes(q) ||
+        row.grant_name.toLowerCase().includes(q) ||
+        row.status.toLowerCase().includes(q) ||
+        row.readiness_status.toLowerCase().includes(q) ||
+        row.package_id?.toLowerCase().includes(q);
+      const matchesStatus = intakeStatusFilter === "all" || row.status === intakeStatusFilter;
+      return matchesSearch && matchesStatus;
+    });
+  }, [intakes, intakeSearch, intakeStatusFilter]);
+
+  const intakeStatuses = useMemo(() => {
+    return [...new Set(intakes.map((i) => i.status))].sort();
+  }, [intakes]);
 
   const filteredLeads = useMemo(() => {
     return leads.filter((row) => {
@@ -197,6 +259,10 @@ export default function AdminGrants() {
             <TabsTrigger value="applications" className="gap-2">
               <FileText className="h-4 w-4" />
               Applications
+            </TabsTrigger>
+            <TabsTrigger value="intakes" className="gap-2">
+              <Inbox className="h-4 w-4" />
+              Intakes
             </TabsTrigger>
           </TabsList>
 
@@ -321,6 +387,107 @@ export default function AdminGrants() {
                               >
                                 <Copy className="h-4 w-4" />
                               </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="intakes">
+            <Card>
+              <CardHeader>
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                  <div>
+                    <CardTitle className="flex items-center gap-2">
+                      <Inbox className="h-5 w-5" />
+                      Intake queue
+                    </CardTitle>
+                    <CardDescription>
+                      {filteredIntakes.length} intake{filteredIntakes.length !== 1 ? "s" : ""} — readiness from Application Assistant
+                    </CardDescription>
+                  </div>
+                  <div className="flex gap-2">
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <Input
+                        placeholder="Search email, grant, status..."
+                        value={intakeSearch}
+                        onChange={(e) => setIntakeSearch(e.target.value)}
+                        className="pl-9 w-64"
+                      />
+                    </div>
+                    <Select value={intakeStatusFilter} onValueChange={setIntakeStatusFilter}>
+                      <SelectTrigger className="w-40">
+                        <SelectValue placeholder="Status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All statuses</SelectItem>
+                        {intakeStatuses.map((status) => (
+                          <SelectItem key={status} value={status}>
+                            {status}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {loadingIntakes ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  </div>
+                ) : filteredIntakes.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    <Inbox className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                    <p>No grant intakes yet</p>
+                  </div>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Readiness</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Grant</TableHead>
+                        <TableHead>Package</TableHead>
+                        <TableHead>Updated</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredIntakes.map((row) => (
+                        <TableRow key={row.id}>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <span className="font-semibold tabular-nums">{row.readiness_score}%</span>
+                              <Badge variant="outline" className="text-xs">
+                                {row.readiness_status.replace(/_/g, " ")}
+                              </Badge>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="secondary">{row.status}</Badge>
+                          </TableCell>
+                          <TableCell className="text-sm">
+                            {row.email || <span className="text-gray-400">—</span>}
+                          </TableCell>
+                          <TableCell className="font-medium max-w-[200px] truncate">{row.grant_name}</TableCell>
+                          <TableCell>
+                            {row.package_id ? (
+                              <Badge variant="outline">{row.package_id}</Badge>
+                            ) : (
+                              <span className="text-gray-400 text-sm">—</span>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2 text-sm text-gray-600">
+                              <Calendar className="h-4 w-4" />
+                              {formatDate(row.updated_at)}
                             </div>
                           </TableCell>
                         </TableRow>

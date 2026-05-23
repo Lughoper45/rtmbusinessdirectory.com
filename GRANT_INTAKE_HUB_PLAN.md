@@ -1,6 +1,6 @@
 # RTM Grant Intake Hub — Product & Engineering Plan
 
-**Status:** Phase 1 foundation (schema + rules engine + stub edge function)  
+**Status:** Phase 2 — Application Assistant (OpenRouter) + GrantPilot intake UI + admin intakes queue  
 **Database:** `kajwpmyloxaqeciyndwf` (single Supabase for directory, membership, grants)  
 **Canonical checklist PDF:** [`/downloads/RTM_Grant_Checklist.pdf`](./public/downloads/RTM_Grant_Checklist.pdf)
 
@@ -12,7 +12,7 @@
 
 RTM’s grant processing funnel today spans three apps on one database: free checklist leads on the directory site, membership signup/payment on `membership.rtmbusinessdirectory.com`, and GrantPilot on `grants.rtmbusinessdirectory.com`. **Option 1 — AI Intake Hub** unifies paid package fulfillment into a structured intake workflow: compare grant requirements against the member’s profile, uploaded documents, and guided answers; produce a **readiness score**; collect missing information step-by-step; and (Phase 2+) draft narrative sections for advisor review — **never auto-submit** to government portals.
 
-Phase 1 (this pass) delivers the **data model**, **rules-first readiness engine**, and a **stub edge function** (`grant-intake-assistant`). UI wizards, Stripe checkout wiring, and LLM drafts follow in Phases 2–4.
+Phase 1 delivered the **data model** and **rules-first readiness engine**. Phase 2 adds **OpenRouter-backed** `generate_draft` in `grant-intake-assistant`, Storage uploads, GrantPilot intake UI, and admin **Intakes** tab. Stripe checkout wiring remains Phase 3.
 
 | Repo | Role in intake hub |
 |------|-------------------|
@@ -310,7 +310,7 @@ LLM prompts stay **server-side only** in the edge function; not exposed to the c
 |--------|-------|-------------|
 | `analyze_readiness` | 1 | Rules engine; persists `grant_readiness_checks`; updates intake score |
 | `list_missing` | 1 | Returns missing field keys and document types |
-| `generate_draft` | 2 | Stub → 501; will call LLM for narrative sections |
+| `generate_draft` | 2 | OpenRouter narrative drafts → `grant_intake_answers` (`source: ai_suggested`) |
 
 ### Request shape
 
@@ -324,11 +324,20 @@ LLM prompts stay **server-side only** in the edge function; not exposed to the c
 
 Auth: `Authorization: Bearer <user JWT>`. User must own intake; admins may analyze any intake.
 
-### Future LLM integration (Phase 2)
+### Application Assistant — OpenRouter (Phase 2)
 
-- Provider: OpenAI or Anthropic via Edge secret.
+| Secret / env | Purpose |
+|--------------|---------|
+| `OPENROUTER_API_KEY` | Edge secret only (never commit) |
+| `OPENROUTER_MODEL` | Edge secret; default `openai/gpt-oss-120b:free` in `_shared/openrouter.ts` |
+
+**Validate before deploy:** `OPENROUTER_API_KEY=sk-or-… node scripts/test-openrouter-model.mjs`
+
+Fallback candidates (script order): `meta-llama/llama-3.3-70b-instruct:free`, `google/gemini-2.0-flash-exp:free`, `qwen/qwen-2.5-72b-instruct:free`.
+
 - Store drafts in `grant_intake_answers` with `source = 'ai_suggested'`.
-- Version drafts; advisor edits set `source = 'advisor'`.
+- Customer-facing label: **Application Assistant** (no “AI” in user strings from edge).
+- Rate limit: 12 `ai_suggested` upserts per intake per hour; `max_tokens` ~700 per draft.
 
 ---
 
@@ -417,7 +426,8 @@ Package ID stored on intake drives which **required_fields** subset is enforced 
 - [ ] `analyze_readiness` with empty profile → score &lt; 40, status `not_ready`.
 - [ ] Populate profile + answers + docs → score crosses 90, status `ready`.
 - [ ] `list_missing` returns correct keys vs grant requirements.
-- [ ] `generate_draft` returns 501 with clear message.
+- [ ] `generate_draft` returns draft text; saved with `ai_suggested` after user confirms in UI.
+- [ ] Run `scripts/test-openrouter-model.mjs` and set `OPENROUTER_MODEL` secret to validated model.
 
 ### Phase 2 — UI
 

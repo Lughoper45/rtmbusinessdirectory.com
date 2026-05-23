@@ -4,7 +4,7 @@ import {
   jsonResponse,
 } from "../_shared/cors.ts";
 
-type Action = "list-applications" | "list-grants";
+type Action = "list-applications" | "list-grants" | "list-intakes";
 
 type ApplicationRow = {
   id: string;
@@ -98,8 +98,12 @@ Deno.serve(async (req) => {
       req.method === "POST" ? await req.json().catch(() => ({})) : {};
     const action = body?.action as Action | undefined;
 
-    if (!action || !["list-applications", "list-grants"].includes(action)) {
-      return jsonResponse(req, { error: "Invalid action. Use list-applications or list-grants." }, 400);
+    if (!action || !["list-applications", "list-grants", "list-intakes"].includes(action)) {
+      return jsonResponse(
+        req,
+        { error: "Invalid action. Use list-applications, list-grants, or list-intakes." },
+        400,
+      );
     }
 
     const kajwpAdmin = createClient(kajwpUrl, kajwpService);
@@ -112,6 +116,50 @@ Deno.serve(async (req) => {
 
       if (error) throw error;
       return jsonResponse(req, { grants: grants ?? [] });
+    }
+
+    if (action === "list-intakes") {
+      const { data: intakes, error: intakesError } = await kajwpAdmin
+        .from("grant_intakes")
+        .select(
+          "id, user_id, grant_id, package_id, status, readiness_score, readiness_status, source, created_at, updated_at",
+        )
+        .order("updated_at", { ascending: false })
+        .limit(500);
+
+      if (intakesError) throw intakesError;
+
+      const grantIds = [...new Set((intakes ?? []).map((i) => i.grant_id))];
+      const grantNameById = new Map<string, string>();
+      if (grantIds.length) {
+        const { data: grants } = await kajwpAdmin
+          .from("grants")
+          .select("id, name")
+          .in("id", grantIds);
+        for (const grant of grants ?? []) {
+          grantNameById.set(grant.id, grant.name);
+        }
+      }
+
+      const userIds = (intakes ?? []).map((i) => i.user_id);
+      const emailByUserId = await resolveEmails(kajwpAdmin, userIds);
+
+      const queue = (intakes ?? []).map((row) => ({
+        id: row.id,
+        user_id: row.user_id,
+        email: emailByUserId.get(row.user_id) ?? null,
+        grant_id: row.grant_id,
+        grant_name: grantNameById.get(row.grant_id) ?? row.grant_id,
+        package_id: row.package_id,
+        status: row.status,
+        readiness_score: row.readiness_score,
+        readiness_status: row.readiness_status,
+        source: row.source,
+        created_at: row.created_at,
+        updated_at: row.updated_at,
+      }));
+
+      return jsonResponse(req, { intakes: queue });
     }
 
     const { data: applications, error: appsError } = await kajwpAdmin
