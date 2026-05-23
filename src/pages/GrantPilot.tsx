@@ -2,16 +2,19 @@ import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import {
   ArrowRight,
+  Building2,
   CheckCircle2,
   ChevronDown,
+  ClipboardCheck,
   ClipboardList,
   ExternalLink,
+  Globe2,
   Lock,
   Mail,
+  Phone,
   Rocket,
   Search,
   ShieldCheck,
-  Users,
 } from 'lucide-react';
 import { Helmet } from 'react-helmet-async';
 import type { User } from '@supabase/supabase-js';
@@ -26,7 +29,14 @@ import {
   getPackageRequestMailto,
   type GrantPackageId,
 } from '@/lib/grantPackages';
-import { GRANTS_APP_URL, openMembershipJoin } from '@/lib/site';
+import { DIRECTORY_APP_URL, GRANTS_APP_URL, openMembershipJoin, SITE_CONTACT } from '@/lib/site';
+
+const GRANT_CHECKLIST = [
+  'Check Eligibility',
+  'Gather Documents',
+  'Submit Application',
+  'Get Funding',
+] as const;
 
 const steps = [
   {
@@ -144,10 +154,10 @@ const GrantPilot = () => {
   return (
     <>
       <Helmet>
-        <title>RTM Grant Programs & Advisor Packages | RTM Business Directory</title>
+        <title>Canadian Business Grants — Up to $30,000+ | RTM Business Directory</title>
         <meta
           name="description"
-          content="Funding programs matched to your business profile. Explore RTM grant advisor packages and open your GrantPilot workspace on the grants subdomain."
+          content="RTM helps established and startup businesses apply for Canadian business grants you may qualify for — up to $30,000 or more. Check eligibility, gather documents, and get funding support."
         />
       </Helmet>
 
@@ -157,56 +167,119 @@ const GrantPilot = () => {
 
         <main className="px-4 pb-12 pt-8 lg:px-8 lg:pt-10 relative z-10">
           <div className="max-w-7xl mx-auto space-y-16">
-            {/* Hero */}
+            {/* Flyer hero */}
             <motion.section
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="relative overflow-hidden rounded-3xl glass-panel border border-primary/20 p-8 lg:p-12"
+              className="relative overflow-hidden rounded-3xl border border-[#061f3a]/20 bg-white text-[#061f3a] shadow-2xl"
             >
-              <motion.div className="absolute inset-0 opacity-30 pointer-events-none">
-                <div className="absolute top-0 right-0 w-96 h-96 bg-primary/20 rounded-full blur-3xl" />
-              </motion.div>
-              <div className="relative z-10 max-w-3xl">
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/30 mb-6 text-sm font-medium text-primary">
-                  <Users className="w-4 h-4" />
-                  Advisor-led grant support
+              <div className="absolute inset-0 bg-[linear-gradient(120deg,rgba(204,0,0,0.08),transparent_42%),linear-gradient(300deg,rgba(6,31,58,0.08),transparent_44%)]" />
+              <div className="relative z-10 grid gap-8 p-6 lg:grid-cols-[minmax(280px,0.95fr)_1.05fr] lg:items-start lg:p-10">
+                <div className="order-2 lg:order-1 flex justify-center overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 p-2 shadow-sm">
+                  <img
+                    src="/images/grants-flyer.png"
+                    alt="RTM Business Directory — apply for Canadian business grants up to $30,000 or more"
+                    className="max-h-[820px] w-full object-contain"
+                  />
                 </div>
-                <h1 className="font-orbitron text-4xl lg:text-5xl font-bold text-foreground mb-4">
-                  Funding programs matched to your{' '}
-                  <span className="text-gradient">business profile</span>
-                </h1>
-                <p className="text-lg text-muted-foreground mb-8 max-w-2xl">
-                  RTM helps Canadian businesses identify grant programs they may qualify for, then supports applications
-                  with structured advisor packages — not automated submissions.
-                </p>
-                <div className="flex flex-wrap gap-3">
-                  {memberActive ? (
-                    <a
-                      href={workspaceUrl}
-                      className="px-6 py-3 rounded-xl bg-primary text-primary-foreground font-semibold inline-flex items-center gap-2 hover:bg-primary/90 transition-colors"
-                    >
-                      Open grant workspace
-                      <ExternalLink className="w-5 h-5" />
-                    </a>
-                  ) : (
-                    <>
-                      <button
-                        type="button"
-                        onClick={() => openMembershipJoin({ returnUrl })}
-                        className="px-6 py-3 rounded-xl bg-primary text-primary-foreground font-semibold inline-flex items-center gap-2 hover:bg-primary/90 transition-colors"
-                      >
-                        Join RTM
-                        <ArrowRight className="w-5 h-5" />
-                      </button>
+
+                <div className="order-1 lg:order-2 flex flex-col justify-center">
+                  <div className="inline-flex w-fit items-center gap-2 rounded-full bg-[#cc0000] px-4 py-2 text-sm font-black uppercase tracking-[0.12em] text-white">
+                    <Rocket className="h-4 w-4" />
+                    Business grants &amp; funding
+                  </div>
+
+                  <h1 className="mt-6 text-3xl font-black leading-[1.08] tracking-tight sm:text-4xl lg:text-[2.65rem]">
+                    <span className="text-[#d4a800]">We can help you</span>{' '}
+                    apply for business{' '}
+                    <span className="text-[#cc0000]">grants</span> you may qualify for, up to{' '}
+                    <span className="text-[#061f3a]">$30,000</span> dollars or more
+                  </h1>
+
+                  <p className="mt-5 flex max-w-2xl items-start gap-3 rounded-2xl border border-[#061f3a]/15 bg-[#f8fafc] px-4 py-4 text-base font-semibold leading-7 text-[#061f3a]">
+                    <Building2 className="mt-0.5 h-6 w-6 shrink-0 text-[#cc0000]" aria-hidden />
+                    RTM helps both established and startup businesses get grants.
+                  </p>
+
+                  <div className="mt-8 grid gap-6 lg:grid-cols-[1fr_auto] lg:items-start">
+                    <div className="flex flex-wrap gap-3">
+                      {memberActive ? (
+                        <a
+                          href={workspaceUrl}
+                          className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#cc0000] px-6 py-3 font-semibold text-white transition-colors hover:bg-[#a80000]"
+                        >
+                          Open grant workspace
+                          <ExternalLink className="h-5 w-5" />
+                        </a>
+                      ) : (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => openMembershipJoin({ returnUrl })}
+                            className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#cc0000] px-6 py-3 font-semibold text-white transition-colors hover:bg-[#a80000]"
+                          >
+                            Join RTM
+                            <ArrowRight className="h-5 w-5" />
+                          </button>
+                          <a
+                            href={workspaceUrl}
+                            className="inline-flex items-center justify-center gap-2 rounded-xl border-2 border-[#061f3a] px-6 py-3 font-semibold text-[#061f3a] transition-colors hover:bg-[#061f3a] hover:text-white"
+                          >
+                            Sign in on grants site
+                            <ExternalLink className="h-4 w-4" />
+                          </a>
+                        </>
+                      )}
                       <a
-                        href={workspaceUrl}
-                        className="px-6 py-3 rounded-xl border border-primary/50 text-primary font-semibold hover:bg-primary/10 transition-colors inline-flex items-center gap-2"
+                        href={`mailto:${SITE_CONTACT.email}?subject=Grant%20Checklist%20Request`}
+                        className="inline-flex items-center justify-center gap-2 rounded-xl border border-[#cc0000]/40 bg-red-50 px-6 py-3 font-semibold text-[#061f3a] transition-colors hover:bg-red-100"
                       >
-                        Sign in on grants site
-                        <ExternalLink className="w-4 h-4" />
+                        <Mail className="h-5 w-5 text-[#cc0000]" />
+                        Request checklist
                       </a>
-                    </>
-                  )}
+                    </div>
+
+                    <aside className="rounded-2xl border-2 border-[#061f3a]/20 bg-white p-5 shadow-md lg:min-w-[220px]">
+                      <h2 className="text-center text-sm font-black uppercase tracking-[0.14em] text-[#061f3a]">
+                        Grant <span className="text-[#cc0000]">Checklist</span>
+                      </h2>
+                      <ul className="mt-4 space-y-3">
+                        {GRANT_CHECKLIST.map((item) => (
+                          <li key={item} className="flex items-center gap-3 text-sm font-bold text-[#061f3a]">
+                            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#cc0000] text-white">
+                              <ClipboardCheck className="h-4 w-4" />
+                            </span>
+                            {item}
+                          </li>
+                        ))}
+                      </ul>
+                    </aside>
+                  </div>
+
+                  <div className="mt-8 flex flex-wrap items-center gap-4 rounded-2xl bg-[#061f3a] px-5 py-4 text-sm font-semibold text-white">
+                    <a
+                      href={DIRECTORY_APP_URL}
+                      className="inline-flex items-center gap-2 hover:text-[#ffd700]"
+                    >
+                      <Globe2 className="h-5 w-5 text-[#cc0000]" />
+                      www.rtmbusinessdirectory.com
+                    </a>
+                    <a
+                      href={SITE_CONTACT.phoneHref}
+                      className="inline-flex items-center gap-2 hover:text-[#ffd700]"
+                    >
+                      <Phone className="h-5 w-5 text-[#cc0000]" />
+                      <span>
+                        Tel: <span className="text-[#ffd700]">{SITE_CONTACT.phoneDisplay.replace('+1 ', '')}</span>
+                      </span>
+                    </a>
+                    <span className="ml-auto inline-flex items-center gap-2 text-xs font-black uppercase tracking-[0.12em] text-white/90">
+                      <span className="text-[#cc0000]" aria-hidden>
+                        🍁
+                      </span>
+                      Proudly Canadian
+                    </span>
+                  </div>
                 </div>
               </div>
             </motion.section>
