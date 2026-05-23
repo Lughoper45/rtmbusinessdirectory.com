@@ -40,7 +40,7 @@ verify_jwt = true
 verify_jwt = false
 
 [functions.list-admin-users]
-verify_jwt = true
+verify_jwt = false
 
 [functions.admin-grants-bff]
-verify_jwt = true
+verify_jwt = false

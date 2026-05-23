@@ -1,10 +1,8 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
-};
+import {
+  handleCorsPreflight,
+  jsonResponse,
+} from "../_shared/cors.ts";
 
 type Action = "list-applications" | "list-grants";
 
@@ -18,12 +16,6 @@ type ApplicationRow = {
   created_at: string;
   updated_at: string;
 };
-
-const json = (body: unknown, status = 200) =>
-  new Response(JSON.stringify(body), {
-    status,
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
-  });
 
 async function requireAdmin(
   req: Request,
@@ -88,9 +80,8 @@ async function resolveEmails(
 }
 
 Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
+  const preflight = handleCorsPreflight(req);
+  if (preflight) return preflight;
 
   try {
     const kajwpUrl = Deno.env.get("SUPABASE_URL");
@@ -100,11 +91,11 @@ Deno.serve(async (req) => {
     const stellarService = Deno.env.get("STELLAR_SERVICE_ROLE_KEY");
 
     if (!kajwpUrl || !kajwpService || !kajwpAnon) {
-      return json({ error: "Server configuration incomplete." }, 500);
+      return jsonResponse(req, { error: "Server configuration incomplete." }, 500);
     }
 
     if (!stellarUrl || !stellarService) {
-      return json({ error: "Stellar grants backend is not configured." }, 500);
+      return jsonResponse(req, { error: "Stellar grants backend is not configured." }, 500);
     }
 
     await requireAdmin(req, kajwpUrl, kajwpAnon, kajwpService);
@@ -114,7 +105,7 @@ Deno.serve(async (req) => {
     const action = body?.action as Action | undefined;
 
     if (!action || !["list-applications", "list-grants"].includes(action)) {
-      return json({ error: "Invalid action. Use list-applications or list-grants." }, 400);
+      return jsonResponse(req, { error: "Invalid action. Use list-applications or list-grants." }, 400);
     }
 
     const stellarAdmin = createClient(stellarUrl, stellarService);
@@ -127,7 +118,7 @@ Deno.serve(async (req) => {
         .order("name", { ascending: true });
 
       if (error) throw error;
-      return json({ grants: grants ?? [] });
+      return jsonResponse(req, { grants: grants ?? [] });
     }
 
     const { data: applications, error: appsError } = await stellarAdmin
@@ -175,11 +166,11 @@ Deno.serve(async (req) => {
       updated_at: row.updated_at,
     }));
 
-    return json({ applications: queue });
+    return jsonResponse(req, { applications: queue });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Grants BFF failed";
     const status =
       message === "Unauthorized" || message === "Admin access required" ? 403 : 500;
-    return json({ error: message }, status);
+    return jsonResponse(req, { error: message }, status);
   }
 });

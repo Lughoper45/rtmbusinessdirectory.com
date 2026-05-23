@@ -1,10 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
-};
+import { handleCorsPreflight, jsonResponse } from "../_shared/cors.ts";
 
 async function requireAdmin(
   req: Request,
@@ -31,9 +26,8 @@ async function requireAdmin(
 }
 
 Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
+  const preflight = handleCorsPreflight(req);
+  if (preflight) return preflight;
 
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
@@ -41,10 +35,7 @@ Deno.serve(async (req) => {
     const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
 
     if (!supabaseUrl || !serviceKey || !anonKey) {
-      return new Response(
-        JSON.stringify({ error: "Server configuration incomplete." }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-      );
+      return jsonResponse(req, { error: "Server configuration incomplete." }, 500);
     }
 
     const admin = createClient(supabaseUrl, serviceKey);
@@ -83,16 +74,11 @@ Deno.serve(async (req) => {
       role: profile.role || "member",
     }));
 
-    return new Response(JSON.stringify({ users }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return jsonResponse(req, { users });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Failed to list users";
     const status =
       message === "Unauthorized" || message === "Admin access required" ? 403 : 500;
-    return new Response(JSON.stringify({ error: message }), {
-      status,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return jsonResponse(req, { error: message }, status);
   }
 });
