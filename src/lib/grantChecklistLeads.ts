@@ -20,7 +20,9 @@ export const GRANT_CHECKLIST_LEAD_STATUSES: GrantChecklistLeadStatus[] = [
   "closed",
 ];
 
-const grantsHubUrl = `${DIRECTORY_APP_URL.replace(/\/$/, "")}/grants`;
+const siteBase = DIRECTORY_APP_URL.replace(/\/$/, "");
+const grantsHubUrl = `${siteBase}/grants`;
+export const GRANT_CHECKLIST_PDF_URL = `${siteBase}/downloads/RTM_Grant_Checklist.pdf`;
 
 /** Plain-text reply for manual send (admin copy or personal follow-up). */
 export function buildGrantChecklistReplyText(options?: {
@@ -33,10 +35,10 @@ export function buildGrantChecklistReplyText(options?: {
 
   const membershipBlock = options?.includeMembershipCta !== false
     ? `
-RTM members receive 50% off grant advisor packages (Maple Checklist from $149) and access to the GrantPilot workspace for matched programs and application tracking:
+RTM membership ($100/year) unlocks member package pricing (50% off list — Maple Checklist from $149) and the Funding Workspace for profile-matched programs:
 ${MEMBERSHIP_APP_URL}/signup
 
-Grant workspace (members): ${GRANTS_APP_URL}
+Funding Workspace (members): ${GRANTS_APP_URL}
 `
     : "";
 
@@ -44,9 +46,14 @@ Grant workspace (members): ${GRANTS_APP_URL}
 
 Thank you for requesting the Free Grant Checklist from RTM Business Directory.
 
-An RTM grant advisor will follow up within two business days with your eligibility checklist and a shortlist of Canadian programs that may fit your business profile.
+Download your general preparation checklist (PDF):
+${GRANT_CHECKLIST_PDF_URL}
 
-In the meantime, you can review grant packages and featured programs here:
+This covers document prep and steps used across many Canadian programs. A personalized program shortlist comes with the Maple Checklist advisor package or your member Funding Workspace after you build your RTM Grant Profile.
+
+An RTM grant advisor will follow up within two business days with next steps for programs that may fit your business.
+
+Grants hub (packages and featured programs):
 ${grantsHubUrl}
 ${membershipBlock}
 If you have questions, reply to this email or reach us at ${SITE_CONTACT.email} or ${SITE_CONTACT.phoneDisplay}.
@@ -62,10 +69,11 @@ export function buildGrantChecklistFollowUpText(recipientName?: string | null): 
   const greeting = recipientName?.trim() ? `Hi ${recipientName.trim()},` : "Hello,";
   return `${greeting}
 
-Following up on your Free Grant Checklist request — please let us know if you received our eligibility notes and if you'd like to book a quick call to discuss Maple Checklist or full application support.
+Following up on your Free Grant Checklist request — please let us know if you received the checklist PDF and if you'd like to book a quick call to discuss Maple Checklist or full application support.
 
+Checklist PDF: ${GRANT_CHECKLIST_PDF_URL}
 Grants hub: ${grantsHubUrl}
-Membership (member pricing): ${MEMBERSHIP_APP_URL}/signup
+Membership ($100/year, member pricing): ${MEMBERSHIP_APP_URL}/signup
 
 ${SITE_CONTACT.email} · ${SITE_CONTACT.phoneDisplay}
 `;

@@ -31,6 +31,8 @@ function autoReplyHtml(opts: {
   name?: string | null;
   grantsUrl: string;
   membershipUrl: string;
+  checklistPdfUrl: string;
+  fundingWorkspaceUrl: string;
   contactEmail: string;
   contactPhone: string;
 }) {
@@ -41,14 +43,21 @@ function autoReplyHtml(opts: {
     `<h2 style="color:#061f3a;margin:0 0 12px;font-size:22px;">Thanks for requesting the Free Grant Checklist</h2>
 <p style="color:#475569;line-height:1.7;margin:0 0 16px;">${greeting}</p>
 <p style="color:#475569;line-height:1.7;margin:0 0 16px;">
-We received your request. An RTM grant advisor will follow up within <strong>two business days</strong> with your eligibility checklist and next steps for Canadian programs that fit your business.
+We received your request. Download your <strong>general preparation checklist</strong> below. An RTM grant advisor will follow up within <strong>two business days</strong> with next steps for Canadian programs that may fit your business.
 </p>
-<p style="color:#475569;line-height:1.7;margin:0 0 24px;">While you wait, you can explore grant packages and featured programs on our grants hub:</p>
 <div style="text-align:center;margin:24px 0;">
-<a href="${opts.grantsUrl}" style="display:inline-block;background:#cc0000;color:#fff;padding:14px 32px;text-decoration:none;border-radius:8px;font-weight:600;">View grants hub →</a>
+<a href="${opts.checklistPdfUrl}" style="display:inline-block;background:#cc0000;color:#fff;padding:14px 32px;text-decoration:none;border-radius:8px;font-weight:600;">Download checklist (PDF) →</a>
+</div>
+<p style="color:#475569;line-height:1.7;margin:0 0 16px;font-size:14px;">
+This PDF covers document prep and application steps used across many programs. A <strong>personalized program shortlist</strong> comes with the Maple Checklist advisor package or your member Funding Workspace after you build your RTM Grant Profile.
+</p>
+<p style="color:#475569;line-height:1.7;margin:0 0 24px;">Explore grant packages and featured programs on our grants hub:</p>
+<div style="text-align:center;margin:20px 0;">
+<a href="${opts.grantsUrl}" style="display:inline-block;border:2px solid #061f3a;color:#061f3a;padding:12px 28px;text-decoration:none;border-radius:8px;font-weight:600;">View grants hub →</a>
 </div>
 <p style="color:#475569;line-height:1.7;margin:0 0 12px;">
-<strong>RTM members</strong> get 50% off advisor packages (Maple Checklist from $149) and access to the full GrantPilot workspace for matched programs and application tracking.
+<strong>RTM membership ($100/year)</strong> unlocks member package pricing (50% off list — Maple Checklist from $149) and the Funding Workspace for profile-matched programs and application tracking:
+<a href="${opts.fundingWorkspaceUrl}" style="color:#2563eb;">${opts.fundingWorkspaceUrl}</a>
 </p>
 <p style="text-align:center;margin:20px 0;">
 <a href="${opts.membershipUrl}" style="color:#061f3a;font-weight:600;">Join RTM membership →</a>
@@ -118,8 +127,13 @@ Deno.serve(async (req) => {
 
     if (insertError) throw insertError;
 
-    const siteUrl = Deno.env.get("SITE_URL") ?? "https://rtmbusinessdirectory.com";
-    const grantsUrl = Deno.env.get("GRANTS_PAGE_URL") ?? `${siteUrl.replace(/\/$/, "")}/grants`;
+    const siteUrl = Deno.env.get("SITE_URL") ?? "https://www.rtmbusinessdirectory.com";
+    const siteBase = siteUrl.replace(/\/$/, "");
+    const grantsUrl = Deno.env.get("GRANTS_PAGE_URL") ?? `${siteBase}/grants`;
+    const checklistPdfUrl = Deno.env.get("GRANT_CHECKLIST_PDF_URL") ??
+      `${siteBase}/downloads/RTM_Grant_Checklist.pdf`;
+    const fundingWorkspaceUrl = Deno.env.get("GRANTS_APP_URL") ??
+      "https://grants.rtmbusinessdirectory.com";
     const membershipUrl = Deno.env.get("MEMBERSHIP_APP_URL") ??
       "https://membership.rtmbusinessdirectory.com/signup";
     const notifyTo = Deno.env.get("GRANT_CHECKLIST_NOTIFY_EMAIL") ?? RTM_NOTIFY_EMAIL;
@@ -141,6 +155,8 @@ Deno.serve(async (req) => {
             name,
             grantsUrl,
             membershipUrl,
+            checklistPdfUrl,
+            fundingWorkspaceUrl,
             contactEmail,
             contactPhone,
           }),

@@ -33,21 +33,27 @@ Hello,
 
 Thank you for requesting the Free Grant Checklist from RTM Business Directory — and sorry for the delay getting back to you.
 
-An RTM grant advisor will follow up within two business days with your eligibility checklist and a shortlist of Canadian programs that may fit your business.
+Download your general preparation checklist (PDF):
+https://www.rtmbusinessdirectory.com/downloads/RTM_Grant_Checklist.pdf
 
-In the meantime you can review grant packages and featured programs here:
-https://rtmbusinessdirectory.com/grants
+This PDF covers document prep and application steps used across many programs. A personalized program shortlist comes with the Maple Checklist advisor package or your member Funding Workspace after you build your RTM Grant Profile.
 
-RTM members receive 50% off grant advisor packages (Maple Checklist from $149) and access to the GrantPilot workspace for matched programs and application tracking:
+An RTM grant advisor will follow up within two business days with next steps for Canadian programs that may fit your business.
+
+Grants hub (packages and featured programs):
+https://www.rtmbusinessdirectory.com/grants
+
+RTM membership ($100/year) unlocks member package pricing (50% off list — Maple Checklist from $149) and the Funding Workspace:
 https://membership.rtmbusinessdirectory.com/signup
 
-Grant workspace (members): https://grants.rtmbusinessdirectory.com
+Funding Workspace (members): https://grants.rtmbusinessdirectory.com
 
 Questions? Reply to this email or call +1 416 900 8728.
 
 Warm regards,
 RTM Grant Advisory Team
 640 Sentinel Road, North York, ON M3J 0B2
+info@rtmbusinessdirectory.com
 ```
 
 **Recipients:**
@@ -85,7 +91,18 @@ Uses existing **`RESEND_API_KEY`** (same as other functions). Optional secrets:
 | `GRANT_CHECKLIST_NOTIFY_EMAIL` | `info@rtmbusinessdirectory.com` |
 | `SITE_URL` | `https://rtmbusinessdirectory.com` |
 | `GRANTS_PAGE_URL` | `{SITE_URL}/grants` |
+| `GRANT_CHECKLIST_PDF_URL` | `{SITE_URL}/downloads/RTM_Grant_Checklist.pdf` |
+| `GRANTS_APP_URL` | `https://grants.rtmbusinessdirectory.com` |
 | `MEMBERSHIP_APP_URL` | `https://membership.rtmbusinessdirectory.com` |
+
+### Checklist asset (source + PDF)
+
+| File | URL (after deploy) |
+|------|-------------------|
+| `public/downloads/RTM_Grant_Checklist.html` | Print source — open in browser → Save as PDF |
+| `public/downloads/RTM_Grant_Checklist.pdf` | https://www.rtmbusinessdirectory.com/downloads/RTM_Grant_Checklist.pdf |
+
+Regenerate PDF locally: `node scripts/generate-grant-checklist-pdf.mjs` (requires `npm i -D puppeteer` once).
 
 ```powershell
 npx supabase functions deploy grant-checklist-lead --project-ref kajwpmyloxaqeciyndwf --no-verify-jwt
