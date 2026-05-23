@@ -37,6 +37,8 @@ RTM runs three distinct signed-in experiences on shared `kajwp` auth: **membersh
 
 Grant catalog, applications, and grant profiles live on `kajwp` (`public.grants`, `public.applications`, `public.grant_profiles`).
 
+**Grant Intake Hub (Option 1):** structured intake, readiness scoring, and advisor queue — see [GRANT_INTAKE_HUB_PLAN.md](./GRANT_INTAKE_HUB_PLAN.md). Phase 1 adds `grant_intakes` and the `grant-intake-assistant` edge function (rules-only; LLM drafts in Phase 2).
+
 ## Cross-subdomain sign-in (important)
 
 Supabase browser sessions are stored in **per-origin `localStorage`** (`rtm-platform-auth` on kajwp). They do **not** automatically sync across:

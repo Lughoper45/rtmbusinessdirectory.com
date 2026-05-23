@@ -50,3 +50,6 @@ verify_jwt = false
 
 [functions.provision-member-account]
 verify_jwt = false
+
+[functions.grant-intake-assistant]
+verify_jwt = false
