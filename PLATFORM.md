@@ -2,6 +2,10 @@
 
 **Vercel deploys & Git commit authors:** see [VERCEL_DEPLOY.md](./VERCEL_DEPLOY.md) (Hobby plan, grants vs Lughoper45, push tokens).
 
+## Dashboard roles
+
+RTM runs three distinct signed-in experiences on shared `kajwp` auth: **membership dashboard** (`membership.rtmbusinessdirectory.com`) for signup, Stripe payment, referrals, and aid; **member/business dashboard** (`rtmbusinessdirectory.com/dashboard`) for directory listings, deals, and links into the grants workspace; and **admin dashboard** (`rtmbusinessdirectory.com/admin`) for operators managing businesses, users, and membership ops. Grants execution lives on **GrantPilot** (`grants.rtmbusinessdirectory.com`) with vinbf data — not in the launchpad admin UI.
+
 ## Runtime map
 
 | Domain | App repo | Supabase project | Role |

@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  X, ChevronLeft, ChevronRight, Check, Bot, Sparkles, Eye, Send, 
+  X, ChevronLeft, ChevronRight, Check, FileText, Sparkles, Eye, Send, 
   FileText, Building2, DollarSign, Target, AlertCircle, CheckCircle2,
-  Wand2, RefreshCw, Copy, ThumbsUp, ThumbsDown, Loader2
+  Wand2, RefreshCw, Copy, Loader2
 } from 'lucide-react';
 import ApplicationStrengthAnalyzer from './ApplicationStrengthAnalyzer';
 
@@ -45,7 +45,7 @@ interface FormField {
   required?: boolean;
   prefilled?: boolean;
   prefilledValue?: string;
-  aiSuggestion?: string;
+  advisorDraft?: string;
   options?: string[];
   hint?: string;
 }
@@ -75,7 +75,7 @@ const formSections: FormSection[] = [
         type: 'text', 
         required: true,
         placeholder: 'Enter a compelling project title',
-        aiSuggestion: 'AI-Powered Digital Transformation Initiative for Canadian SMEs',
+        advisorDraft: 'Digital Transformation Initiative for Canadian SMEs',
       },
       { 
         id: 'projectSummary', 
@@ -83,7 +83,7 @@ const formSections: FormSection[] = [
         type: 'textarea', 
         required: true,
         placeholder: 'Describe your project...',
-        aiSuggestion: `Our project aims to develop an innovative AI-powered platform that enables Canadian small and medium enterprises (SMEs) to accelerate their digital transformation journey. 
+        advisorDraft: `Our project aims to develop an innovative platform that enables Canadian small and medium enterprises (SMEs) to accelerate their digital transformation journey. 
 
 The platform will provide automated business process analysis, personalized technology recommendations, and guided implementation support. By leveraging machine learning algorithms trained on successful digital transformation case studies, we will help businesses identify the most impactful digital solutions for their specific needs.
 
@@ -101,7 +101,7 @@ This initiative aligns directly with the government's commitment to supporting b
         type: 'textarea', 
         required: true,
         placeholder: 'List your specific, measurable objectives...',
-        aiSuggestion: `1. Deploy AI-powered diagnostic tool to 500 Canadian SMEs within 18 months
+        advisorDraft: `1. Deploy a diagnostic tool to 500 Canadian SMEs within 18 months
 2. Achieve 35% average improvement in operational efficiency for participating businesses
 3. Create 25 new full-time technology positions
 4. Develop partnerships with 10 technology vendors for integrated solutions
@@ -122,13 +122,13 @@ This initiative aligns directly with the government's commitment to supporting b
         label: 'Budget Breakdown', 
         type: 'textarea', 
         required: true,
-        aiSuggestion: `Personnel Costs: $35,000
+        advisorDraft: `Personnel Costs: $35,000
 • Lead Developer (0.5 FTE x 12 months): $25,000
 • Project Manager (0.25 FTE x 12 months): $10,000
 
 Technology & Software: $20,000
 • Cloud Infrastructure: $8,000
-• AI/ML Platform Licensing: $7,000
+• Platform licensing: $7,000
 • Development Tools: $5,000
 
 Marketing & Outreach: $10,000
@@ -160,8 +160,8 @@ const ApplicationWizard = ({ grant, mode, onClose, onBack }: ApplicationWizardPr
   const [currentSection, setCurrentSection] = useState(0);
   const [formData, setFormData] = useState<Record<string, string>>({});
   const [showPreview, setShowPreview] = useState(false);
-  const [isGeneratingAI, setIsGeneratingAI] = useState<string | null>(null);
-  const [aiGeneratedFields, setAiGeneratedFields] = useState<Set<string>>(new Set());
+  const [isApplyingDraft, setIsApplyingDraft] = useState<string | null>(null);
+  const [advisorPreparedFields, setAdvisorPreparedFields] = useState<Set<string>>(new Set());
 
   // Initialize with prefilled values
   useEffect(() => {
@@ -183,13 +183,12 @@ const ApplicationWizard = ({ grant, mode, onClose, onBack }: ApplicationWizardPr
     setFormData(prev => ({ ...prev, [fieldId]: value }));
   };
 
-  const generateAIContent = async (fieldId: string, suggestion: string) => {
-    setIsGeneratingAI(fieldId);
-    // Simulate AI generation
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    updateField(fieldId, suggestion);
-    setAiGeneratedFields(prev => new Set([...prev, fieldId]));
-    setIsGeneratingAI(null);
+  const applyAdvisorDraft = async (fieldId: string, draft: string) => {
+    setIsApplyingDraft(fieldId);
+    await new Promise(resolve => setTimeout(resolve, 800));
+    updateField(fieldId, draft);
+    setAdvisorPreparedFields(prev => new Set([...prev, fieldId]));
+    setIsApplyingDraft(null);
   };
 
   const getModeLabel = () => {
@@ -326,9 +325,9 @@ const ApplicationWizard = ({ grant, mode, onClose, onBack }: ApplicationWizardPr
                             Pre-filled
                           </span>
                         )}
-                        {aiGeneratedFields.has(field.id) && (
+                        {advisorPreparedFields.has(field.id) && (
                           <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-xs flex items-center gap-1">
-                            <Bot className="w-3 h-3" /> AI Generated
+                            <FileText className="w-3 h-3" /> Advisor-prepared
                           </span>
                         )}
                       </label>
@@ -342,21 +341,21 @@ const ApplicationWizard = ({ grant, mode, onClose, onBack }: ApplicationWizardPr
                             rows={6}
                             className="w-full px-4 py-3 rounded-xl bg-secondary border border-border text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-colors resize-none"
                           />
-                          {(mode === 'guided' || mode === 'fullservice') && field.aiSuggestion && !formData[field.id] && (
+                          {(mode === 'guided' || mode === 'fullservice') && field.advisorDraft && !formData[field.id] && (
                             <button
-                              onClick={() => generateAIContent(field.id, field.aiSuggestion!)}
-                              disabled={isGeneratingAI === field.id}
+                              onClick={() => applyAdvisorDraft(field.id, field.advisorDraft!)}
+                              disabled={isApplyingDraft === field.id}
                               className="absolute bottom-3 right-3 px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-medium flex items-center gap-2 hover:bg-primary/90 transition-colors disabled:opacity-50"
                             >
-                              {isGeneratingAI === field.id ? (
+                              {isApplyingDraft === field.id ? (
                                 <>
                                   <Loader2 className="w-3 h-3 animate-spin" />
-                                  Generating...
+                                  Applying draft…
                                 </>
                               ) : (
                                 <>
                                   <Wand2 className="w-3 h-3" />
-                                  Generate with AI
+                                  Use advisor draft
                                 </>
                               )}
                             </button>
@@ -407,27 +406,19 @@ const ApplicationWizard = ({ grant, mode, onClose, onBack }: ApplicationWizardPr
                         <p className="text-xs text-muted-foreground">{field.hint}</p>
                       )}
 
-                      {/* AI Suggestion Banner for guided mode */}
-                      {(mode === 'guided' || mode === 'fullservice') && field.aiSuggestion && formData[field.id] && aiGeneratedFields.has(field.id) && (
+                      {(mode === 'guided' || mode === 'fullservice') && field.advisorDraft && formData[field.id] && advisorPreparedFields.has(field.id) && (
                         <div className="flex items-center gap-2 p-3 rounded-xl bg-primary/5 border border-primary/20">
                           <Sparkles className="w-4 h-4 text-primary flex-shrink-0" />
                           <p className="text-xs text-muted-foreground flex-1">
-                            AI-generated content. Review and edit as needed.
+                            Advisor-prepared draft. Review and edit before you submit.
                           </p>
-                          <div className="flex items-center gap-1">
-                            <button className="p-1.5 rounded-lg hover:bg-primary/10 transition-colors">
-                              <ThumbsUp className="w-4 h-4 text-muted-foreground" />
-                            </button>
-                            <button className="p-1.5 rounded-lg hover:bg-primary/10 transition-colors">
-                              <ThumbsDown className="w-4 h-4 text-muted-foreground" />
-                            </button>
-                            <button 
-                              onClick={() => generateAIContent(field.id, field.aiSuggestion!)}
-                              className="p-1.5 rounded-lg hover:bg-primary/10 transition-colors"
-                            >
-                              <RefreshCw className="w-4 h-4 text-muted-foreground" />
-                            </button>
-                          </div>
+                          <button 
+                            onClick={() => applyAdvisorDraft(field.id, field.advisorDraft!)}
+                            className="p-1.5 rounded-lg hover:bg-primary/10 transition-colors"
+                            type="button"
+                          >
+                            <RefreshCw className="w-4 h-4 text-muted-foreground" />
+                          </button>
                         </div>
                       )}
                     </div>

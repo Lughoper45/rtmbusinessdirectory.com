@@ -549,7 +549,7 @@ const Dashboard = () => {
                           <DollarSign className="w-4 h-4 text-green-600" />
                         </div>
                         <div className="text-left">
-                          <div className="font-medium">Unlock RTM Funding Workspace</div>
+                          <div className="font-medium">Unlock your RTM Funding Workspace</div>
                           <div className="text-xs text-muted-foreground">GrantPilot on grants subdomain</div>
                         </div>
                       </div>
@@ -695,7 +695,7 @@ const Dashboard = () => {
             <TabsContent value="funding" className="space-y-6">
               <Card className="border-primary/20 bg-primary/5">
                 <CardHeader>
-                  <CardTitle className="text-lg">Unlock RTM Funding Workspace</CardTitle>
+                  <CardTitle className="text-lg">Unlock your RTM Funding Workspace</CardTitle>
                   <CardDescription>
                     Personalized grant matching, applications, and pipeline tracking live on GrantPilot at{' '}
                     {GRANTS_APP_URL.replace(/^https?:\/\//, '')}.
