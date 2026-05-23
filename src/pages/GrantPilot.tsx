@@ -58,16 +58,28 @@ const steps = [
 
 const faqs = [
   {
-    q: 'Is this AI?',
-    a: 'No — RTM grant advisors review your profile and guide you through verified Canadian programs. GrantPilot organizes matches and tracking; humans handle advisory packages and complex submissions.',
+    q: 'How does RTM member pricing work?',
+    a: 'Active RTM members receive 50% off all grant advisor packages listed on this page. List prices apply until your membership is active on membership.rtmbusinessdirectory.com. Member rates unlock automatically once your account shows an active membership status.',
+  },
+  {
+    q: 'What is included in each advisor package?',
+    a: 'Packages range from Maple Checklist (eligibility review and program shortlist) through Northern Star (dedicated advisor and end-to-end application coordination). Each tier adds deeper document review, provincial strategy, or full submission support — see the packages table above for highlights.',
+  },
+  {
+    q: 'How do I access the grant workspace?',
+    a: 'Sign in at grants.rtmbusinessdirectory.com with the same email and password you use for RTM membership. Your workspace shows profile-matched programs, match scores, and application tracking. Package requests and marketing information stay on rtmbusinessdirectory.com/grants.',
+  },
+  {
+    q: 'What is the typical timeline?',
+    a: 'Eligibility review and checklist packages usually complete within one to two weeks. Application prep and full-service packages depend on program deadlines and document readiness — your RTM advisor will confirm milestones after you request a package.',
+  },
+  {
+    q: 'Who is eligible for Canadian business grants?',
+    a: 'Eligibility varies by program (sector, province, company size, and project type). RTM advisors assess your profile against federal, provincial, and regional programs. Featured programs on this page are verified listings; your workspace shows programs ranked to your business profile.',
   },
   {
     q: 'Do I need RTM membership?',
-    a: 'Member pricing on advisor packages and the full GrantPilot workspace (match scores, application tracker) require active RTM membership. You can explore featured programs on this page without signing in.',
-  },
-  {
-    q: 'Where do I apply to grants?',
-    a: 'Marketing and package info lives on rtmbusinessdirectory.com. Your personalized grant workspace is at grants.rtmbusinessdirectory.com after sign-in.',
+    a: 'You can browse featured programs here without signing in. Member pricing on advisor packages and the full GrantPilot workspace (match scores, application tracker) require active RTM membership.',
   },
 ];
 

@@ -3,9 +3,6 @@ import type { GrantProfile, GrantRecord, ScoredGrant } from "@/types/grant";
 import { provinceFromLocation } from "@/lib/grantProfile";
 
 function requireClient() {
-  if (!stellarSupabase) {
-    throw new Error("Grants database is not configured. Set VITE_STELLAR_SUPABASE_URL and VITE_STELLAR_SUPABASE_PUBLISHABLE_KEY.");
-  }
   return stellarSupabase;
 }
 

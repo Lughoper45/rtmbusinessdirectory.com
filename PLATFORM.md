@@ -1,5 +1,7 @@
 # RTM Platform — apps, domains, and databases
 
+**Vercel deploys & Git commit authors:** see [VERCEL_DEPLOY.md](./VERCEL_DEPLOY.md) (Hobby plan, grants vs Lughoper45, push tokens).
+
 ## Runtime map
 
 | Domain | App repo | Supabase project | Role |
@@ -60,6 +62,9 @@ VITE_SUPABASE_PUBLISHABLE_KEY=...
 VITE_MEMBERSHIP_APP_URL=https://membership.rtmbusinessdirectory.com
 VITE_GRANTS_APP_URL=https://grants.rtmbusinessdirectory.com
 VITE_WORLDCUP_APP_URL=https://worldcup.rtmbusinessdirectory.com
+# Grants catalog on /grants (vinbf) — optional; built-in fallback in stellarClient.ts
+VITE_STELLAR_SUPABASE_URL=https://vinbfneyficvgjrcduuj.supabase.co
+VITE_STELLAR_SUPABASE_PUBLISHABLE_KEY=<vinbf anon key from Supabase dashboard>
 ```
 
 ### stellar-business-os

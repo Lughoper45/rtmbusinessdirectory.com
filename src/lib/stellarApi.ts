@@ -1,5 +1,7 @@
-const stellarUrl = import.meta.env.VITE_STELLAR_SUPABASE_URL?.replace(/\/$/, "");
-const stellarAnon = import.meta.env.VITE_STELLAR_SUPABASE_PUBLISHABLE_KEY;
+import { STELLAR_SUPABASE_ANON_KEY, STELLAR_SUPABASE_URL } from "@/integrations/supabase/stellarClient";
+
+const stellarUrl = STELLAR_SUPABASE_URL.replace(/\/$/, "");
+const stellarAnon = STELLAR_SUPABASE_ANON_KEY;
 
 export type PlatformApplication = {
   id: string;

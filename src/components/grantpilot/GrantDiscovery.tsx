@@ -1,7 +1,15 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Clock, CheckCircle2, AlertCircle, Bookmark, ChevronRight, FileText } from 'lucide-react';
+import {
+  AlertCircle,
+  Bookmark,
+  CheckCircle2,
+  ChevronRight,
+  Clock,
+  FileText,
+  RefreshCw,
+} from 'lucide-react';
 import { fetchRecommendedGrants, formatGrantAmount, grantDetailPath } from '@/lib/grants';
 import { loadGrantProfile } from '@/lib/grantProfile';
 import type { ScoredGrant } from '@/types/grant';
@@ -16,19 +24,24 @@ const GrantDiscovery = ({ limit = 3, showMatchScores = false }: GrantDiscoveryPr
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const loadGrants = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const profile = loadGrantProfile();
+      const list = await fetchRecommendedGrants(profile, limit);
+      setGrants(list);
+    } catch (e) {
+      setGrants([]);
+      setError(e instanceof Error ? e.message : 'Could not load grant programs');
+    } finally {
+      setLoading(false);
+    }
+  }, [limit]);
+
   useEffect(() => {
-    (async () => {
-      try {
-        const profile = loadGrantProfile();
-        const list = await fetchRecommendedGrants(profile, limit);
-        setGrants(list);
-      } catch (e) {
-        setError(e instanceof Error ? e.message : 'Could not load grants');
-      } finally {
-        setLoading(false);
-      }
-    })();
-  }, []);
+    loadGrants();
+  }, [loadGrants]);
 
   const getTypeColor = (type: string) => {
     const t = (type || '').toLowerCase();
@@ -55,11 +68,43 @@ const GrantDiscovery = ({ limit = 3, showMatchScores = false }: GrantDiscoveryPr
       </div>
 
       {error && (
-        <p className="text-sm text-muted-foreground mb-4 rounded-lg border border-border p-4">{error}</p>
+        <div
+          role="alert"
+          className="mb-4 rounded-xl border border-destructive/40 bg-destructive/5 p-4 flex flex-col sm:flex-row sm:items-center gap-4"
+        >
+          <div className="flex gap-3 flex-1 min-w-0">
+            <AlertCircle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-medium text-foreground">Programs could not be loaded</p>
+              <p className="text-sm text-muted-foreground mt-1">{error}</p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => loadGrants()}
+            disabled={loading}
+            className="shrink-0 inline-flex items-center justify-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-medium hover:bg-secondary transition-colors disabled:opacity-50"
+          >
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+            Retry
+          </button>
+        </div>
       )}
 
       {loading ? (
         <p className="text-muted-foreground text-sm">Loading verified Canadian programs…</p>
+      ) : !error && grants.length === 0 ? (
+        <div className="rounded-xl border border-border/60 bg-secondary/30 p-6 text-center">
+          <p className="text-sm text-muted-foreground mb-4">No active programs are available right now.</p>
+          <button
+            type="button"
+            onClick={() => loadGrants()}
+            className="inline-flex items-center gap-2 rounded-lg border border-primary/50 px-4 py-2 text-sm font-medium text-primary hover:bg-primary/10"
+          >
+            <RefreshCw className="w-4 h-4" />
+            Refresh
+          </button>
+        </div>
       ) : (
         <div className="-mx-4 flex gap-6 overflow-x-auto px-4 pb-2">
           {grants.map((grant, index) => (
@@ -129,20 +174,22 @@ const GrantDiscovery = ({ limit = 3, showMatchScores = false }: GrantDiscoveryPr
         </div>
       )}
 
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.8 }}
-        className="mt-6 text-center"
-      >
-        <a
-          href="https://grants.rtmbusinessdirectory.com/grants"
-          className="px-6 py-3 rounded-xl border border-primary/50 text-primary font-medium hover:bg-primary/10 transition-colors inline-flex items-center gap-2"
+      {!error && grants.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.8 }}
+          className="mt-6 text-center"
         >
-          Open grant workspace
-          <ChevronRight className="w-4 h-4" />
-        </a>
-      </motion.div>
+          <a
+            href="https://grants.rtmbusinessdirectory.com/grants"
+            className="px-6 py-3 rounded-xl border border-primary/50 text-primary font-medium hover:bg-primary/10 transition-colors inline-flex items-center gap-2"
+          >
+            Open grant workspace
+            <ChevronRight className="w-4 h-4" />
+          </a>
+        </motion.div>
+      )}
     </motion.section>
   );
 };
