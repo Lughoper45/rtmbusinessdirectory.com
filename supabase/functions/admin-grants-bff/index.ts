@@ -87,8 +87,6 @@ Deno.serve(async (req) => {
     const kajwpUrl = Deno.env.get("SUPABASE_URL");
     const kajwpService = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
     const kajwpAnon = Deno.env.get("SUPABASE_ANON_KEY");
-    const stellarUrl = Deno.env.get("STELLAR_SUPABASE_URL");
-    const stellarService = Deno.env.get("STELLAR_SERVICE_ROLE_KEY");
 
     if (!kajwpUrl || !kajwpService || !kajwpAnon) {
       return jsonResponse(req, { error: "Server configuration incomplete." }, 500);
@@ -104,25 +102,10 @@ Deno.serve(async (req) => {
       return jsonResponse(req, { error: "Invalid action. Use list-applications or list-grants." }, 400);
     }
 
-    const stellarConfigured = Boolean(stellarUrl && stellarService);
-    const stellarNotConfiguredWarning =
-      "Stellar grants backend is not configured. Set STELLAR_SUPABASE_URL and STELLAR_SERVICE_ROLE_KEY in kajwp Edge Function secrets (see DEPLOY_EDGE_FUNCTIONS.md).";
-
-    if (!stellarConfigured) {
-      if (action === "list-applications") {
-        return jsonResponse(req, {
-          applications: [],
-          warning: stellarNotConfiguredWarning,
-        });
-      }
-      return jsonResponse(req, { error: "Stellar grants backend is not configured." }, 500);
-    }
-
-    const stellarAdmin = createClient(stellarUrl!, stellarService!);
     const kajwpAdmin = createClient(kajwpUrl, kajwpService);
 
     if (action === "list-grants") {
-      const { data: grants, error } = await stellarAdmin
+      const { data: grants, error } = await kajwpAdmin
         .from("grants")
         .select("id, name, organization, amount, is_active, created_at")
         .order("name", { ascending: true });
@@ -131,7 +114,7 @@ Deno.serve(async (req) => {
       return jsonResponse(req, { grants: grants ?? [] });
     }
 
-    const { data: applications, error: appsError } = await stellarAdmin
+    const { data: applications, error: appsError } = await kajwpAdmin
       .from("applications")
       .select("id, user_id, item_type, item_id, status, notes, created_at, updated_at")
       .order("created_at", { ascending: false })
@@ -149,7 +132,7 @@ Deno.serve(async (req) => {
 
     const grantNameById = new Map<string, string>();
     if (grantIds.length) {
-      const { data: grants } = await stellarAdmin
+      const { data: grants } = await kajwpAdmin
         .from("grants")
         .select("id, name")
         .in("id", grantIds);

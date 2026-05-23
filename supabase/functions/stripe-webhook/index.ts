@@ -46,10 +46,14 @@ Deno.serve(async (req) => {
         const session = event.data.object as Stripe.Checkout.Session;
         const userId = session.metadata?.userId;
         const subscriptionId = session.subscription as string;
+        const customerEmail =
+          session.customer_email?.toLowerCase() ||
+          session.customer_details?.email?.toLowerCase() ||
+          null;
 
-        if (userId) {
+        if (userId && subscriptionId) {
           const subscription = await stripe.subscriptions.retrieve(subscriptionId);
-          
+
           await supabase.from("subscriptions").upsert({
             user_id: userId,
             stripe_subscription_id: subscriptionId,
@@ -60,6 +64,31 @@ Deno.serve(async (req) => {
             current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
             cancel_at_period_end: subscription.cancel_at_period_end,
           });
+        }
+
+        if (customerEmail || userId) {
+          const provisionUrl = `${supabaseUrl}/functions/v1/provision-member-account`;
+          try {
+            const provisionRes = await fetch(provisionUrl, {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${supabaseKey}`,
+                apikey: supabaseKey,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                email: customerEmail,
+                userId: userId ?? undefined,
+                source: "stripe-webhook",
+              }),
+            });
+            if (!provisionRes.ok) {
+              const errText = await provisionRes.text();
+              console.error("[stripe-webhook] provision-member-account failed:", errText);
+            }
+          } catch (provisionErr) {
+            console.error("[stripe-webhook] provision-member-account error:", provisionErr);
+          }
         }
         break;
       }

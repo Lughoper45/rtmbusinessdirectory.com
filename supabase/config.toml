@@ -47,3 +47,6 @@ verify_jwt = false
 
 [functions.grant-checklist-lead]
 verify_jwt = false
+
+[functions.provision-member-account]
+verify_jwt = false

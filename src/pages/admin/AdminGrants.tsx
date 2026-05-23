@@ -75,7 +75,7 @@ export default function AdminGrants() {
       const message =
         e instanceof Error
           ? e.message
-          : "Failed to load grant applications. Deploy admin-grants-bff and set Stellar secrets.";
+          : "Failed to load grant applications. Deploy admin-grants-bff and apply grants schema on kajwp.";
       setApplicationsError(message);
       toast.error(message);
     } finally {
@@ -179,7 +179,7 @@ export default function AdminGrants() {
         <div className="mb-8">
           <h1 className="text-3xl font-bold">Grants</h1>
           <p className="text-gray-600 dark:text-gray-400">
-            GrantPilot applications (Stellar) and Free Grant Checklist leads (kajwp)
+            GrantPilot applications and Free Grant Checklist leads (kajwp)
           </p>
         </div>
 
@@ -342,7 +342,7 @@ export default function AdminGrants() {
                       Applications queue
                     </CardTitle>
                     <CardDescription>
-                      {filtered.length} application{filtered.length !== 1 ? "s" : ""} shown (read-only, Stellar / vinbf)
+                      {filtered.length} application{filtered.length !== 1 ? "s" : ""} shown (read-only, kajwp)
                     </CardDescription>
                   </div>
                   <div className="flex gap-2">
@@ -374,7 +374,7 @@ export default function AdminGrants() {
               <CardContent>
                 {applicationsWarning && (
                   <Alert className="mb-4" variant="default">
-                    <AlertTitle>Stellar backend not configured</AlertTitle>
+                    <AlertTitle>Grants backend not configured</AlertTitle>
                     <AlertDescription>{applicationsWarning}</AlertDescription>
                   </Alert>
                 )}
