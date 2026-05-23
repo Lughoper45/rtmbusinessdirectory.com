@@ -27,11 +27,13 @@ From repo root:
 
 ```powershell
 cd "c:\Users\flood\new rtm\launchpad-canada-ai"
-npx supabase functions deploy list-admin-users --project-ref kajwpmyloxaqeciyndwf
-npx supabase functions deploy admin-grants-bff --project-ref kajwpmyloxaqeciyndwf
+npx supabase functions deploy list-admin-users --project-ref kajwpmyloxaqeciyndwf --no-verify-jwt
+npx supabase functions deploy admin-grants-bff --project-ref kajwpmyloxaqeciyndwf --no-verify-jwt
 ```
 
-Deploy applies `verify_jwt` from `supabase/config.toml`. After changing CORS or JWT settings, redeploy both functions.
+`verify_jwt = false` in `supabase/config.toml` may **not** apply on deploy. Use `--no-verify-jwt` on deploy **and** turn off **Enforce JWT Verification** in the Dashboard for both functions.
+
+After changing CORS or JWT settings, redeploy both functions.
 
 ### If CLI returns 403
 
@@ -59,6 +61,17 @@ curl -i -X OPTIONS "https://kajwpmyloxaqeciyndwf.supabase.co/functions/v1/list-a
 ```
 
 Expect `HTTP/1.1 200` and `Access-Control-Allow-Origin: https://www.rtmbusinessdirectory.com`.
+
+## Dashboard checklist (do after every deploy)
+
+1. [Edge Functions](https://supabase.com/dashboard/project/kajwpmyloxaqeciyndwf/functions) → open `list-admin-users` and `admin-grants-bff`
+2. **Enforce JWT Verification** → **OFF** for both (preflight has no `Authorization` header; JWT is checked inside the function)
+3. **Secrets** (project or function scope) for `admin-grants-bff`:
+   - `STELLAR_SUPABASE_URL` = `https://vinbfneyficvgjrcduuj.supabase.co`
+   - `STELLAR_SERVICE_ROLE_KEY` = vinbf service role key
+4. Hard refresh the admin site (Ctrl+Shift+R) or clear site data — browsers cache failed CORS preflights
+
+If POST returns `{"error":"Stellar grants backend is not configured."}`, CORS is fine; set the Stellar secrets above.
 
 Admin UI calls:
 
