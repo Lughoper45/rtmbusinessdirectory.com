@@ -93,6 +93,9 @@ const welcomeEmailTemplate = (siteUrl: string, fullName?: string) => baseTemplat
   </div>
 `, "Welcome to RTM Directory!");
 
+// Deprecated: main site uses supabase.auth.signUp in src/pages/Auth.tsx.
+// Kept for manual/admin use; production signup failures were usually handle_new_user + Resend.
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
