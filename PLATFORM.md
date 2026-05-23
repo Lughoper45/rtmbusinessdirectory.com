@@ -37,6 +37,36 @@ RTM runs three distinct signed-in experiences on shared `kajwp` auth: **membersh
 
 Grant rows still live in `vinbf`; only identity and membership status use `kajwp`.
 
+## Cross-subdomain sign-in (important)
+
+Supabase browser sessions are stored in **per-origin `localStorage`** (`rtm-platform-auth` on kajwp). They do **not** automatically sync across:
+
+- `membership.rtmbusinessdirectory.com`
+- `rtmbusinessdirectory.com`
+- `grants.rtmbusinessdirectory.com`
+
+Signing in on membership does **not** sign you in on grants until you either:
+
+1. Use **Open grant workspace** on the membership dashboard (token handoff to `grants…/auth#access_token=…`), or
+2. Sign in once on **grants** `/auth` with the **same email and password**.
+
+Cookie `Domain=.rtmbusinessdirectory.com` does not apply to Supabase JS sessions (localStorage, not shared cookies).
+
+### Supabase Auth URL configuration (kajwp)
+
+In [Supabase Dashboard → Authentication → URL Configuration](https://supabase.com/dashboard/project/kajwpmyloxaqeciyndwf/auth/url-configuration) set:
+
+| Setting | Values |
+|---------|--------|
+| **Site URL** | `https://membership.rtmbusinessdirectory.com` (primary signup) or `https://rtmbusinessdirectory.com` |
+| **Redirect URLs** | `https://membership.rtmbusinessdirectory.com/**`, `https://rtmbusinessdirectory.com/**`, `https://grants.rtmbusinessdirectory.com/**`, `https://worldcup.rtmbusinessdirectory.com/**`, `http://localhost:5173/**`, `http://localhost:8080/**` |
+
+Email confirmation and password reset links must use hosts listed above.
+
+### Stellar production env (grants)
+
+`VITE_PLATFORM_SUPABASE_PUBLISHABLE_KEY` **must** be set on the grants Vercel project. If missing, GrantPilot falls back to the **vinbf** auth client and platform login will not work.
+
 ## Cross-app API
 
 | Function | Project | Purpose |

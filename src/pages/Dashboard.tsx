@@ -34,7 +34,7 @@ import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
 import { fetchPlatformMembership } from "@/services/membership";
-import { openMembershipJoin, GRANTS_APP_URL } from "@/lib/site";
+import { openMembershipJoin, GRANTS_APP_URL, getGrantsWorkspaceUrl } from "@/lib/site";
 import { fetchRecommendedGrants, formatGrantAmount, grantDetailPath } from "@/lib/grants";
 import { loadGrantProfile } from "@/lib/grantProfile";
 import type { ScoredGrant } from "@/types/grant";
@@ -543,7 +543,10 @@ const Dashboard = () => {
                         </div>
                       </div>
                     </Button>
-                    <Button variant="outline" className="w-full justify-start h-auto py-3" onClick={() => { window.location.href = `${GRANTS_APP_URL.replace(/\/$/, '')}/grants`; }}>
+                    <Button variant="outline" className="w-full justify-start h-auto py-3" onClick={async () => {
+                      const { data: { session } } = await supabase.auth.getSession();
+                      window.location.href = getGrantsWorkspaceUrl(session);
+                    }}>
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
                           <DollarSign className="w-4 h-4 text-green-600" />

@@ -43,3 +43,5 @@ export const openExternalApp = (baseUrl: string, path = "/") => {
   const url = new URL(path, baseUrl.replace(/\/$/, ""));
   window.location.href = url.toString();
 };
+
+export { getGrantsWorkspaceUrl } from "@/lib/platformAuthHandoff";

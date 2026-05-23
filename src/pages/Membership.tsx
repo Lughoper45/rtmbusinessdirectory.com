@@ -32,7 +32,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { FALLBACK_MEMBERSHIP_PLANS, type MembershipPlan } from "@/data/membershipPlans";
-import { openMembershipJoin, GRANTS_APP_URL } from "@/lib/site";
+import { openMembershipJoin, getGrantsWorkspaceUrl } from "@/lib/site";
 import { fetchPlatformMembership } from "@/services/membership";
 import {
   AID_WAITING_PERIOD_LABEL,
@@ -400,11 +400,21 @@ const Membership = () => {
                 ))}
               </div>
               <div className="mt-8 flex flex-wrap justify-center gap-3">
-                <Button variant="hero" size="lg" onClick={() => { window.location.href = `${GRANTS_APP_URL.replace(/\/$/, '')}/auth?returnUrl=/grants`; }}>
+                <Button
+                  variant="hero"
+                  size="lg"
+                  onClick={async () => {
+                    const { data: { session } } = await supabase.auth.getSession();
+                    window.location.href = getGrantsWorkspaceUrl(session);
+                  }}
+                >
                   Open grant workspace
                   <ArrowRight className="h-5 w-5" />
                 </Button>
-                <Button variant="outline" size="lg" onClick={() => { window.location.href = `${GRANTS_APP_URL.replace(/\/$/, '')}/grants/packages`; }}>
+                <Button variant="outline" size="lg" onClick={async () => {
+                  const { data: { session } } = await supabase.auth.getSession();
+                  window.location.href = getGrantsWorkspaceUrl(session, "/grants/packages");
+                }}>
                   View advisor packages
                 </Button>
               </div>
