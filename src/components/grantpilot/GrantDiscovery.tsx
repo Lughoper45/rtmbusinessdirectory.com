@@ -1,12 +1,17 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Clock, CheckCircle2, AlertCircle, Bookmark, ChevronRight, Sparkles } from 'lucide-react';
+import { Clock, CheckCircle2, AlertCircle, Bookmark, ChevronRight, FileText } from 'lucide-react';
 import { fetchRecommendedGrants, formatGrantAmount, grantDetailPath } from '@/lib/grants';
 import { loadGrantProfile } from '@/lib/grantProfile';
 import type { ScoredGrant } from '@/types/grant';
 
-const GrantDiscovery = () => {
+interface GrantDiscoveryProps {
+  limit?: number;
+  showMatchScores?: boolean;
+}
+
+const GrantDiscovery = ({ limit = 3, showMatchScores = false }: GrantDiscoveryProps) => {
   const [grants, setGrants] = useState<ScoredGrant[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -15,7 +20,7 @@ const GrantDiscovery = () => {
     (async () => {
       try {
         const profile = loadGrantProfile();
-        const list = await fetchRecommendedGrants(profile, 12);
+        const list = await fetchRecommendedGrants(profile, limit);
         setGrants(list);
       } catch (e) {
         setError(e instanceof Error ? e.message : 'Could not load grants');
@@ -42,7 +47,7 @@ const GrantDiscovery = () => {
       <div className="flex items-center justify-between mb-6">
         <h2 className="font-orbitron text-xl font-bold text-foreground flex items-center gap-3">
           <span className="text-2xl">🎯</span>
-          Featured Grants
+          Featured Programs
           <span className="px-2 py-1 rounded-lg bg-primary/10 text-primary text-sm font-normal">
             {loading ? '…' : `${grants.length} programs`}
           </span>
@@ -84,7 +89,9 @@ const GrantDiscovery = () => {
                   <span className="font-orbitron text-2xl font-bold text-gradient shimmer">
                     {formatGrantAmount(Number(grant.amount))}
                   </span>
-                  <span className="text-sm text-success font-medium">{grant.computedMatch}% match</span>
+                  <span className="text-sm text-success font-medium">
+                    {showMatchScores ? `${grant.computedMatch}% match` : grant.type || 'Program'}
+                  </span>
                 </div>
 
                 <p className="text-sm text-muted-foreground mb-4 line-clamp-3">{grant.description}</p>
@@ -113,7 +120,7 @@ const GrantDiscovery = () => {
                   to={grantDetailPath(grant.id)}
                   className="w-full py-2.5 rounded-xl bg-gradient-to-r from-primary to-primary/80 text-primary-foreground text-sm font-medium hover:shadow-lg hover:shadow-primary/25 transition-all flex items-center justify-center gap-2"
                 >
-                  <Sparkles className="w-4 h-4" />
+                  <FileText className="w-4 h-4" />
                   View program
                 </Link>
               </div>
@@ -128,13 +135,13 @@ const GrantDiscovery = () => {
         transition={{ delay: 0.8 }}
         className="mt-6 text-center"
       >
-        <Link
-          to="/grants"
+        <a
+          href="https://grants.rtmbusinessdirectory.com/grants"
           className="px-6 py-3 rounded-xl border border-primary/50 text-primary font-medium hover:bg-primary/10 transition-colors inline-flex items-center gap-2"
         >
-          Browse all grants
+          Open grant workspace
           <ChevronRight className="w-4 h-4" />
-        </Link>
+        </a>
       </motion.div>
     </motion.section>
   );

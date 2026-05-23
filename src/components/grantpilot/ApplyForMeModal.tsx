@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Bot, Zap, Crown, Check, ChevronRight, Sparkles, Shield, Clock, Users, Star, ArrowRight } from 'lucide-react';
+import { X, Zap, Crown, Check, ChevronRight, Sparkles, Shield, Users, Star, ArrowRight, FileText } from 'lucide-react';
 import ApplicationWizard from './ApplicationWizard';
+import { getPackageRequestMailto } from '@/lib/grantPackages';
 
 interface Grant {
   id: string;
@@ -44,36 +45,35 @@ const modes = [
   {
     id: 'guided' as ApplicationMode,
     name: 'Guided Mode',
-    icon: Bot,
-    price: '$99',
-    priceNote: 'per application',
+    icon: FileText,
+    price: 'From $1,000',
+    priceNote: 'member package',
     color: 'primary',
     popular: true,
     features: [
       'Everything in Assisted mode',
-      'AI writes draft answers to narratives',
+      'RTM advisor draft review for narratives',
       'Expert review before submission',
       'Priority support',
       'You approve final version',
     ],
-    cta: 'Get AI Assistance',
+    cta: 'Request True North package',
   },
   {
     id: 'fullservice' as ApplicationMode,
     name: 'Full Service',
     icon: Crown,
-    price: '$299',
-    priceNote: 'per application',
+    price: 'From $3,250',
+    priceNote: 'member package',
     color: 'warning',
     popular: false,
     features: [
-      'LaunchPad team takes over completely',
+      'RTM advisor coordination',
       'Professional grant writer review',
-      'We submit on your behalf',
       'Clear scope and review process',
       'Follow-up with grantor if needed',
     ],
-    cta: 'Let Us Handle It',
+    cta: 'Request Northern Star package',
   },
 ];
 
@@ -103,9 +103,16 @@ const ApplyForMeModal = ({ grant, onClose }: ApplyForMeModalProps) => {
   };
 
   const handleContinue = () => {
-    if (selectedMode) {
-      setShowWizard(true);
+    if (!selectedMode) return;
+    if (selectedMode === 'fullservice') {
+      window.location.href = getPackageRequestMailto('northern-star');
+      return;
     }
+    if (selectedMode === 'guided') {
+      window.location.href = getPackageRequestMailto('true-north-standard');
+      return;
+    }
+    setShowWizard(true);
   };
 
   if (showWizard && selectedMode) {
