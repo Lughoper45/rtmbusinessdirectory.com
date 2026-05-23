@@ -21,6 +21,8 @@ import {
   isGrantChecklistLeadStatus,
   updateGrantChecklistLead,
 } from "@/services/grantChecklist";
+import { getEdgeFunctionErrorMessage } from "@/lib/edgeFunctionErrors";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 type GrantApplicationRow = {
   id: string;
@@ -44,6 +46,8 @@ export default function AdminGrants() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [leadStatusFilter, setLeadStatusFilter] = useState("all");
   const [savingLeadId, setSavingLeadId] = useState<string | null>(null);
+  const [applicationsWarning, setApplicationsWarning] = useState<string | null>(null);
+  const [applicationsError, setApplicationsError] = useState<string | null>(null);
 
   useEffect(() => {
     void loadApplications();
@@ -52,20 +56,28 @@ export default function AdminGrants() {
 
   const loadApplications = async () => {
     setLoadingApps(true);
+    setApplicationsError(null);
+    setApplicationsWarning(null);
     try {
       const { data: payload, error } = await supabase.functions.invoke("admin-grants-bff", {
         body: { action: "list-applications" },
       });
 
-      if (error) throw error;
       if (payload?.error) throw new Error(payload.error);
+      if (error) throw new Error(await getEdgeFunctionErrorMessage(error, payload));
 
       setApplications((payload?.applications ?? []) as GrantApplicationRow[]);
+      if (typeof payload?.warning === "string" && payload.warning) {
+        setApplicationsWarning(payload.warning);
+      }
     } catch (e) {
       console.error(e);
-      toast.error(
-        e instanceof Error ? e.message : "Failed to load grant applications. Deploy admin-grants-bff and set Stellar secrets.",
-      );
+      const message =
+        e instanceof Error
+          ? e.message
+          : "Failed to load grant applications. Deploy admin-grants-bff and set Stellar secrets.";
+      setApplicationsError(message);
+      toast.error(message);
     } finally {
       setLoadingApps(false);
     }
@@ -360,6 +372,18 @@ export default function AdminGrants() {
                 </div>
               </CardHeader>
               <CardContent>
+                {applicationsWarning && (
+                  <Alert className="mb-4" variant="default">
+                    <AlertTitle>Stellar backend not configured</AlertTitle>
+                    <AlertDescription>{applicationsWarning}</AlertDescription>
+                  </Alert>
+                )}
+                {applicationsError && (
+                  <Alert className="mb-4" variant="destructive">
+                    <AlertTitle>Could not load applications</AlertTitle>
+                    <AlertDescription>{applicationsError}</AlertDescription>
+                  </Alert>
+                )}
                 {loadingApps ? (
                   <div className="flex items-center justify-center py-8">
                     <Loader2 className="h-8 w-8 animate-spin text-primary" />

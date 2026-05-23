@@ -16,10 +16,7 @@ Allowed origins: `https://www.rtmbusinessdirectory.com`, `https://rtmbusinessdir
 
 1. Log in: `npx supabase login` (or set `SUPABASE_ACCESS_TOKEN` in `.env.local`)
 2. Link or pass project ref: `--project-ref kajwpmyloxaqeciyndwf`
-3. Set Supabase secrets for `admin-grants-bff` (Dashboard → Edge Functions → Secrets):
-
-   - `STELLAR_SUPABASE_URL` = `https://vinbfneyficvgjrcduuj.supabase.co`
-   - `STELLAR_SERVICE_ROLE_KEY` = vinbf service role key (never commit)
+3. Set Supabase secrets for `admin-grants-bff` on **kajwp** (not on vinbf). See [Set Stellar secrets on kajwp](#set-stellar-secrets-on-kajwp-dashboard) below.
 
 ## Deploy commands
 
@@ -72,7 +69,43 @@ Expect `HTTP/1.1 200` and `Access-Control-Allow-Origin: https://www.rtmbusinessd
    - `STELLAR_SERVICE_ROLE_KEY` = vinbf service role key
 4. Hard refresh the admin site (Ctrl+Shift+R) or clear site data — browsers cache failed CORS preflights
 
-If POST returns `{"error":"Stellar grants backend is not configured."}`, CORS is fine; set the Stellar secrets above.
+If POST returns `{"error":"Stellar grants backend is not configured."}`, CORS is fine; set the Stellar secrets below.
+
+After redeploying `admin-grants-bff` with the latest code, unauthenticated `list-applications` still requires admin JWT; missing Stellar secrets return **200** with `applications: []` and a `warning` field so `/admin/grants` loads. `list-grants` still returns **500** until secrets are set.
+
+## Set Stellar secrets on kajwp (Dashboard)
+
+Secrets are stored on the **kajwp** project (`kajwpmyloxaqeciyndwf`). The edge function reads vinbf (Stellar) using these names — do **not** use `VITE_` prefixes here.
+
+| Secret name (exact) | Value |
+| --- | --- |
+| `STELLAR_SUPABASE_URL` | `https://vinbfneyficvgjrcduuj.supabase.co` |
+| `STELLAR_SERVICE_ROLE_KEY` | vinbf **service_role** JWT from the vinbf project |
+
+### Where to copy the vinbf service role key
+
+1. Open [vinbf project Settings → API](https://supabase.com/dashboard/project/vinbfneyficvgjrcduuj/settings/api).
+2. Under **Project API keys**, find **service_role** (labeled secret).
+3. Click **Reveal** / copy. This is **not** the anon/public key and **not** kajwp’s `SERVICE_ROLE_KEY` from launchpad `.env.local` (that key is for `kajwpmyloxaqeciyndwf` only).
+
+### Where to paste secrets on kajwp
+
+1. Open [kajwp Edge Functions](https://supabase.com/dashboard/project/kajwpmyloxaqeciyndwf/functions).
+2. Click **Secrets** in the left sidebar (or **Project Settings → Edge Functions → Secrets**).
+3. **Add new secret** → Name: `STELLAR_SUPABASE_URL` → Value: `https://vinbfneyficvgjrcduuj.supabase.co` → Save.
+4. **Add new secret** → Name: `STELLAR_SERVICE_ROLE_KEY` → Value: paste the vinbf service_role JWT (no quotes, no `Bearer ` prefix) → Save.
+5. Redeploy `admin-grants-bff` (CLI or Dashboard) so the function process picks up new secrets.
+6. Hard refresh `/admin/grants` (Ctrl+Shift+R).
+
+`SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `SUPABASE_SERVICE_ROLE_KEY` on kajwp are injected automatically by Supabase for edge functions — you do not set those manually for `admin-grants-bff`.
+
+### Local `.env.local` (optional, for CLI only)
+
+`.env.example` documents `STELLAR_SUPABASE_URL` and `STELLAR_SERVICE_ROLE_KEY` for local `supabase secrets set` workflows. A typical launchpad `.env.local` has kajwp `SERVICE_ROLE_KEY` but **not** vinbf — add vinbf service role only if you run `supabase secrets set` from the CLI; never commit it.
+
+### Verify vinbf `applications` table
+
+With vinbf service role configured on kajwp, POST `list-applications` as an admin should return rows. The `applications` table exists on vinbf (anon REST may return RLS/401; service role bypasses RLS).
 
 Admin UI calls:
 

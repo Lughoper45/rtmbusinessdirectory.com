@@ -94,10 +94,6 @@ Deno.serve(async (req) => {
       return jsonResponse(req, { error: "Server configuration incomplete." }, 500);
     }
 
-    if (!stellarUrl || !stellarService) {
-      return jsonResponse(req, { error: "Stellar grants backend is not configured." }, 500);
-    }
-
     await requireAdmin(req, kajwpUrl, kajwpAnon, kajwpService);
 
     const body =
@@ -108,7 +104,21 @@ Deno.serve(async (req) => {
       return jsonResponse(req, { error: "Invalid action. Use list-applications or list-grants." }, 400);
     }
 
-    const stellarAdmin = createClient(stellarUrl, stellarService);
+    const stellarConfigured = Boolean(stellarUrl && stellarService);
+    const stellarNotConfiguredWarning =
+      "Stellar grants backend is not configured. Set STELLAR_SUPABASE_URL and STELLAR_SERVICE_ROLE_KEY in kajwp Edge Function secrets (see DEPLOY_EDGE_FUNCTIONS.md).";
+
+    if (!stellarConfigured) {
+      if (action === "list-applications") {
+        return jsonResponse(req, {
+          applications: [],
+          warning: stellarNotConfiguredWarning,
+        });
+      }
+      return jsonResponse(req, { error: "Stellar grants backend is not configured." }, 500);
+    }
+
+    const stellarAdmin = createClient(stellarUrl!, stellarService!);
     const kajwpAdmin = createClient(kajwpUrl, kajwpService);
 
     if (action === "list-grants") {
