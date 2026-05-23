@@ -21,6 +21,7 @@ import type { User } from '@supabase/supabase-js';
 import Navbar from '@/components/Navbar';
 import ParticleBackground from '@/components/ParticleBackground';
 import GrantDiscovery from '@/components/grantpilot/GrantDiscovery';
+import GrantChecklistRequestDialog from '@/components/grantpilot/GrantChecklistRequestDialog';
 import { supabase } from '@/integrations/supabase/client';
 import { fetchPlatformMembership } from '@/services/membership';
 import {
@@ -242,13 +243,9 @@ const GrantPilot = () => {
                           </a>
                         </>
                       )}
-                      <a
-                        href={`mailto:${SITE_CONTACT.email}?subject=Grant%20Checklist%20Request`}
-                        className="inline-flex items-center justify-center gap-2 rounded-xl border border-[#cc0000]/40 bg-red-50 px-6 py-3 font-semibold text-[#061f3a] transition-colors hover:bg-red-100"
-                      >
-                        <Mail className="h-5 w-5 text-[#cc0000]" />
-                        Request checklist
-                      </a>
+                      <GrantChecklistRequestDialog
+                        triggerClassName="inline-flex items-center justify-center gap-2 rounded-xl border border-[#cc0000]/40 bg-red-50 px-6 py-3 font-semibold text-[#061f3a] transition-colors hover:bg-red-100"
+                      />
                     </div>
 
                     <aside className="rounded-2xl border-2 border-[#061f3a]/20 bg-white p-5 shadow-md lg:min-w-[220px]">

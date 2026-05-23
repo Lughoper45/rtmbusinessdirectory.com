@@ -29,6 +29,7 @@ From repo root:
 cd "c:\Users\flood\new rtm\launchpad-canada-ai"
 npx supabase functions deploy list-admin-users --project-ref kajwpmyloxaqeciyndwf --no-verify-jwt
 npx supabase functions deploy admin-grants-bff --project-ref kajwpmyloxaqeciyndwf --no-verify-jwt
+npx supabase functions deploy grant-checklist-lead --project-ref kajwpmyloxaqeciyndwf --no-verify-jwt
 ```
 
 `verify_jwt = false` in `supabase/config.toml` may **not** apply on deploy. Use `--no-verify-jwt` on deploy **and** turn off **Enforce JWT Verification** in the Dashboard for both functions.
@@ -77,3 +78,6 @@ Admin UI calls:
 
 - `list-admin-users` — `/admin/users`
 - `admin-grants-bff` — `/admin/grants` (`list-applications`, `list-grants`)
+- `grant-checklist-lead` — `/grants` checklist form (public POST; saves lead + optional Resend emails)
+
+See `GRANT_CHECKLIST_LEADS.md` for migration, seed, and reply templates.
