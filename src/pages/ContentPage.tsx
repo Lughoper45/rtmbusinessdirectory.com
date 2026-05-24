@@ -260,20 +260,28 @@ const contentPages: Record<string, PageConfig> = {
   },
   terms: {
     title: "Terms of Service",
-    description: "General terms governing use of RTM Business Directory services and public site experiences.",
+    description: "Terms governing RTM Business Directory membership, grant advisory packages, and platform use.",
     eyebrow: "Legal",
     sections: [
       {
-        title: "Use of the platform",
-        body: "These terms can define how visitors, members, and businesses use RTM services, listings, promotional surfaces, and related experiences.",
+        title: "Services covered",
+        body: "RTM Global Canada operates rtmbusinessdirectory.com and related workspaces including membership, grants (GrantPilot), and business directory listings. Services include RTM membership ($100 CAD/year), grant advisory packages (Maple Checklist from $149 member / $299 list; True North Standard from $1,000 member / $2,000 list; Provincial Bridge from $1,600 member / $3,200 list; Northern Star from $3,250 member / $6,500 list), and business visibility tools.",
       },
       {
-        title: "Commercial relationships",
-        body: "Terms should cover billing, partner obligations, acceptable use rules, account access, and limitations of liability.",
+        title: "What RTM provides",
+        body: "RTM provides research, narrative drafting, document preparation, eligibility checklists, and submission support through licensed advisors. RTM does not provide legal representation, financial advice, guaranteed grant funding, or direct access to government systems. RTM does not submit applications to government portals without your explicit review and consent.",
       },
       {
-        title: "Legal review",
-        body: "This policy page should be reviewed by counsel before RTM relies on it as final legal language.",
+        title: "Refund policy",
+        body: "Maple Checklist: 100% refund if RTM cannot identify at least three programs that may fit your profile. Single-application packages: 50% refund if the application is not submitted within the agreed timeline due to RTM delay. Refund requests must be submitted in writing to info@rtmbusinessdirectory.com within 14 days of purchase. RTM does not guarantee grant approval.",
+      },
+      {
+        title: "User responsibilities",
+        body: "You agree to provide accurate business information, deliver documents on agreed timelines, and review all drafts before any submission. You retain responsibility for final application accuracy.",
+      },
+      {
+        title: "Intellectual property & governing law",
+        body: "RTM-produced narratives and strategy documents become yours upon full payment. These terms are governed by the laws of the Province of Ontario, Canada. Last updated: May 2026.",
       },
     ],
     primaryCta: { label: "View Privacy Policy", to: "/privacy" },
@@ -281,20 +289,28 @@ const contentPages: Record<string, PageConfig> = {
   },
   privacy: {
     title: "Privacy Policy",
-    description: "How RTM may collect, use, and manage data across its services.",
+    description: "How RTM Global Canada collects, uses, and protects personal information under PIPEDA.",
     eyebrow: "Legal",
     sections: [
       {
-        title: "Data handling overview",
-        body: "A privacy policy should explain what personal data RTM collects, how it is used, and how users can understand and manage that processing.",
+        title: "Who we are",
+        body: "RTM Global Canada operates RTM Business Directory from 640 Sentinel Road, North York, ON M3J 0B2, Canada. Contact: info@rtmbusinessdirectory.com · +1 416 900 8728. We are a private business advisory platform — not a government agency.",
       },
       {
-        title: "Platform touchpoints",
-        body: "This can cover authentication, memberships, payments, inquiries, listings, analytics, and communications across the RTM platform.",
+        title: "Information we collect",
+        body: "Account registration (name, email, business details), grant profile data, checklist lead submissions, grant intake answers, document uploads to the grant-documents Storage bucket, and payment confirmation metadata from Stripe. RTM does not store credit card numbers.",
       },
       {
-        title: "Legal review",
-        body: "This policy page should be reviewed by counsel before RTM relies on it as final legal language.",
+        title: "How we use information",
+        body: "To match grant programs to your profile, deliver advisor services, process membership and package orders, send transactional email, and improve platform security. Grant compatibility scores are estimates — not government eligibility determinations.",
+      },
+      {
+        title: "Third-party processors",
+        body: "Supabase (database, authentication, file storage — Canadian region where available), Stripe (payment processing), Resend (transactional email), and OpenRouter (AI-assisted drafting via secure server-side functions only). We do not sell personal information.",
+      },
+      {
+        title: "Retention & your rights",
+        body: "Account data is retained while your membership or active service order exists. You may request access, correction, or deletion by emailing info@rtmbusinessdirectory.com; we respond within 30 days per PIPEDA. Deleted accounts are purged within 90 days of verified request unless law requires retention.",
       },
     ],
     primaryCta: { label: "Read Terms", to: "/terms" },
@@ -302,20 +318,20 @@ const contentPages: Record<string, PageConfig> = {
   },
   cookies: {
     title: "Cookie Policy",
-    description: "Information about cookies, analytics, and related tracking technologies used by RTM.",
+    description: "Cookies and similar technologies used across RTM Business Directory properties.",
     eyebrow: "Legal",
     sections: [
       {
-        title: "Tracking transparency",
-        body: "A cookie policy should explain what browser storage and measurement technologies are used and what purpose they serve across RTM properties.",
+        title: "Essential cookies",
+        body: "Supabase authentication cookies maintain your signed-in session across RTM subdomains where configured. These are required for membership, grants workspace, and dashboard features.",
       },
       {
-        title: "User awareness",
-        body: "This can include essential cookies, analytics tools, marketing technologies, and consent preferences when RTM enables them.",
+        title: "Payment & security",
+        body: "Stripe may set cookies during checkout for fraud prevention and payment security. RTM does not use advertising or third-party tracking cookies on grant advisory pages.",
       },
       {
-        title: "Placeholder notice",
-        body: "The current page exists to support working navigation and policy references until final legal text is available.",
+        title: "Managing cookies",
+        body: "You can control cookies through your browser settings. Disabling essential cookies may prevent sign-in and checkout. Last updated: May 2026.",
       },
     ],
     primaryCta: { label: "Privacy Policy", to: "/privacy" },

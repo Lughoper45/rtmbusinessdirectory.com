@@ -10,6 +10,8 @@ import { loadGrantProfile } from "@/lib/grantProfile";
 import { SITE_CONTACT } from "@/lib/site";
 import type { ScoredGrant } from "@/types/grant";
 import GrantIntakeHub from "@/components/grantpilot/GrantIntakeHub";
+import GrantAdvisoryDisclaimer from "@/components/grantpilot/GrantAdvisoryDisclaimer";
+import { GrantCompatibilityScore } from "@/components/grantpilot/GrantCompatibilityScore";
 import {
   Building2,
   BadgeCheck,
@@ -53,7 +55,16 @@ export default function GrantDetail() {
   return (
     <>
       <Helmet>
-        <title>{grant ? `${grant.name} | RTM Grants` : "Grant | RTM Business Directory"}</title>
+        <title>{grant ? `${grant.name} — RTM Grant Advisory` : "Grant | RTM Business Directory"}</title>
+        <meta
+          name="description"
+          content={
+            grant
+              ? `${grant.name} — ${grant.organization}. Funding: ${formatGrantFunding(grant)}. RTM private grant advisory — not a government agency.`
+              : "Canadian grant program details from RTM Business Directory."
+          }
+        />
+        {grant && <link rel="canonical" href={`https://rtmbusinessdirectory.com/grants/${grant.id}`} />}
       </Helmet>
       <div className="min-h-screen bg-background">
         <Navbar />
@@ -75,6 +86,8 @@ export default function GrantDetail() {
 
           {grant && (
             <>
+              <GrantAdvisoryDisclaimer variant="full" className="mb-6" />
+
               <div className="rounded-2xl border bg-gradient-to-br from-primary/5 p-6 md:p-8 mb-8">
                 <Badge className="mb-2">{grant.type}</Badge>
                 <h1 className="text-3xl font-bold mb-2">{grant.name}</h1>
@@ -85,7 +98,7 @@ export default function GrantDetail() {
                 {applyHref ? (
                   <Button asChild>
                     <a href={applyHref} target={grant.official_url ? "_blank" : undefined} rel={grant.official_url ? "noopener noreferrer" : undefined}>
-                      {grant.rtm_processing_eligible === false ? "Open official guidance" : "Open official program"}
+                      {grant.official_url ? "View official program guide" : "Contact RTM advisor"}
                     </a>
                   </Button>
                 ) : (
@@ -103,8 +116,8 @@ export default function GrantDetail() {
                 </Card>
                 <Card className="p-4">
                   <Sparkles className="w-5 h-5 text-primary mb-2" />
-                  <p className="text-xs text-muted-foreground">Your match</p>
-                  <p className="font-semibold">{grant.computedMatch}%</p>
+                  <p className="text-xs text-muted-foreground">RTM compatibility estimate</p>
+                  <GrantCompatibilityScore score={grant.computedMatch} />
                 </Card>
                 <Card className="p-4">
                   <Clock className="w-5 h-5 text-amber-600 mb-2" />

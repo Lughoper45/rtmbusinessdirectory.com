@@ -1,0 +1,7 @@
+Contact: mailto:security@rtmbusinessdirectory.com
+Expires: 2027-05-24T00:00:00.000Z
+Preferred-Languages: en
+Canonical: https://rtmbusinessdirectory.com/.well-known/security.txt
+
+# RTM Global Canada — security contact
+# Report vulnerabilities responsibly to security@rtmbusinessdirectory.com

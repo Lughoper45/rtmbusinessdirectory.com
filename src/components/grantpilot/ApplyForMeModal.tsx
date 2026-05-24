@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Zap, Crown, Check, ChevronRight, Sparkles, Shield, Clock, Users, Star, ArrowRight, FileText } from 'lucide-react';
 import ApplicationWizard from './ApplicationWizard';
-import { getPackageRequestMailto } from '@/lib/grantPackages';
+import { getPackageCheckoutUrl, getPackageRequestMailto } from '@/lib/grantPackages';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Grant {
   id: string;
@@ -102,14 +103,20 @@ const ApplyForMeModal = ({ grant, onClose }: ApplyForMeModalProps) => {
     return colors[color] || colors.primary;
   };
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     if (!selectedMode) return;
+    const { data } = await supabase.auth.getSession();
+    const session = data.session;
+    const handoff =
+      session?.access_token && session.refresh_token
+        ? { access_token: session.access_token, refresh_token: session.refresh_token }
+        : null;
     if (selectedMode === 'fullservice') {
-      window.location.href = getPackageRequestMailto('northern-star');
+      window.location.href = getPackageCheckoutUrl('northern-star', handoff);
       return;
     }
     if (selectedMode === 'guided') {
-      window.location.href = getPackageRequestMailto('true-north-standard');
+      window.location.href = getPackageCheckoutUrl('true-north-standard', handoff);
       return;
     }
     setShowWizard(true);

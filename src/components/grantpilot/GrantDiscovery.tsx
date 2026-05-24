@@ -135,7 +135,7 @@ const GrantDiscovery = ({ limit = 3, showMatchScores = false }: GrantDiscoveryPr
                     {formatGrantAmount(Number(grant.amount))}
                   </span>
                   <span className="text-sm text-success font-medium">
-                    {showMatchScores ? `${grant.computedMatch}% match` : grant.type || 'Program'}
+                    {showMatchScores ? `${grant.computedMatch}% compatibility` : grant.type || 'Program'}
                   </span>
                 </div>
 

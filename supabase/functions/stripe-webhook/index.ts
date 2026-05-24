@@ -1,5 +1,31 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import Stripe from "https://esm.sh/stripe@13?target=deno";
+import { Resend } from "https://esm.sh/resend@3.1.0";
+
+const RTM_NOTIFY_EMAIL = "info@rtmbusinessdirectory.com";
+const FROM_ADDRESS = "RTM Grants <noreply@rtmbusinessdirectory.com>";
+
+async function notifyAdvisorPackagePurchase(opts: {
+  orderId: string;
+  packageId: string;
+  grantId: string;
+  userId: string;
+  intakeId: string;
+}) {
+  const resendKey = Deno.env.get("RESEND_API_KEY");
+  if (!resendKey) return;
+
+  const resend = new Resend(resendKey);
+  const adminUrl = "https://rtmbusinessdirectory.com/admin/grants";
+  await resend.emails.send({
+    from: FROM_ADDRESS,
+    to: RTM_NOTIFY_EMAIL,
+    subject: `New grant package order — ${opts.packageId}`,
+    html: `<p><strong>Package purchased:</strong> ${opts.packageId}</p>
+<p>Grant: ${opts.grantId}<br/>Order: ${opts.orderId}<br/>Intake: ${opts.intakeId}<br/>User: ${opts.userId}</p>
+<p><a href="${adminUrl}">Open admin grants →</a></p>`,
+  });
+}
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -86,6 +112,15 @@ async function fulfillGrantPackageOrder(
     .eq("id", orderId);
 
   if (updateError) throw updateError;
+
+  await notifyAdvisorPackagePurchase({
+    orderId,
+    packageId,
+    grantId,
+    userId,
+    intakeId,
+  });
+
   return true;
 }
 

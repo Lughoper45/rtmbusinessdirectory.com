@@ -14,6 +14,7 @@ import {
   Phone,
   Rocket,
   Search,
+  ShoppingCart,
   ShieldCheck,
 } from 'lucide-react';
 import { Helmet } from 'react-helmet-async';
@@ -128,9 +129,15 @@ function PackageRow({
           onClick={() => onRequest(packageId)}
           className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors inline-flex items-center gap-2"
         >
-          <Mail className="w-4 h-4" />
-          Request package
+          <ShoppingCart className="w-4 h-4" />
+          Buy package
         </button>
+        <a
+          href={getPackageRequestMailto(packageId)}
+          className="mt-2 block text-xs text-muted-foreground hover:text-primary"
+        >
+          Contact advisor instead
+        </a>
       </td>
     </tr>
   );
@@ -160,8 +167,15 @@ const GrantPilot = () => {
     fetchPlatformMembership(user.id, user.email).then((m) => setMemberActive(m.active));
   }, [user]);
 
-  const handleRequestPackage = (packageId: GrantPackageId) => {
-    window.location.href = getPackageRequestMailto(packageId);
+  const handleRequestPackage = async (packageId: GrantPackageId) => {
+    const { data } = await supabase.auth.getSession();
+    const session = data.session;
+    window.location.href = getPackageCheckoutUrl(
+      packageId,
+      session?.access_token && session.refresh_token
+        ? { access_token: session.access_token, refresh_token: session.refresh_token }
+        : null,
+    );
   };
 
   const workspaceUrl = `${GRANTS_APP_URL.replace(/\/$/, '')}/grants`;
@@ -169,11 +183,12 @@ const GrantPilot = () => {
   return (
     <>
       <Helmet>
-        <title>Canadian Business Grants — Up to $30,000+ | RTM Business Directory</title>
+        <title>Canadian Business Grants 2026 — RTM Advisory | RTM Global Canada</title>
         <meta
           name="description"
-          content="RTM helps established and startup businesses apply for Canadian business grants you may qualify for — up to $30,000 or more. Check eligibility, gather documents, and get funding support."
+          content="Browse 217 federal and provincial grant programs. RTM advisors help Canadian SMEs prepare and submit grant applications. Private advisory — not a government agency."
         />
+        <link rel="canonical" href="https://rtmbusinessdirectory.com/grants" />
       </Helmet>
 
       <motion.div className="min-h-screen animated-gradient relative">
@@ -295,6 +310,8 @@ const GrantPilot = () => {
               </div>
             </motion.section>
 
+            <GrantAdvisoryDisclaimer variant="full" />
+
             {/* How it works */}
             <section>
               <h2 className="font-orbitron text-2xl font-bold text-foreground mb-6">How it works</h2>
@@ -323,6 +340,7 @@ const GrantPilot = () => {
 
             {/* Packages */}
             <section>
+              <GrantAdvisoryDisclaimer variant="slim" className="mb-4" />
               <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-6">
                 <div>
                   <h2 className="font-orbitron text-2xl font-bold text-foreground">Advisor packages</h2>
