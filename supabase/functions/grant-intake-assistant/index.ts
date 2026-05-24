@@ -8,7 +8,11 @@ import {
   listMissingRules,
   type GrantRequirementItem,
 } from "../_shared/grantIntakeRules.ts";
-import { openRouterChat } from "../_shared/openrouter.ts";
+import {
+  AssistantError,
+  isOpenRouterConfigured,
+  openRouterChat,
+} from "../_shared/openrouter.ts";
 
 type Action = "analyze_readiness" | "generate_draft" | "list_missing";
 
@@ -245,6 +249,18 @@ Deno.serve(async (req) => {
     }
 
     if (action === "generate_draft") {
+      if (!isOpenRouterConfigured()) {
+        return jsonResponse(
+          req,
+          {
+            error:
+              "Application Assistant not configured. Set OPENROUTER_API_KEY on kajwp.",
+            code: "OPENROUTER_NOT_CONFIGURED",
+          },
+          502,
+        );
+      }
+
       if (!intakeId) {
         return jsonResponse(req, { error: "intake_id is required." }, 400);
       }
@@ -369,6 +385,14 @@ Deno.serve(async (req) => {
       assistant: "Application Assistant",
     });
   } catch (error) {
+    if (error instanceof AssistantError) {
+      return jsonResponse(
+        req,
+        { error: error.message, code: error.code },
+        502,
+      );
+    }
+
     const message = error instanceof Error ? error.message : "Intake assistant failed";
     const status =
       message === "Unauthorized"
@@ -379,9 +403,19 @@ Deno.serve(async (req) => {
             ? 404
             : message.includes("Draft limit")
               ? 429
-              : message.includes("not configured")
-                ? 503
-                : 500;
-    return jsonResponse(req, { error: message }, status);
+              : 500;
+
+    const code =
+      message.includes("Draft limit")
+        ? "DRAFT_RATE_LIMIT"
+        : status === 401
+          ? "UNAUTHORIZED"
+          : status === 403
+            ? "FORBIDDEN"
+            : status === 404
+              ? "NOT_FOUND"
+              : "INTAKE_ASSISTANT_ERROR";
+
+    return jsonResponse(req, { error: message, code }, status);
   }
 });

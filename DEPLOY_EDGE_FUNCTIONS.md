@@ -27,7 +27,15 @@ cd "c:\Users\flood\new rtm\launchpad-canada-ai"
 npx supabase functions deploy list-admin-users --project-ref kajwpmyloxaqeciyndwf --no-verify-jwt
 npx supabase functions deploy admin-grants-bff --project-ref kajwpmyloxaqeciyndwf --no-verify-jwt
 npx supabase functions deploy grant-checklist-lead --project-ref kajwpmyloxaqeciyndwf --no-verify-jwt
+npx supabase functions deploy grant-intake-assistant --project-ref kajwpmyloxaqeciyndwf --no-verify-jwt
 ```
+
+**Grant intake assistant secrets** (kajwp → Project Settings → Edge Functions → Secrets):
+
+- `OPENROUTER_API_KEY` — required for `generate_draft`
+- `OPENROUTER_MODEL` — optional; default `openai/gpt-oss-120b:free`
+
+Validate before deploy: `OPENROUTER_API_KEY=sk-or-… node scripts/test-openrouter-model.mjs`
 
 `verify_jwt = false` in `supabase/config.toml` may **not** apply on deploy. Use `--no-verify-jwt` on deploy **and** turn off **Enforce JWT Verification** in the Dashboard for both functions.
 
