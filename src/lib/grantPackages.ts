@@ -1,3 +1,5 @@
+import { getGrantsWorkspaceUrl } from "@/lib/platformAuthHandoff";
+
 export type GrantPackageId =
   | "maple-checklist"
   | "true-north-standard"
@@ -88,4 +90,12 @@ export function getPackageRequestMailto(packageId: GrantPackageId, businessName?
       .join("\n"),
   );
   return `mailto:info@rtmbusinessdirectory.com?subject=${subject}&body=${body}`;
+}
+
+/** Primary marketing CTA — hands off to grants workspace packages page with optional auth. */
+export function getPackageCheckoutUrl(
+  packageId: GrantPackageId,
+  session?: { access_token: string; refresh_token: string } | null,
+): string {
+  return getGrantsWorkspaceUrl(session ?? null, `/grants/packages?package=${packageId}`);
 }

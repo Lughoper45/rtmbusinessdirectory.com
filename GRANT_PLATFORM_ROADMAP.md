@@ -2,7 +2,10 @@
 
 **Status:** Active plan  
 **Last updated:** 2026-05-24  
-**Related:** [GRANT_INTAKE_HUB_PLAN.md](./GRANT_INTAKE_HUB_PLAN.md) · [VERCEL_DEPLOY.md](./VERCEL_DEPLOY.md) · [GRANT_PACKAGES.md](./GRANT_PACKAGES.md)
+**Agent execution guide:** [docs/GRANT_PLATFORM_AGENT_WORKPLAN.md](./docs/GRANT_PLATFORM_AGENT_WORKPLAN.md) — **use this for task IDs, file paths, deploy steps, and done/partial status**  
+**Related:** [GRANT_INTAKE_HUB_PLAN.md](./GRANT_INTAKE_HUB_PLAN.md) · [VERCEL_DEPLOY.md](./VERCEL_DEPLOY.md) · [GRANT_PACKAGES.md](./GRANT_PACKAGES.md) · [RTM_AI_INTEGRATION_ROADMAP.md](./docs/RTM_AI_INTEGRATION_ROADMAP.md)
+
+> **Master Product Spec v2.0** (May 2026) is the authority for trust, funnel, and compliance. Several items in §2 "Current State" are now **ahead** — especially AI (directory-assistant, LaunchBot Option C) and local GrantCatalog. See the agent workplan §1 for the honest delta.
 
 ---
 
@@ -10,6 +13,18 @@
 
 > **Backend engineering is ahead of front-facing trust signals.**  
 > Close that gap so automated scanners, payment auditors, and skeptical users see a legitimate **private Canadian grant advisory platform** — and so revenue flows without manual `mailto:` steps.
+
+### Already ahead of Master Spec v2.0 (May 2026)
+
+| Done / partial | Detail |
+|----------------|--------|
+| **AI (directory)** | `AIChatAssistant` → `directory-assistant` (OpenRouter) — no longer mock |
+| **AI (grants)** | LaunchBot Option C: markdown, workflow stepper, executable actions — deployed stellar `main` |
+| **Grant catalog (local)** | `GrantCatalog.tsx` wired in launchpad `GrantPilot.tsx` — **prod deploy still pending** |
+| **Intake hub** | Schema + `GrantIntakeHub` on launchpad detail — not full E2E with Stripe webhook |
+| **217 grants migration** | SQL in repo; confirm applied on kajwp before prod catalog deploy |
+
+Full task IDs and agent steps: **[docs/GRANT_PLATFORM_AGENT_WORKPLAN.md](./docs/GRANT_PLATFORM_AGENT_WORKPLAN.md)**.
 
 | Layer | Today | Target (6 weeks) |
 |-------|--------|------------------|

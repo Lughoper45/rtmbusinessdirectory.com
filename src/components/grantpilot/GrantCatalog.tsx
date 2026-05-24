@@ -14,9 +14,11 @@ import {
   fetchActiveGrants,
   fetchGrantCatalog,
   formatGrantFunding,
+  getAdvisorContactMailto,
   grantDetailPath,
   type GrantCatalogFilters,
 } from "@/lib/grants";
+import { GrantCompatibilityScore } from "@/components/grantpilot/GrantCompatibilityScore";
 import { loadGrantProfile } from "@/lib/grantProfile";
 import type { GrantRecord, ScoredGrant } from "@/types/grant";
 
@@ -151,7 +153,7 @@ const GrantCatalog = ({ showMatchScores = false }: GrantCatalogProps) => {
         <div>
           <h2 className="font-orbitron text-2xl font-bold text-foreground">Canadian grant catalog</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Search verified programs and identify what RTM can process through the intake hub.
+            Search programs sourced from official listings. Compatibility scores are RTM estimates — not government determinations.
           </p>
         </div>
         <div className="inline-flex items-center gap-2 rounded-xl border border-primary/20 bg-primary/5 px-4 py-2 text-sm text-primary">
@@ -270,10 +272,12 @@ const GrantCatalog = ({ showMatchScores = false }: GrantCatalogProps) => {
                 <p className="font-semibold text-foreground">{formatGrantFunding(grant)}</p>
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">Readiness</p>
-                <p className="font-semibold text-foreground">
-                  {showMatchScores ? `${grant.computedMatch}% match` : grant.difficulty ?? "Review"}
-                </p>
+                <p className="text-xs text-muted-foreground">RTM compatibility</p>
+                {showMatchScores ? (
+                  <GrantCompatibilityScore score={grant.computedMatch} />
+                ) : (
+                  <p className="font-semibold text-foreground">{grant.difficulty ?? "Review"}</p>
+                )}
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Coverage</p>
@@ -298,13 +302,33 @@ const GrantCatalog = ({ showMatchScores = false }: GrantCatalogProps) => {
               ))}
             </div>
 
-            <Link
-              to={grantDetailPath(grant.id)}
-              className="mt-5 inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-            >
-              View program
-              <ExternalLink className="h-4 w-4" />
-            </Link>
+            <div className="mt-5 flex flex-col gap-2">
+              {grant.official_url ? (
+                <a
+                  href={grant.official_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+                >
+                  View official program guide
+                  <ExternalLink className="h-4 w-4" />
+                </a>
+              ) : (
+                <a
+                  href={getAdvisorContactMailto(grant.name)}
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+                >
+                  Contact RTM advisor
+                </a>
+              )}
+              <Link
+                to={grantDetailPath(grant.id)}
+                className="inline-flex items-center justify-center gap-2 rounded-xl border border-border px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:border-primary/50
+"
+              >
+                Prepare with RTM
+              </Link>
+            </div>
           </article>
         ))}
       </div>

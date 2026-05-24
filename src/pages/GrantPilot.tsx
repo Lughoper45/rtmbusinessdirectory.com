@@ -22,21 +22,23 @@ import Navbar from '@/components/Navbar';
 import ParticleBackground from '@/components/ParticleBackground';
 import GrantCatalog from '@/components/grantpilot/GrantCatalog';
 import GrantChecklistRequestDialog from '@/components/grantpilot/GrantChecklistRequestDialog';
+import GrantAdvisoryDisclaimer from '@/components/grantpilot/GrantAdvisoryDisclaimer';
 import { supabase } from '@/integrations/supabase/client';
 import { fetchPlatformMembership } from '@/services/membership';
 import {
   GRANT_PACKAGES,
   formatPackagePrice,
+  getPackageCheckoutUrl,
   getPackageRequestMailto,
   type GrantPackageId,
 } from '@/lib/grantPackages';
 import { DIRECTORY_APP_URL, GRANTS_APP_URL, openMembershipJoin, SITE_CONTACT } from '@/lib/site';
 
 const GRANT_CHECKLIST = [
-  'Check Eligibility',
-  'Gather Documents',
-  'Submit Application',
-  'Get Funding',
+  'Check eligibility criteria',
+  'Gather documents',
+  'Prepare your application',
+  'Advisor review & submit',
 ] as const;
 
 const steps = [
@@ -68,7 +70,7 @@ const faqs = [
   },
   {
     q: 'How do I access the grant workspace?',
-    a: 'Sign in at grants.rtmbusinessdirectory.com with the same email and password you use for RTM membership. Your workspace shows profile-matched programs, match scores, and application tracking. Package requests and marketing information stay on rtmbusinessdirectory.com/grants.',
+    a: 'Sign in at grants.rtmbusinessdirectory.com with the same email and password you use for RTM membership. Your workspace shows profile-matched programs, RTM compatibility estimates, and application tracking. Package checkout and intake stay on the grants subdomain.',
   },
   {
     q: 'What is the typical timeline?',
@@ -76,7 +78,7 @@ const faqs = [
   },
   {
     q: 'Who is eligible for Canadian business grants?',
-    a: 'Eligibility varies by program (sector, province, company size, and project type). RTM advisors assess your profile against federal, provincial, and regional programs. Featured programs on this page are verified listings; your workspace shows programs ranked to your business profile.',
+    a: 'Eligibility varies by program (sector, province, company size, and project type). RTM advisors assess your profile against federal, provincial, and regional programs. Listings here are sourced from official program pages; RTM compatibility estimates are not government eligibility determinations.',
   },
   {
     q: 'Do I need RTM membership?',

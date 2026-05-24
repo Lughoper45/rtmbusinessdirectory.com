@@ -6,7 +6,7 @@
 **Version:** 1.0 · May 2026  
 **Status:** Implemented in `launchpad-canada-ai` — deploy edge functions + secrets to activate
 
-> **Related:** [GRANT_INTAKE_HUB_PLAN.md](../GRANT_INTAKE_HUB_PLAN.md) covers grant intake data model, edge function actions, and GrantPilot UI flows. This document covers **all AI surfaces** and the unified OpenRouter architecture.
+> **Related:** [GRANT_INTAKE_HUB_PLAN.md](../GRANT_INTAKE_HUB_PLAN.md) covers grant intake data model, edge function actions, and GrantPilot UI flows. This document covers **all AI surfaces** and the unified OpenRouter architecture. **Grant platform agent tasks (trust, funnel, deploy):** [GRANT_PLATFORM_AGENT_WORKPLAN.md](./GRANT_PLATFORM_AGENT_WORKPLAN.md).
 
 ---
 

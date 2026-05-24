@@ -1,7 +1,7 @@
 import { createClient, type SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const GRANT_KEYWORDS =
-  /\b(grant|funding|fund|subsidy|loan program|financing|canexport|irap|csbfp|sred|sr&ed)\b/i;
+  /\b(grant|grants|funding|fund|subsidy|loan program|financing|canexport|irap|csbfp|sred|sr&ed|qualify|eligible|eligibility)\b/i;
 const BUSINESS_KEYWORDS =
   /\b(find|search|looking for|recommend|near me|business|restaurant|plumber|contractor|lawyer|dentist|mechanic|shop|store|service)\b/i;
 
@@ -120,51 +120,101 @@ async function queryBusinesses(
 async function queryGrants(
   admin: SupabaseClient,
   message: string,
+  profile?: Record<string, unknown>,
 ): Promise<string> {
   const { wantsGrants } = extractSearchTerms(message);
   if (!wantsGrants) return "";
 
+  const stopWords = new Set([
+    "show", "what", "which", "grants", "grant", "qualify", "eligible", "eligibility",
+    "for", "that", "with", "from", "have", "help", "find", "need", "want", "please",
+  ]);
+
   const tokens = message
     .toLowerCase()
     .split(/\s+/)
-    .filter((t) => t.length > 3 && !GRANT_KEYWORDS.test(t))
+    .map((t) => t.replace(/[^a-z0-9-]/g, ""))
+    .filter((t) => t.length > 2 && !stopWords.has(t) && !GRANT_KEYWORDS.test(t))
     .slice(0, 4);
+
+  if (profile?.industry && typeof profile.industry === "string") {
+    tokens.unshift(profile.industry.toLowerCase().split(/\s+/)[0] ?? "");
+  }
 
   let query = admin
     .from("grants")
-    .select("id, name, organization, amount, eligibility_summary, official_url")
+    .select("id, name, organization, amount, eligibility_summary, official_url, provinces, sectors")
     .eq("is_active", true)
-    .limit(5);
+    .limit(8);
+
+  const province =
+    typeof profile?.location === "string"
+      ? profile.location
+      : typeof profile?.province === "string"
+        ? profile.province
+        : undefined;
 
   if (tokens.length > 0) {
     const orParts = tokens.flatMap((t) => [
       `name.ilike.%${t}%`,
       `description.ilike.%${t}%`,
       `organization.ilike.%${t}%`,
+      `eligibility_summary.ilike.%${t}%`,
     ]);
     query = query.or(orParts.join(","));
   }
 
   const { data, error } = await query.order("name");
-  if (error || !data?.length) return "";
+  if (error || !data?.length) {
+    const { data: fallback } = await admin
+      .from("grants")
+      .select("id, name, organization, amount, eligibility_summary, official_url")
+      .eq("is_active", true)
+      .order("name")
+      .limit(8);
+    if (!fallback?.length) return "";
+    return formatGrantLines(fallback, profile, province);
+  }
 
-  const lines = data.map((g) => {
+  return formatGrantLines(data, profile, province);
+}
+
+function formatGrantLines(
+  grants: Array<{
+    id: string;
+    name: string;
+    organization: string;
+    amount: number | null;
+    eligibility_summary: string | null;
+    official_url?: string | null;
+  }>,
+  profile?: Record<string, unknown>,
+  province?: string,
+): string {
+  const profileHint = profile
+    ? `Profile context: ${JSON.stringify(profile)}${province ? ` (${province})` : ""}.`
+    : "";
+
+  const lines = grants.map((g) => {
     const amount = g.amount ? `$${Number(g.amount).toLocaleString()}` : "Amount varies";
     const summary = g.eligibility_summary
-      ? ` — ${String(g.eligibility_summary).slice(0, 120)}`
+      ? ` — ${String(g.eligibility_summary).slice(0, 140)}`
       : "";
-    return `- ${g.name} (${g.organization}, ${amount})${summary}`;
+    const url = g.official_url ? ` [${g.id}]` : "";
+    return `- ${g.name} (${g.organization}, ${amount})${summary}${url}`;
   });
-  return `Matching grant programs (from RTM catalog):\n${lines.join("\n")}`;
+
+  return `${profileHint}\nMatching grant programs (from RTM catalog — list these by name; advisor confirms final eligibility):\n${lines.join("\n")}`;
 }
 
 export async function buildLiveContextBlock(
   admin: SupabaseClient,
   lastUserMessage: string,
+  profile?: Record<string, unknown>,
 ): Promise<string> {
   const [businesses, grants] = await Promise.all([
     queryBusinesses(admin, lastUserMessage),
-    queryGrants(admin, lastUserMessage),
+    queryGrants(admin, lastUserMessage, profile),
   ]);
 
   const parts = [businesses, grants].filter(Boolean);

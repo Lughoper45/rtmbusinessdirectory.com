@@ -7,10 +7,20 @@ import {
 import { buildLiveContextBlock } from "../_shared/directoryContext.ts";
 import { AssistantError, openRouterChat } from "../_shared/openrouter.ts";
 import {
+  loadUserLaunchContext,
+  resolveLaunchBotWorkflow,
+} from "../_shared/launchBotWorkflow.ts";
+import {
   clientIp,
   createServiceClient,
   enforceHourlyRateLimit,
 } from "../_shared/rateLimit.ts";
+
+const LAUNCHBOT_FORMAT_PROMPT = `
+LaunchBot UI mode: format every reply with GitHub-flavored Markdown.
+Use **bold** for emphasis, bullet lists for programs, and [descriptive link text](https://url) for RTM pages.
+Keep replies scannable (2–4 short paragraphs max). End with one clear next step aligned to the user's journey.
+`.trim();
 
 const ANON_LIMIT = 20;
 const AUTH_LIMIT = 50;
@@ -69,8 +79,8 @@ Deno.serve(async (req) => {
     }
 
     const lastUserMessage = turns.filter((t) => t.role === "user").at(-1)?.content ?? "";
-    const liveContext = await buildLiveContextBlock(admin, lastUserMessage);
 
+    let memberProfile: Record<string, unknown> | undefined;
     let memberContext = "";
     if (userId) {
       const { data: profileRow } = await admin
@@ -79,14 +89,18 @@ Deno.serve(async (req) => {
         .eq("user_id", userId)
         .maybeSingle();
       if (profileRow?.profile && typeof profileRow.profile === "object") {
-        const p = profileRow.profile as Record<string, unknown>;
+        memberProfile = profileRow.profile as Record<string, unknown>;
         memberContext =
           `\n\nSigned-in member profile (use for grant guidance only; do not claim eligibility):\n` +
-          JSON.stringify(p, null, 0);
+          JSON.stringify(memberProfile, null, 0);
       }
     }
 
-    const systemContent = `${DIRECTORY_SYSTEM_PROMPT}${liveContext}${memberContext}`;
+    const liveContext = await buildLiveContextBlock(admin, lastUserMessage, memberProfile);
+
+    const source = body?.source === "launchbot" ? "launchbot" : "directory";
+    const launchBotExtra = source === "launchbot" ? `\n\n${LAUNCHBOT_FORMAT_PROMPT}` : "";
+    const systemContent = `${DIRECTORY_SYSTEM_PROMPT}${liveContext}${memberContext}${launchBotExtra}`;
     const messages = [
       { role: "system" as const, content: systemContent },
       ...turns.map((t) => ({ role: t.role, content: t.content })),
@@ -94,17 +108,28 @@ Deno.serve(async (req) => {
 
     const { text, model } = await openRouterChat({
       messages,
-      maxTokens: 600,
-      temperature: 0.45,
-      httpReferer: "https://rtmbusinessdirectory.com",
-      xTitle: "RTM Directory Assistant",
+      maxTokens: 700,
+      temperature: 0.4,
+      httpReferer: source === "launchbot"
+        ? "https://grants.rtmbusinessdirectory.com"
+        : "https://rtmbusinessdirectory.com",
+      xTitle: source === "launchbot" ? "RTM LaunchBot" : "RTM Directory Assistant",
     });
 
-    return jsonResponse(req, {
+    const payload: Record<string, unknown> = {
       reply: text,
       model,
       remaining: rate.remaining,
-    });
+    };
+
+    if (source === "launchbot") {
+      const launchCtx = await loadUserLaunchContext(admin, userId, lastUserMessage);
+      const { workflow, actions } = resolveLaunchBotWorkflow(lastUserMessage, launchCtx);
+      payload.actions = actions;
+      if (workflow) payload.workflow = workflow;
+    }
+
+    return jsonResponse(req, payload);
   } catch (error) {
     if (error instanceof AssistantError) {
       const status =

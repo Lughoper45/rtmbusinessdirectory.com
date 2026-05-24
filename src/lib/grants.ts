@@ -147,3 +147,16 @@ export function formatGrantFunding(grant: Pick<GrantRecord, "amount" | "amount_l
 export function grantDetailPath(id: string): string {
   return `/grants/${id}`;
 }
+
+export const COMPATIBILITY_TOOLTIP =
+  "Based on your RTM profile and published program criteria. Only the program administrator can confirm eligibility.";
+
+export function formatCompatibilityPercent(score: number): string {
+  return `${Math.round(score)}% compatibility`;
+}
+
+export function getAdvisorContactMailto(grantName: string): string {
+  const subject = encodeURIComponent(`Grant advisory — ${grantName}`);
+  const body = encodeURIComponent(`I would like RTM advisor guidance for: ${grantName}`);
+  return `mailto:info@rtmbusinessdirectory.com?subject=${subject}&body=${body}`;
+}
