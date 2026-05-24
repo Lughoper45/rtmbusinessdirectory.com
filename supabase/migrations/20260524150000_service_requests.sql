@@ -3,7 +3,7 @@
 
 create table if not exists public.service_requests (
   id uuid primary key default gen_random_uuid(),
-  user_id uuid references auth.users(id) on delete set null,
+  user_id uuid,
   service_type text not null,
   full_name text not null,
   email text not null,
