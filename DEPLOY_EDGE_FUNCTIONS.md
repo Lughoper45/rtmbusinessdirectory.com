@@ -64,7 +64,7 @@ Expect `HTTP/1.1 200` and `Access-Control-Allow-Origin: https://www.rtmbusinessd
 
 1. [Edge Functions](https://supabase.com/dashboard/project/kajwpmyloxaqeciyndwf/functions) → open `list-admin-users` and `admin-grants-bff`
 2. **Enforce JWT Verification** → **OFF** for both (preflight has no `Authorization` header; JWT is checked inside the function)
-3. **Remove** legacy `STELLAR_SUPABASE_URL` and `STELLAR_SERVICE_ROLE_KEY` from kajwp Edge secrets if present.
+3. **Remove** legacy `STELLAR_*` and duplicate `PLATFORM_SUPABASE_*` from kajwp Edge secrets if present (auto-injected `SUPABASE_*` is enough).
 4. Hard refresh the admin site (Ctrl+Shift+R) or clear site data — browsers cache failed CORS preflights
 
 `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `SUPABASE_SERVICE_ROLE_KEY` are injected automatically — `admin-grants-bff` uses them to query `public.grants` and `public.applications` on kajwp.

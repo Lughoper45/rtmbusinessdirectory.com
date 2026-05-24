@@ -13,7 +13,7 @@ Grants data and auth now target **`kajwpmyloxaqeciyndwf`** instead of a separate
 | Done in repo | Remaining ops |
 |--------------|----------------|
 | `20260523110000_grants_platform_schema.sql` — `grants`, `applications`, `grant_profiles` | `npx supabase db push --project-ref kajwpmyloxaqeciyndwf` if not applied in dashboard |
-| `stellarClient.ts` defaults to kajwp | Remove `VITE_STELLAR_*` from launchpad Vercel after redeploy |
+| `grants.ts` uses unified `supabase` client | Remove `VITE_STELLAR_*` from launchpad Vercel after redeploy |
 | `admin-grants-bff` uses `SUPABASE_SERVICE_ROLE_KEY` only | Redeploy `admin-grants-bff`; delete `STELLAR_*` from kajwp Edge secrets |
 | Stellar `client.ts` / `config.toml` → kajwp | Deploy stellar edge functions to **kajwp** (not vinbf) |
 | `PLATFORM.md` Vercel table | Update all 3 Vercel projects; rotate keys if exposed in `.env.local` |
@@ -249,7 +249,7 @@ Hosting Deno functions on Cloudflare/Vercel while DB stays on Lovable duplicates
 - [ ] `npx supabase functions list --project-ref NEW_REF` shows 21 functions
 - [ ] OPTIONS preflight 200 for `list-admin-users`, `grant-checklist-lead`
 - [ ] `check-membership` returns active for paid test user
-- [ ] Grants app: `VITE_PLATFORM_SUPABASE_PUBLISHABLE_KEY` set (see `PLATFORM.md`)
+- [ ] Grants app: `VITE_SUPABASE_PUBLISHABLE_KEY` set (see `PLATFORM.md`)
 - [ ] No production DNS cutover until sign-off
 
 ---

@@ -67,7 +67,7 @@ Email confirmation and password reset links must use hosts listed above.
 
 ### Grants / World Cup production env
 
-Set `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` to **kajwp** on the stellar Vercel project(s). Legacy `VITE_PLATFORM_SUPABASE_*` can mirror the same values during transition; remove after redeploy.
+Set `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` to **kajwp** on all Vercel projects (including grants/worldcup). Legacy `VITE_PLATFORM_SUPABASE_*` / `VITE_STELLAR_*` are optional fallbacks only — safe to remove from Vercel after redeploy.
 
 ## Cross-app API
 
@@ -88,9 +88,9 @@ PLATFORM_SERVICE_KEY=<random-long-secret>
 On **kajwp** edge secrets (grants functions deployed to same project):
 
 ```bash
-PLATFORM_SUPABASE_URL=https://kajwpmyloxaqeciyndwf.supabase.co   # optional; defaults to SUPABASE_URL
-PLATFORM_SUPABASE_ANON_KEY=<kajwp anon>                          # optional; defaults to SUPABASE_ANON_KEY
-PLATFORM_SERVICE_KEY=<shared-secret>                             # submit-application, verify-platform-membership, check-membership
+PLATFORM_SERVICE_KEY=<shared-secret>   # check-membership, submit-application (optional verify-platform-membership)
+# SUPABASE_URL / SUPABASE_ANON_KEY / SUPABASE_SERVICE_ROLE_KEY are auto-injected on kajwp edge deploys.
+# Legacy PLATFORM_SUPABASE_URL / PLATFORM_SUPABASE_ANON_KEY optional aliases — not required on same project.
 ```
 
 ## Consolidated to kajwp (May 2026)
@@ -99,7 +99,7 @@ PLATFORM_SERVICE_KEY=<shared-secret>                             # submit-applic
 |--------------|--------|
 | Grants schema | Migration `20260523110000_grants_platform_schema.sql` on `kajwpmyloxaqeciyndwf` |
 | `admin-grants-bff` | Queries `grants` / `applications` on kajwp only — **remove** `STELLAR_SUPABASE_URL`, `STELLAR_SERVICE_ROLE_KEY` from kajwp Edge secrets |
-| Frontends | `stellarClient.ts` / stellar `client.ts` default to kajwp URL |
+| Frontends | Single `supabase` client per app (`rtm-platform-auth` storage key on grants/membership/directory) |
 | Legacy `vinbf` | Read-only rollback; do not delete until smoke tests pass |
 
 ### Vercel env vars — all 3 projects
@@ -108,11 +108,13 @@ PLATFORM_SERVICE_KEY=<shared-secret>                             # submit-applic
 
 | Variable | Where it was |
 |----------|----------------|
-| `VITE_STELLAR_SUPABASE_URL` | launchpad (optional duplicate of kajwp) |
-| `VITE_STELLAR_SUPABASE_PUBLISHABLE_KEY` | launchpad |
-| `STELLAR_SUPABASE_URL` | kajwp Edge secrets only (never Vercel) |
-| `STELLAR_SERVICE_ROLE_KEY` | kajwp Edge secrets only |
-| Separate vinbf `VITE_SUPABASE_*` on grants/worldcup | stellar Vercel |
+| `VITE_STELLAR_SUPABASE_URL` | launchpad Vercel |
+| `VITE_STELLAR_SUPABASE_PUBLISHABLE_KEY` | launchpad Vercel |
+| `VITE_PLATFORM_SUPABASE_URL` | stellar/worldcup Vercel |
+| `VITE_PLATFORM_SUPABASE_PUBLISHABLE_KEY` | stellar/worldcup Vercel |
+| `STELLAR_SUPABASE_URL` | kajwp Edge secrets |
+| `STELLAR_SERVICE_ROLE_KEY` | kajwp Edge secrets |
+| `PLATFORM_SUPABASE_URL` / `PLATFORM_SUPABASE_ANON_KEY` | kajwp Edge secrets (use auto-injected `SUPABASE_*` instead) |
 
 #### launchpad-canada-ai (`rtmbusinessdirectory.com`)
 
@@ -140,8 +142,6 @@ PLATFORM_SERVICE_KEY=<shared-secret>                             # submit-applic
 |----------|--------|
 | `VITE_SUPABASE_URL` | `https://kajwpmyloxaqeciyndwf.supabase.co` |
 | `VITE_SUPABASE_PUBLISHABLE_KEY` | kajwp anon key |
-| `VITE_PLATFORM_SUPABASE_URL` | **same** (remove after code uses single client) |
-| `VITE_PLATFORM_SUPABASE_PUBLISHABLE_KEY` | **same** anon key |
 | Cross-app `VITE_*_APP_URL` | per table above |
 
 **kajwp Edge secrets to keep:** `PLATFORM_SERVICE_KEY`, Stripe, Resend, `SITE_URL`, etc. **Do not** set `STELLAR_*` on kajwp after redeploying `admin-grants-bff`.
@@ -160,9 +160,6 @@ VITE_SUPABASE_PUBLISHABLE_KEY=...
 VITE_MEMBERSHIP_APP_URL=https://membership.rtmbusinessdirectory.com
 VITE_GRANTS_APP_URL=https://grants.rtmbusinessdirectory.com
 VITE_WORLDCUP_APP_URL=https://worldcup.rtmbusinessdirectory.com
-# Grants catalog on /grants — optional; defaults to kajwp in stellarClient.ts
-# VITE_STELLAR_SUPABASE_URL=https://kajwpmyloxaqeciyndwf.supabase.co
-# VITE_STELLAR_SUPABASE_PUBLISHABLE_KEY=<kajwp anon key>
 ```
 
 ### stellar-business-os
@@ -170,8 +167,6 @@ VITE_WORLDCUP_APP_URL=https://worldcup.rtmbusinessdirectory.com
 ```env
 VITE_SUPABASE_URL=https://kajwpmyloxaqeciyndwf.supabase.co
 VITE_SUPABASE_PUBLISHABLE_KEY=<kajwp anon key>
-VITE_PLATFORM_SUPABASE_URL=https://kajwpmyloxaqeciyndwf.supabase.co
-VITE_PLATFORM_SUPABASE_PUBLISHABLE_KEY=<same kajwp anon key>
 VITE_DIRECTORY_APP_URL=https://rtmbusinessdirectory.com
 VITE_MEMBERSHIP_APP_URL=https://membership.rtmbusinessdirectory.com
 VITE_GRANTS_APP_URL=https://grants.rtmbusinessdirectory.com

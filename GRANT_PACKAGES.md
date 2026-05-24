@@ -34,12 +34,12 @@ Apply modal tier mapping:
 | `GRANTS_APP_URL` | Success/cancel URLs (defaults to `https://grants.rtmbusinessdirectory.com`) |
 | `SUPABASE_URL` / `SUPABASE_SERVICE_ROLE_KEY` / `SUPABASE_ANON_KEY` | Auto-injected by Supabase |
 
-Client (grants app):
+Client (grants app — stellar-business-os):
 
 | Variable | Purpose |
 |---|---|
-| `VITE_PLATFORM_SUPABASE_URL` | Platform Supabase URL |
-| `VITE_PLATFORM_SUPABASE_PUBLISHABLE_KEY` | Invoke `grant-package-checkout` |
+| `VITE_SUPABASE_URL` | kajwp project URL |
+| `VITE_SUPABASE_PUBLISHABLE_KEY` | Auth session + invoke `grant-package-checkout` |
 
 ## Deploy
 
