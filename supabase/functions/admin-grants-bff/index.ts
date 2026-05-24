@@ -1,10 +1,23 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { Resend } from "https://esm.sh/resend@3.1.0";
 import {
   handleCorsPreflight,
   jsonResponse,
 } from "../_shared/cors.ts";
+import {
+  buildGrantChecklistDeliveryHtml,
+  GRANT_CHECKLIST_EMAIL_SUBJECT,
+  GRANT_CHECKLIST_FROM,
+  resolveGrantChecklistEmailUrls,
+  resolveGrantChecklistRecipientName,
+} from "../_shared/grantChecklistEmail.ts";
 
-type Action = "list-applications" | "list-grants" | "list-intakes";
+type Action =
+  | "list-applications"
+  | "list-grants"
+  | "list-intakes"
+  | "send-checklist-email"
+  | "send-checklist-batch";
 
 type ApplicationRow = {
   id: string;
@@ -79,6 +92,63 @@ async function resolveEmails(
   return emailByUserId;
 }
 
+async function sendChecklistToLead(
+  kajwpAdmin: ReturnType<typeof createClient>,
+  leadId: string,
+): Promise<{ leadId: string; email: string; sent: boolean; error?: string }> {
+  const { data: lead, error: leadError } = await kajwpAdmin
+    .from("grant_checklist_leads")
+    .select("id, email, name, status, notes")
+    .eq("id", leadId)
+    .maybeSingle();
+
+  if (leadError) throw leadError;
+  if (!lead) throw new Error("Checklist lead not found.");
+
+  const resendKey = Deno.env.get("RESEND_API_KEY");
+  if (!resendKey) {
+    throw new Error("RESEND_API_KEY is not configured on Supabase.");
+  }
+
+  const urls = resolveGrantChecklistEmailUrls();
+  const recipientName = resolveGrantChecklistRecipientName(lead.email, lead.name);
+  const html = buildGrantChecklistDeliveryHtml(urls, { recipientName });
+  const resend = new Resend(resendKey);
+
+  const { error: sendError } = await resend.emails.send({
+    from: GRANT_CHECKLIST_FROM,
+    to: lead.email,
+    reply_to: urls.contactEmail,
+    subject: GRANT_CHECKLIST_EMAIL_SUBJECT,
+    html,
+  });
+
+  if (sendError) {
+    return {
+      leadId: lead.id,
+      email: lead.email,
+      sent: false,
+      error: sendError.message ?? "Resend send failed",
+    };
+  }
+
+  const sentAt = new Date().toISOString();
+  const noteLine = `Checklist email sent via admin ${sentAt.slice(0, 10)}.`;
+  const nextNotes = lead.notes?.trim()
+    ? `${lead.notes.trim()}\n${noteLine}`
+    : noteLine;
+
+  await kajwpAdmin
+    .from("grant_checklist_leads")
+    .update({
+      status: lead.status === "new" ? "contacted" : lead.status,
+      notes: nextNotes,
+    })
+    .eq("id", lead.id);
+
+  return { leadId: lead.id, email: lead.email, sent: true };
+}
+
 Deno.serve(async (req) => {
   const preflight = handleCorsPreflight(req);
   if (preflight) return preflight;
@@ -98,15 +168,67 @@ Deno.serve(async (req) => {
       req.method === "POST" ? await req.json().catch(() => ({})) : {};
     const action = body?.action as Action | undefined;
 
-    if (!action || !["list-applications", "list-grants", "list-intakes"].includes(action)) {
+    if (!action || ![
+      "list-applications",
+      "list-grants",
+      "list-intakes",
+      "send-checklist-email",
+      "send-checklist-batch",
+    ].includes(action)) {
       return jsonResponse(
         req,
-        { error: "Invalid action. Use list-applications, list-grants, or list-intakes." },
+        {
+          error:
+            "Invalid action. Use list-applications, list-grants, list-intakes, send-checklist-email, or send-checklist-batch.",
+        },
         400,
       );
     }
 
     const kajwpAdmin = createClient(kajwpUrl, kajwpService);
+
+    if (action === "send-checklist-email") {
+      const leadId = String(body?.leadId ?? "").trim();
+      if (!leadId) {
+        return jsonResponse(req, { error: "leadId is required." }, 400);
+      }
+      const result = await sendChecklistToLead(kajwpAdmin, leadId);
+      if (!result.sent) {
+        return jsonResponse(req, { error: result.error ?? "Send failed", ...result }, 502);
+      }
+      return jsonResponse(req, { success: true, ...result });
+    }
+
+    if (action === "send-checklist-batch") {
+      const leadIds = Array.isArray(body?.leadIds)
+        ? body.leadIds.map((id: unknown) => String(id).trim()).filter(Boolean)
+        : [];
+      if (!leadIds.length) {
+        return jsonResponse(req, { error: "leadIds array is required." }, 400);
+      }
+
+      const results = [];
+      for (const leadId of leadIds) {
+        try {
+          results.push(await sendChecklistToLead(kajwpAdmin, leadId));
+        } catch (e) {
+          results.push({
+            leadId,
+            email: "",
+            sent: false,
+            error: e instanceof Error ? e.message : "Send failed",
+          });
+        }
+      }
+
+      const sentCount = results.filter((r) => r.sent).length;
+      return jsonResponse(req, {
+        success: sentCount > 0,
+        sentCount,
+        failedCount: results.length - sentCount,
+        results,
+      });
+    }
 
     if (action === "list-grants") {
       const { data: grants, error } = await kajwpAdmin

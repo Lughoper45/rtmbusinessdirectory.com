@@ -8,17 +8,22 @@ import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar, ClipboardList, Copy, FileText, Inbox, Loader2, Mail, Search } from "lucide-react";
+import { Calendar, ClipboardList, Copy, FileText, Inbox, Loader2, Mail, Search, Send } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import {
   buildGrantChecklistReplyText,
+  buildGrantChecklistReplyHtml,
+  GRANT_CHECKLIST_EMAIL_SUBJECT,
   GRANT_CHECKLIST_LEAD_STATUSES,
+  resolveGrantChecklistRecipientName,
   type GrantChecklistLead,
 } from "@/lib/grantChecklistLeads";
 import {
   fetchGrantChecklistLeads,
   isGrantChecklistLeadStatus,
+  sendGrantChecklistBatch,
+  sendGrantChecklistEmail,
   updateGrantChecklistLead,
 } from "@/services/grantChecklist";
 import { getEdgeFunctionErrorMessage } from "@/lib/edgeFunctionErrors";
@@ -65,6 +70,8 @@ export default function AdminGrants() {
   const [intakeStatusFilter, setIntakeStatusFilter] = useState("all");
   const [leadStatusFilter, setLeadStatusFilter] = useState("all");
   const [savingLeadId, setSavingLeadId] = useState<string | null>(null);
+  const [sendingLeadId, setSendingLeadId] = useState<string | null>(null);
+  const [batchSending, setBatchSending] = useState(false);
   const [applicationsWarning, setApplicationsWarning] = useState<string | null>(null);
   const [applicationsError, setApplicationsError] = useState<string | null>(null);
 
@@ -201,9 +208,82 @@ export default function AdminGrants() {
     });
 
   const copyReplyTemplate = async (lead: GrantChecklistLead) => {
-    const text = buildGrantChecklistReplyText({ recipientName: lead.name });
+    const text = buildGrantChecklistReplyText({
+      recipientName: resolveGrantChecklistRecipientName(lead.email, lead.name),
+    });
     await navigator.clipboard.writeText(text);
     toast.success("Reply template copied to clipboard");
+  };
+
+  const previewHtml = (lead: GrantChecklistLead) => {
+    const html = buildGrantChecklistReplyHtml({
+      recipientName: resolveGrantChecklistRecipientName(lead.email, lead.name),
+    });
+    const blob = new Blob([html], { type: "text/html" });
+    const url = URL.createObjectURL(blob);
+    window.open(url, "_blank", "noopener,noreferrer");
+    setTimeout(() => URL.revokeObjectURL(url), 60_000);
+  };
+
+  const handleSendChecklist = async (lead: GrantChecklistLead) => {
+    setSendingLeadId(lead.id);
+    try {
+      const result = await sendGrantChecklistEmail(lead.id);
+      if (!result.sent) {
+        toast.error(result.error ?? "Failed to send checklist email");
+        return;
+      }
+      setLeads((prev) =>
+        prev.map((l) =>
+          l.id === lead.id
+            ? {
+                ...l,
+                status: l.status === "new" ? "contacted" : l.status,
+                notes: l.notes
+                  ? `${l.notes}\nChecklist email sent via admin ${new Date().toISOString().slice(0, 10)}.`
+                  : `Checklist email sent via admin ${new Date().toISOString().slice(0, 10)}.`,
+              }
+            : l,
+        ),
+      );
+      toast.success(`Checklist sent to ${result.email}`);
+    } catch (e) {
+      console.error(e);
+      toast.error(e instanceof Error ? e.message : "Failed to send checklist email");
+    } finally {
+      setSendingLeadId(null);
+    }
+  };
+
+  const handleSendAllNew = async () => {
+    const newLeadIds = leads.filter((l) => l.status === "new").map((l) => l.id);
+    if (!newLeadIds.length) {
+      toast.message("No new leads to send");
+      return;
+    }
+    if (
+      !window.confirm(
+        `Send checklist email to ${newLeadIds.length} new lead(s) via Resend?\n\nSubject: ${GRANT_CHECKLIST_EMAIL_SUBJECT}`,
+      )
+    ) {
+      return;
+    }
+
+    setBatchSending(true);
+    try {
+      const result = await sendGrantChecklistBatch(newLeadIds);
+      await loadLeads();
+      if (result.failedCount > 0) {
+        toast.warning(`Sent ${result.sentCount}; ${result.failedCount} failed`);
+      } else {
+        toast.success(`Checklist sent to ${result.sentCount} lead(s)`);
+      }
+    } catch (e) {
+      console.error(e);
+      toast.error(e instanceof Error ? e.message : "Batch send failed");
+    } finally {
+      setBatchSending(false);
+    }
   };
 
   const handleLeadStatusChange = async (lead: GrantChecklistLead, status: string) => {
@@ -276,11 +356,24 @@ export default function AdminGrants() {
                       Free Grant Checklist leads
                     </CardTitle>
                     <CardDescription>
-                      {filteredLeads.length} lead{filteredLeads.length !== 1 ? "s" : ""} — respond from{" "}
+                      {filteredLeads.length} lead{filteredLeads.length !== 1 ? "s" : ""} — send via Resend from{" "}
                       <code className="text-xs">info@rtmbusinessdirectory.com</code>
                     </CardDescription>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap gap-2 items-center">
+                    <Button
+                      variant="default"
+                      size="sm"
+                      disabled={batchSending || newLeadCount === 0}
+                      onClick={() => void handleSendAllNew()}
+                    >
+                      {batchSending ? (
+                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      ) : (
+                        <Send className="h-4 w-4 mr-2" />
+                      )}
+                      Send to all new ({newLeadCount})
+                    </Button>
                     <div className="relative">
                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                       <Input
@@ -351,7 +444,11 @@ export default function AdminGrants() {
                           </TableCell>
                           <TableCell>
                             <div className="text-sm font-medium">{row.email}</div>
-                            {row.name && <div className="text-xs text-gray-500">{row.name}</div>}
+                            {(row.name || resolveGrantChecklistRecipientName(row.email, row.name)) && (
+                              <div className="text-xs text-gray-500">
+                                {row.name ?? resolveGrantChecklistRecipientName(row.email, row.name)}
+                              </div>
+                            )}
                           </TableCell>
                           <TableCell>
                             <Badge variant="outline">{row.source}</Badge>
@@ -371,10 +468,31 @@ export default function AdminGrants() {
                             />
                           </TableCell>
                           <TableCell className="text-right">
-                            <div className="flex justify-end gap-1">
+                            <div className="flex justify-end gap-1 flex-wrap">
+                              <Button
+                                variant="default"
+                                size="sm"
+                                title="Send checklist via Resend"
+                                disabled={sendingLeadId === row.id || batchSending}
+                                onClick={() => void handleSendChecklist(row)}
+                              >
+                                {sendingLeadId === row.id ? (
+                                  <Loader2 className="h-4 w-4 animate-spin" />
+                                ) : (
+                                  <Send className="h-4 w-4" />
+                                )}
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                title="Preview HTML email"
+                                onClick={() => previewHtml(row)}
+                              >
+                                <FileText className="h-4 w-4" />
+                              </Button>
                               <Button variant="outline" size="sm" asChild>
                                 <a
-                                  href={`mailto:${row.email}?subject=${encodeURIComponent("Your Free Grant Checklist — RTM")}`}
+                                  href={`mailto:${row.email}?subject=${encodeURIComponent(GRANT_CHECKLIST_EMAIL_SUBJECT)}`}
                                 >
                                   <Mail className="h-4 w-4" />
                                 </a>
@@ -382,7 +500,7 @@ export default function AdminGrants() {
                               <Button
                                 variant="outline"
                                 size="sm"
-                                title="Copy reply template"
+                                title="Copy plain-text template"
                                 onClick={() => void copyReplyTemplate(row)}
                               >
                                 <Copy className="h-4 w-4" />

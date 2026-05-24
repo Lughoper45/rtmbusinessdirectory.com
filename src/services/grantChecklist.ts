@@ -1,5 +1,20 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { GrantChecklistLead, GrantChecklistLeadStatus } from "@/lib/grantChecklistLeads";
+import { getEdgeFunctionErrorMessage } from "@/lib/edgeFunctionErrors";
+
+export type GrantChecklistSendResult = {
+  leadId: string;
+  email: string;
+  sent: boolean;
+  error?: string;
+};
+
+export type GrantChecklistBatchSendResult = {
+  success: boolean;
+  sentCount: number;
+  failedCount: number;
+  results: GrantChecklistSendResult[];
+};
 
 export async function submitGrantChecklistLead(input: {
   email: string;
@@ -53,4 +68,33 @@ export async function updateGrantChecklistLead(
 
 export function isGrantChecklistLeadStatus(value: string): value is GrantChecklistLeadStatus {
   return ["new", "contacted", "replied", "closed"].includes(value);
+}
+
+async function invokeAdminGrantsBff<T>(body: Record<string, unknown>): Promise<T> {
+  const { data, error } = await supabase.functions.invoke("admin-grants-bff", { body });
+  if (error) {
+    throw new Error(await getEdgeFunctionErrorMessage(error, data));
+  }
+  if (data?.error) {
+    throw new Error(String(data.error));
+  }
+  return data as T;
+}
+
+export async function sendGrantChecklistEmail(
+  leadId: string,
+): Promise<GrantChecklistSendResult & { success: boolean }> {
+  return invokeAdminGrantsBff({
+    action: "send-checklist-email",
+    leadId,
+  });
+}
+
+export async function sendGrantChecklistBatch(
+  leadIds: string[],
+): Promise<GrantChecklistBatchSendResult> {
+  return invokeAdminGrantsBff({
+    action: "send-checklist-batch",
+    leadIds,
+  });
 }
