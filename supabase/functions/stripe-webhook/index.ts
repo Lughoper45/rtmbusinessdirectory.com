@@ -6,6 +6,89 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+async function fulfillGrantPackageOrder(
+  supabase: ReturnType<typeof createClient>,
+  session: Stripe.Checkout.Session,
+) {
+  if (session.metadata?.checkoutType !== "grant_package") return false;
+
+  const orderId = session.metadata?.orderId;
+  const grantId = session.metadata?.grantId;
+  const userId = session.metadata?.userId;
+  const packageId = session.metadata?.packageId;
+
+  if (!orderId || !grantId || !userId || !packageId) {
+    console.error("[stripe-webhook] grant_package missing metadata", session.metadata);
+    return true;
+  }
+
+  const { data: order, error: orderError } = await supabase
+    .from("grant_service_orders")
+    .select("id, status, intake_id, user_id, package_id")
+    .eq("id", orderId)
+    .maybeSingle();
+
+  if (orderError) throw orderError;
+  if (!order) {
+    console.error("[stripe-webhook] grant_service_order not found:", orderId);
+    return true;
+  }
+
+  if (order.status === "paid" && order.intake_id) {
+    return true;
+  }
+
+  let intakeId = order.intake_id as string | null;
+
+  if (!intakeId) {
+    const { data: existingIntakes } = await supabase
+      .from("grant_intakes")
+      .select("id")
+      .eq("user_id", userId)
+      .eq("grant_id", grantId)
+      .eq("service_order_id", orderId)
+      .limit(1);
+
+    intakeId = existingIntakes?.[0]?.id ?? null;
+  }
+
+  if (!intakeId) {
+    const { data: intake, error: intakeError } = await supabase
+      .from("grant_intakes")
+      .insert({
+        user_id: userId,
+        grant_id: grantId,
+        package_id: packageId,
+        service_order_id: orderId,
+        source: "package_checkout",
+        status: "draft",
+      })
+      .select("id")
+      .single();
+
+    if (intakeError) throw intakeError;
+    intakeId = intake.id;
+  }
+
+  const paymentIntentId =
+    typeof session.payment_intent === "string"
+      ? session.payment_intent
+      : session.payment_intent?.id ?? null;
+
+  const { error: updateError } = await supabase
+    .from("grant_service_orders")
+    .update({
+      status: "paid",
+      intake_id: intakeId,
+      stripe_checkout_session_id: session.id,
+      stripe_payment_intent_id: paymentIntentId,
+    })
+    .eq("id", orderId);
+
+  if (updateError) throw updateError;
+  return true;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -44,6 +127,9 @@ Deno.serve(async (req) => {
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
+        const isGrantPackage = await fulfillGrantPackageOrder(supabase, session);
+        if (isGrantPackage) break;
+
         const userId = session.metadata?.userId;
         const subscriptionId = session.subscription as string;
         const customerEmail =
