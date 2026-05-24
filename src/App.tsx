@@ -17,6 +17,7 @@ import Deals from "./pages/Deals";
 import Membership from "./pages/Membership";
 import Affiliate from "./pages/Affiliate";
 import ContentPage from "./pages/ContentPage";
+import Pricing from "./pages/Pricing";
 import NotFound from "./pages/NotFound";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminBusinesses from "./pages/admin/AdminBusinesses";
@@ -53,7 +54,7 @@ const App = () => (
             <Route path="/ai-search" element={<ContentPage />} />
             <Route path="/world-cup-hub" element={<WorldCupRedirect />} />
             <Route path="/marketplace" element={<ContentPage />} />
-            <Route path="/pricing" element={<ContentPage />} />
+            <Route path="/pricing" element={<Pricing />} />
             <Route path="/about" element={<ContentPage />} />
             <Route path="/careers" element={<ContentPage />} />
             <Route path="/blog" element={<ContentPage />} />
