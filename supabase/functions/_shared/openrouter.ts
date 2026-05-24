@@ -40,6 +40,8 @@ export async function openRouterChat(params: {
   messages: ChatMessage[];
   maxTokens?: number;
   temperature?: number;
+  httpReferer?: string;
+  xTitle?: string;
 }): Promise<{ text: string; model: string; usage?: Record<string, unknown> }> {
   const apiKey = Deno.env.get("OPENROUTER_API_KEY")?.trim();
   if (!apiKey) {
@@ -57,8 +59,8 @@ export async function openRouterChat(params: {
       headers: {
         Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
-        "HTTP-Referer": "https://grants.rtmbusinessdirectory.com",
-        "X-Title": "RTM Application Assistant",
+        "HTTP-Referer": params.httpReferer ?? "https://grants.rtmbusinessdirectory.com",
+        "X-Title": params.xTitle ?? "RTM Application Assistant",
       },
       body: JSON.stringify({
         model,

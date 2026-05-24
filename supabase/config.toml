@@ -54,5 +54,8 @@ verify_jwt = false
 [functions.grant-intake-assistant]
 verify_jwt = false
 
+[functions.directory-assistant]
+verify_jwt = false
+
 [functions.grant-package-checkout]
 verify_jwt = true

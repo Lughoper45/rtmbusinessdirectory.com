@@ -1,6 +1,7 @@
 # RTM Grant Intake Hub — Product & Engineering Plan
 
 **Status:** Phase 2 — Application Assistant (OpenRouter) + GrantPilot intake UI + admin intakes queue  
+**AI roadmap:** [docs/RTM_AI_INTEGRATION_ROADMAP.md](./docs/RTM_AI_INTEGRATION_ROADMAP.md)
 **Database:** `kajwpmyloxaqeciyndwf` (single Supabase for directory, membership, grants)  
 **Canonical checklist PDF:** [`/downloads/RTM_Grant_Checklist.pdf`](./public/downloads/RTM_Grant_Checklist.pdf)
 

@@ -6,6 +6,11 @@ import {
   Wand2, RefreshCw, Copy, Loader2
 } from 'lucide-react';
 import ApplicationStrengthAnalyzer from './ApplicationStrengthAnalyzer';
+import {
+  generateGrantIntakeDraft,
+  WIZARD_FIELD_TO_DRAFT_KEY,
+} from '@/services/grantIntakeAssistant';
+import { countRecentAiDrafts, MAX_DRAFTS_PER_HOUR } from '@/services/grantIntake';
 
 interface Grant {
   id: string;
@@ -28,6 +33,9 @@ interface ApplicationWizardProps {
   mode: ApplicationMode;
   onClose: () => void;
   onBack: () => void;
+  /** Real grant intake id from grant_intakes — enables OpenRouter drafts */
+  intakeId?: string;
+  grantDbId?: string;
 }
 
 interface FormSection {
@@ -156,11 +164,12 @@ Total: $75,000`,
   },
 ];
 
-const ApplicationWizard = ({ grant, mode, onClose, onBack }: ApplicationWizardProps) => {
+const ApplicationWizard = ({ grant, mode, onClose, onBack, intakeId, grantDbId }: ApplicationWizardProps) => {
   const [currentSection, setCurrentSection] = useState(0);
   const [formData, setFormData] = useState<Record<string, string>>({});
   const [showPreview, setShowPreview] = useState(false);
   const [isApplyingDraft, setIsApplyingDraft] = useState<string | null>(null);
+  const [draftError, setDraftError] = useState<string | null>(null);
   const [advisorPreparedFields, setAdvisorPreparedFields] = useState<Set<string>>(new Set());
 
   // Initialize with prefilled values
@@ -185,9 +194,33 @@ const ApplicationWizard = ({ grant, mode, onClose, onBack }: ApplicationWizardPr
 
   const applyAdvisorDraft = async (fieldId: string, draft: string) => {
     setIsApplyingDraft(fieldId);
-    await new Promise(resolve => setTimeout(resolve, 800));
-    updateField(fieldId, draft);
-    setAdvisorPreparedFields(prev => new Set([...prev, fieldId]));
+    setDraftError(null);
+
+    const draftFieldKey = WIZARD_FIELD_TO_DRAFT_KEY[fieldId];
+    if (intakeId && draftFieldKey) {
+      const used = await countRecentAiDrafts(intakeId);
+      if (used >= MAX_DRAFTS_PER_HOUR) {
+        setDraftError(`Draft limit reached (${MAX_DRAFTS_PER_HOUR}/hour).`);
+        setIsApplyingDraft(null);
+        return;
+      }
+      const { result, error } = await generateGrantIntakeDraft(
+        intakeId,
+        draftFieldKey,
+        grantDbId ?? grant.id,
+      );
+      if (error) {
+        setDraftError(error);
+        setIsApplyingDraft(null);
+        return;
+      }
+      updateField(fieldId, result?.draft ?? draft);
+    } else {
+      await new Promise((resolve) => setTimeout(resolve, 400));
+      updateField(fieldId, draft);
+    }
+
+    setAdvisorPreparedFields((prev) => new Set([...prev, fieldId]));
     setIsApplyingDraft(null);
   };
 
@@ -304,6 +337,9 @@ const ApplicationWizard = ({ grant, mode, onClose, onBack }: ApplicationWizardPr
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-6">
+          {draftError && (
+            <p className="mb-4 text-sm text-destructive">{draftError}</p>
+          )}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Form Fields */}
             <div className="lg:col-span-2 space-y-6">

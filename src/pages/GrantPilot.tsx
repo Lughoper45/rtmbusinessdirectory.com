@@ -20,7 +20,7 @@ import { Helmet } from 'react-helmet-async';
 import type { User } from '@supabase/supabase-js';
 import Navbar from '@/components/Navbar';
 import ParticleBackground from '@/components/ParticleBackground';
-import GrantDiscovery from '@/components/grantpilot/GrantDiscovery';
+import GrantCatalog from '@/components/grantpilot/GrantCatalog';
 import GrantChecklistRequestDialog from '@/components/grantpilot/GrantChecklistRequestDialog';
 import { supabase } from '@/integrations/supabase/client';
 import { fetchPlatformMembership } from '@/services/membership';
@@ -368,17 +368,9 @@ const GrantPilot = () => {
               </div>
             </section>
 
-            {/* Featured programs teaser */}
+            {/* Searchable grant catalog */}
             <section>
-              <div className="mb-2">
-                <h2 className="font-orbitron text-2xl font-bold text-foreground">Featured programs</h2>
-                <p className="text-sm text-muted-foreground mt-1">
-                  {memberActive
-                    ? 'Browse your full matched catalog in the grant workspace.'
-                    : 'Preview verified Canadian programs — sign in on the grants site for match scores and tracking.'}
-                </p>
-              </div>
-              <GrantDiscovery limit={3} showMatchScores={memberActive} />
+              <GrantCatalog showMatchScores={memberActive} />
             </section>
 
             {/* FAQ */}
