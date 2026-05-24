@@ -3,7 +3,7 @@
 **Status:** Active plan  
 **Last updated:** 2026-05-24  
 **Agent execution guide:** [docs/GRANT_PLATFORM_AGENT_WORKPLAN.md](./docs/GRANT_PLATFORM_AGENT_WORKPLAN.md) — **use this for task IDs, file paths, deploy steps, and done/partial status**  
-**Related:** [GRANT_INTAKE_HUB_PLAN.md](./GRANT_INTAKE_HUB_PLAN.md) · [VERCEL_DEPLOY.md](./VERCEL_DEPLOY.md) · [GRANT_PACKAGES.md](./GRANT_PACKAGES.md) · [RTM_AI_INTEGRATION_ROADMAP.md](./docs/RTM_AI_INTEGRATION_ROADMAP.md)
+**Related:** [docs/RTM_OPERATIONS_AUTOMATION_MASTER_PLAN.md](./docs/RTM_OPERATIONS_AUTOMATION_MASTER_PLAN.md) (ops: email → CRM → close, HITL) · [GRANT_INTAKE_HUB_PLAN.md](./GRANT_INTAKE_HUB_PLAN.md) · [VERCEL_DEPLOY.md](./VERCEL_DEPLOY.md) · [GRANT_PACKAGES.md](./GRANT_PACKAGES.md) · [RTM_AI_INTEGRATION_ROADMAP.md](./docs/RTM_AI_INTEGRATION_ROADMAP.md)
 
 > **Master Product Spec v2.0** (May 2026) is the authority for trust, funnel, and compliance. Several items in §2 "Current State" are now **ahead** — especially AI (directory-assistant, LaunchBot Option C) and local GrantCatalog. See the agent workplan §1 for the honest delta.
 

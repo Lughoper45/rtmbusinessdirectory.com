@@ -80,19 +80,19 @@
 
 | Area | Status | Priority | Task IDs |
 |------|--------|----------|----------|
-| Grant advisory disclaimer | TODO | **P0** | GP-TRUST-001 |
-| Privacy / Terms / Cookies (real content) | TODO | **P0** | GP-TRUST-002 |
-| Match score labeling | TODO | **P0** | GP-UX-001 |
-| Package CTAs → Stripe (not mailto) | TODO | **P0** | GP-REV-001, GP-REV-002 |
-| GrantCatalog on **production** marketing `/grants` | PARTIAL | **P0** | GP-PROD-001 |
-| stellar still uses `GrantDiscovery` | TODO | **P1** | GP-PROD-002 |
-| Vercel split / author mismatch | FIX | **P1** | GP-INFRA-001 |
-| `GrantsSection.tsx` mock data | TODO | **P1** | GP-PROD-003 |
-| Post-checkout auto-intake (webhook) | BUILD | **P1** | GP-INT-003 |
-| 4 checklist leads unanswered | FIX (ops) | **P0** | GP-OPS-001 |
-| Resend + SPF/DKIM | FIX | **P1** | GP-OPS-003 |
-| Lead/order alert webhooks | BUILD | **P2** | GP-OPS-004 |
-| SEO, sitemap, JSON-LD, security.txt | BUILD | **P2** | GP-SEO-001–004 |
+| Grant advisory disclaimer | **DONE** | **P0** | GP-TRUST-001 |
+| Privacy / Terms / Cookies (real content) | **DONE** | **P0** | GP-TRUST-002 |
+| Match score labeling | **DONE** | **P0** | GP-UX-001 |
+| Package CTAs → Stripe (not mailto) | **DONE** | **P0** | GP-REV-001, GP-REV-002 |
+| GrantCatalog on **production** marketing `/grants` | **DONE** (local commit `9b6d7d7`; push needs Lughoper45) | **P0** | GP-PROD-001 |
+| stellar still uses `GrantDiscovery` | **DONE** | **P1** | GP-PROD-002 — pushed `3020536` |
+| Vercel split / author mismatch | **BLOCKED** (human) | **P1** | GP-INFRA-001 |
+| `GrantsSection.tsx` mock data | **DONE** | **P1** | GP-PROD-003 |
+| Post-checkout auto-intake (webhook) | **DONE** | **P1** | GP-INT-003 / GP-REV-003 |
+| 4 checklist leads unanswered | **BLOCKED** (human ops) | **P0** | GP-OPS-001 — see OPS_CHECKLIST_LEADS.md |
+| Resend + SPF/DKIM | **BLOCKED** (human DNS) | **P1** | GP-OPS-003 |
+| Lead/order alert webhooks | **DONE** (checklist + stripe webhook email) | **P2** | GP-OPS-004 |
+| SEO, sitemap, JSON-LD, security.txt | **DONE** | **P2** | GP-SEO-001–004 |
 | LaunchBot on launchpad marketing site | — | **P3** | GP-AI-007 (optional parity) |
 
 ---
