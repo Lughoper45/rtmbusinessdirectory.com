@@ -98,6 +98,7 @@ PLATFORM_SERVICE_KEY=<shared-secret>   # check-membership, submit-application (o
 | What changed | Detail |
 |--------------|--------|
 | Grants schema | Migration `20260523110000_grants_platform_schema.sql` on `kajwpmyloxaqeciyndwf` |
+| Service requests (World Cup form) | Migration `20260524150000_service_requests.sql` on `kajwpmyloxaqeciyndwf` |
 | `admin-grants-bff` | Queries `grants` / `applications` on kajwp only — **remove** `STELLAR_SUPABASE_URL`, `STELLAR_SERVICE_ROLE_KEY` from kajwp Edge secrets |
 | Frontends | Single `supabase` client per app (`rtm-platform-auth` storage key on grants/membership/directory) |
 | Legacy `vinbf` | Read-only rollback; do not delete until smoke tests pass |
