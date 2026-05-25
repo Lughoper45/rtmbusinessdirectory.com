@@ -29,6 +29,12 @@ type Action =
   | "generate-social"
   | "publish-social"
   | "list-crm-contacts"
+  | "get-crm-contact"
+  | "update-crm-contact"
+  | "add-crm-note"
+  | "create-crm-task"
+  | "update-crm-task"
+  | "bulk-update-crm-contacts"
   | "list-suppressions"
   | "dispatch-now";
 
@@ -503,13 +509,120 @@ Deno.serve(async (req) => {
     }
 
     if (action === "list-crm-contacts") {
-      const { data, error } = await admin
+      const limit = Math.min(Number(body.limit) || 200, 500);
+      const offset = Number(body.offset) || 0;
+      let q = admin
         .from("crm_contacts")
-        .select("*")
+        .select("*", { count: "exact" })
         .order("updated_at", { ascending: false })
-        .limit(200);
+        .range(offset, offset + limit - 1);
+
+      if (body.stage) q = q.eq("stage", String(body.stage));
+      if (body.source) q = q.eq("source", String(body.source));
+      if (body.search) {
+        const s = `%${String(body.search)}%`;
+        q = q.or(`name.ilike.${s},email.ilike.${s},company.ilike.${s}`);
+      }
+
+      const { data, error, count } = await q;
       if (error) throw error;
-      return jsonResponse(req, { contacts: data });
+      return jsonResponse(req, { contacts: data, total: count });
+    }
+
+    if (action === "get-crm-contact") {
+      const contactId = String(body.contact_id ?? "");
+      const [{ data: contact, error: cErr }, { data: activities, error: aErr }, { data: tasks, error: tErr }, { data: deals, error: dErr }] =
+        await Promise.all([
+          admin.from("crm_contacts").select("*").eq("id", contactId).single(),
+          admin.from("crm_activities").select("*").eq("contact_id", contactId).order("created_at", { ascending: false }).limit(50),
+          admin.from("crm_tasks").select("*").eq("contact_id", contactId).order("created_at", { ascending: false }),
+          admin.from("crm_deals").select("*").eq("contact_id", contactId).order("created_at", { ascending: false }),
+        ]);
+      if (cErr) throw cErr;
+      if (aErr) throw aErr;
+      if (tErr) throw tErr;
+      if (dErr) throw dErr;
+      return jsonResponse(req, { contact, activities, tasks, deals });
+    }
+
+    if (action === "update-crm-contact") {
+      const contactId = String(body.contact_id ?? "");
+      const patch = body.patch as Record<string, unknown>;
+
+      const { data: current } = await admin
+        .from("crm_contacts")
+        .select("stage")
+        .eq("id", contactId)
+        .single();
+
+      const { error } = await admin
+        .from("crm_contacts")
+        .update({ ...patch, updated_at: new Date().toISOString() })
+        .eq("id", contactId);
+      if (error) throw error;
+
+      if (patch.stage && current && patch.stage !== current.stage) {
+        await admin.from("crm_activities").insert({
+          contact_id: contactId,
+          kind: "stage_change",
+          payload: { from: current.stage, to: patch.stage },
+          created_by: "admin",
+        });
+      }
+
+      return jsonResponse(req, { ok: true });
+    }
+
+    if (action === "add-crm-note") {
+      const contactId = String(body.contact_id ?? "");
+      const note = String(body.note ?? "");
+      const { error } = await admin.from("crm_activities").insert({
+        contact_id: contactId,
+        kind: "note",
+        payload: { text: note },
+        created_by: "admin",
+      });
+      if (error) throw error;
+      return jsonResponse(req, { ok: true });
+    }
+
+    if (action === "create-crm-task") {
+      const { data: task, error } = await admin
+        .from("crm_tasks")
+        .insert({
+          contact_id: String(body.contact_id ?? ""),
+          title: String(body.title ?? ""),
+          due_at: body.due_at ?? null,
+          task_type: body.task_type ?? "general",
+          status: "open",
+        })
+        .select()
+        .single();
+      if (error) throw error;
+      return jsonResponse(req, { task });
+    }
+
+    if (action === "update-crm-task") {
+      const taskId = String(body.task_id ?? "");
+      const patch = body.patch as Record<string, unknown>;
+      const { error } = await admin
+        .from("crm_tasks")
+        .update({ ...patch, updated_at: new Date().toISOString() })
+        .eq("id", taskId);
+      if (error) throw error;
+      return jsonResponse(req, { ok: true });
+    }
+
+    if (action === "bulk-update-crm-contacts") {
+      const ids: string[] = Array.isArray(body.ids) ? body.ids : [];
+      const stage = String(body.stage ?? "");
+      if (!ids.length || !stage) return jsonResponse(req, { error: "ids and stage required" }, 400);
+      const { error, count } = await admin
+        .from("crm_contacts")
+        .update({ stage, updated_at: new Date().toISOString() })
+        .in("id", ids);
+      if (error) throw error;
+      return jsonResponse(req, { updated: count });
     }
 
     if (action === "list-suppressions") {
