@@ -18,6 +18,9 @@ export const DIRECTORY_APP_URL =
 export const GRANTS_APP_URL =
   import.meta.env.VITE_GRANTS_APP_URL || "https://grants.rtmbusinessdirectory.com";
 
+export const GROW_APP_URL =
+  import.meta.env.VITE_GROW_APP_URL || "https://grow.rtmbusinessdirectory.com";
+
 export const WORLDCUP_APP_URL =
   import.meta.env.VITE_WORLDCUP_APP_URL || "https://worldcup.rtmbusinessdirectory.com";
 
@@ -29,6 +32,17 @@ export const getGrantsPortalUrl = (path = "/grants") => {
   const base = GRANTS_APP_URL.replace(/\/$/, "");
   const normalized = path.startsWith("/") ? path : `/${path}`;
   return `${base}${normalized}`;
+};
+
+/** RTM Growth Services on grow subdomain. */
+export const getGrowPortalUrl = (path = "/") => {
+  const base = GROW_APP_URL.replace(/\/$/, "");
+  const normalized = path.startsWith("/") ? path : `/${path}`;
+  return `${base}${normalized}`;
+};
+
+export const openGrowPortal = (path = "/") => {
+  window.location.href = getGrowPortalUrl(path);
 };
 
 export const getMembershipJoinUrl = (options?: {

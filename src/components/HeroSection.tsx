@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import SuccessSimulator from "./SuccessSimulator";
 import heroBackground from "@/assets/hero-background.jpg";
 import { DIRECTORY_COUNT_LABEL, PUBLIC_POSITIONING } from "@/content/siteCopy";
+import { openGrowPortal } from "@/lib/site";
 
 const HeroSection = () => {
   const navigate = useNavigate();
@@ -44,7 +45,7 @@ const HeroSection = () => {
   const valuePills = [
     { icon: Building2, text: DIRECTORY_COUNT_LABEL, color: "text-primary", action: () => navigate("/directory") },
     { icon: DollarSign, text: "Grant guidance", color: "text-accent", action: () => navigate("/grants") },
-    { icon: Bot, text: "Business support tools", color: "text-primary", action: () => navigate("/business-support") },
+    { icon: Bot, text: "Growth services", color: "text-primary", action: () => openGrowPortal("/") },
     { icon: Trophy, text: "World Cup Ready", color: "text-accent", action: () => navigate("/directory?filter=world-cup") },
   ];
 

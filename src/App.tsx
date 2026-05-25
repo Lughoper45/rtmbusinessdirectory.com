@@ -30,6 +30,8 @@ import AdminListings from "./pages/admin/AdminListings";
 import AdminOps from "./pages/admin/AdminOps";
 import ClaimBusiness from "./pages/ClaimBusiness";
 import ListingOptOut from "./pages/ListingOptOut";
+import GrowRedirect from "./pages/GrowRedirect";
+import AdminGrowth from "./pages/admin/AdminGrowth";
 import WorldCupRedirect from "./pages/WorldCupRedirect";
 
 const queryClient = new QueryClient();
@@ -54,7 +56,9 @@ const App = () => (
             <Route path="/membership" element={<Membership />} />
             <Route path="/affiliate" element={<Affiliate />} />
             <Route path="/directory" element={<Directory />} />
-            <Route path="/business-support" element={<ContentPage />} />
+            <Route path="/grow" element={<GrowRedirect />} />
+            <Route path="/grow/*" element={<GrowRedirect />} />
+            <Route path="/business-support" element={<Navigate to="/grow" replace />} />
             <Route path="/ai-search" element={<ContentPage />} />
             <Route path="/world-cup-hub" element={<WorldCupRedirect />} />
             <Route path="/marketplace" element={<ContentPage />} />
@@ -80,6 +84,7 @@ const App = () => (
             <Route path="/admin/grants" element={<AdminGrants />} />
             <Route path="/admin/listings" element={<AdminListings />} />
             <Route path="/admin/ops" element={<AdminOps />} />
+            <Route path="/admin/growth" element={<AdminGrowth />} />
             <Route path="/admin/membership" element={<AdminMembership />} />
             <Route path="/admin/analytics" element={<AdminAnalytics />} />
             <Route path="/admin/settings" element={<AdminSettings />} />

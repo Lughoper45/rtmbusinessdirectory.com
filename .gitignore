@@ -14,6 +14,8 @@ dist-ssr
 .env
 .env.*
 !.env.example
+RTM_SECRETS.local.env
+docs/RTM_SECRETS.local.env
 
 # Editor directories and files
 .vscode/*

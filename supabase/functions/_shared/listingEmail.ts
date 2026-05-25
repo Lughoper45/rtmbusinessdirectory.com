@@ -97,3 +97,57 @@ export function socialPostText(opts: {
   }
   return `🍁 Now on RTM: **${opts.name}** in ${opts.city} — ${opts.category}. See profile → ${opts.profileUrl} ${tags}`;
 }
+
+const GRANT_DISCLAIMER =
+  "RTM is a private Canadian business advisory platform — not a government agency. We do not guarantee grant approval.";
+
+export function checklistNurtureHtml(opts: {
+  day: 1 | 3 | 7;
+  name?: string | null;
+  grantsUrl: string;
+  membershipUrl: string;
+  checklistPdfUrl: string;
+  unsubscribeUrl: string;
+}) {
+  const greeting = opts.name?.trim() ? `Hi ${opts.name.trim()},` : "Hello,";
+  const subjects: Record<number, string> = {
+    1: "Quick tip: your Canadian grant checklist",
+    3: "Programs that fit Canadian SMEs — RTM grants hub",
+    7: "Last note: membership unlocks grant workspace tools",
+  };
+  const bodies: Record<number, string> = {
+    1: `<p>${greeting}</p><p>Following up on your Free Grant Checklist request. If you have not downloaded it yet:</p>
+<div style="text-align:center;margin:20px 0;"><a href="${opts.checklistPdfUrl}" style="display:inline-block;background:#cc0000;color:#fff;padding:12px 24px;text-decoration:none;border-radius:8px;">Download checklist (PDF)</a></div>`,
+    3: `<p>${greeting}</p><p>Many Canadian businesses use RTM to explore verified federal and provincial programs in one place — with RTM compatibility estimates, not government eligibility guarantees.</p>
+<div style="text-align:center;margin:20px 0;"><a href="${opts.grantsUrl}" style="display:inline-block;background:#061f3a;color:#fff;padding:12px 24px;text-decoration:none;border-radius:8px;">Browse grants hub</a></div>`,
+    7: `<p>${greeting}</p><p>RTM membership ($100/year) unlocks member pricing on grant advisor packages and the GrantPilot workspace for profile-matched programs.</p>
+<div style="text-align:center;margin:20px 0;"><a href="${opts.membershipUrl}" style="display:inline-block;background:#cc0000;color:#fff;padding:12px 24px;text-decoration:none;border-radius:8px;">Join RTM membership</a></div>`,
+  };
+  const subject = subjects[opts.day];
+  const footer = `<p style="color:#64748b;font-size:12px;margin-top:16px;">${GRANT_DISCLAIMER}</p>
+<p style="color:#64748b;font-size:11px;"><a href="${opts.unsubscribeUrl}">Unsubscribe from nurture emails</a></p>`;
+  return {
+    subject,
+    html: baseTemplate(subject, `${bodies[opts.day]}${footer}`, opts.unsubscribeUrl),
+  };
+}
+
+export function listingViewsNurtureHtml(opts: {
+  businessName: string;
+  viewCount: number;
+  profileUrl: string;
+  dashboardUrl: string;
+  featuredUrl: string;
+}) {
+  const subject = `${opts.businessName}: your RTM listing is getting attention`;
+  const body = `
+<p>Your claimed profile on RTM Business Directory is active.</p>
+<p style="font-size:18px;color:#061f3a;"><strong>${opts.viewCount.toLocaleString()}+</strong> estimated profile views this month.</p>
+<p>Keep your hours, photos, and offers up to date so customers convert when they find you.</p>
+<div style="text-align:center;margin:20px 0;">
+<a href="${opts.dashboardUrl}" style="display:inline-block;background:#061f3a;color:#fff;padding:12px 28px;text-decoration:none;border-radius:8px;margin:4px;">Open dashboard</a>
+<a href="${opts.featuredUrl}" style="display:inline-block;border:2px solid #cc0000;color:#cc0000;padding:12px 28px;text-decoration:none;border-radius:8px;margin:4px;">Featured placement</a>
+</div>
+<p style="font-size:13px;color:#64748b;">Public profile: <a href="${opts.profileUrl}">${opts.profileUrl}</a></p>`;
+  return { subject, html: baseTemplate(subject, body) };
+}

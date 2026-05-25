@@ -31,8 +31,10 @@ const Auth = () => {
   const [tokenEmail, setTokenEmail] = useState<string | null>(null);
   const redirectTo = (() => {
     const params = new URLSearchParams(location.search);
-    const rawTarget = params.get("redirectTo");
-    if (!rawTarget || !rawTarget.startsWith("/")) return "/dashboard";
+    const rawTarget = params.get("redirectTo") ?? params.get("returnUrl");
+    if (!rawTarget || !rawTarget.startsWith("/")) {
+      return import.meta.env.VITE_APP_SURFACE === "grow" ? "/workspace" : "/dashboard";
+    }
     return rawTarget;
   })();
 

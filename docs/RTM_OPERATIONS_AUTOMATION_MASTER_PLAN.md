@@ -19,6 +19,7 @@
 | [GRANT_PACKAGES.md](../GRANT_PACKAGES.md) | Stripe packages, webhook |
 | [docs/OPS_CHECKLIST_LEADS.md](./OPS_CHECKLIST_LEADS.md) | Immediate human backlog (4 leads) |
 | [docs/DIRECTORY_LISTING_OUTREACH_AUTOMATION_PLAN.md](./DIRECTORY_LISTING_OUTREACH_AUTOMATION_PLAN.md) | Owner discovery, claim invites, email/sales/social automation |
+| [docs/RTM_GROW_MY_BUSINESS_BRAINSTORM.md](./RTM_GROW_MY_BUSINESS_BRAINSTORM.md) | Pillar #3 product, services, government recognition (brainstorm) |
 
 **Database:** `kajwpmyloxaqeciyndwf` — one Supabase for directory, membership, grants, admin.
 

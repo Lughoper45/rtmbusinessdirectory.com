@@ -1,6 +1,6 @@
 # Directory Listing Outreach & Marketing Automation — Master Plan
 
-**Status:** Proposed (extends ops automation)  
+**Status:** Implemented in repo — deploy secrets per [RTM_SECRETS_PLACEHOLDER.env](./RTM_SECRETS_PLACEHOLDER.env)  
 **Last updated:** 2026-05-25  
 **Database:** `kajwpmyloxaqeciyndwf`  
 **North star:** Find the right owner contact for each directory listing, invite them to **claim** their profile, then run **email + sales + marketing + social** automations — with **human approval** before bulk outreach and before any paid social spend.
@@ -509,8 +509,11 @@ Add to `ops_events` types:
 
 ---
 
-## 17. Next engineering ticket (if you want implementation next)
+## 17. Deploy + secrets
 
-**Ticket LO-001:** Migration + `/claim` page + wire `ProfileSidebar` to `claimBusiness` + `send-claim-email` + admin suppressions table.
+**LO-001 through Phase D gaps** are implemented in the repo. To go live:
 
-Say **“start LO-001”** to begin code in `launchpad-canada-ai`.
+1. Fill **[RTM_SECRETS_PLACEHOLDER.env](./RTM_SECRETS_PLACEHOLDER.env)** (copy to `RTM_SECRETS.local.env`).
+2. Follow **[LISTING_OUTREACH_DEPLOY.md](./LISTING_OUTREACH_DEPLOY.md)** — `db push`, deploy edge functions, daily cron.
+
+**Still manual / Phase E:** Owner OAuth social (`social_oauth_connections` schema only), full `/admin/ops` Kanban, `ops-ai-assistant`.

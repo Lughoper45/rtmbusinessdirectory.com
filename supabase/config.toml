@@ -74,3 +74,9 @@ verify_jwt = false
 
 [functions.ops-dispatcher]
 verify_jwt = false
+
+[functions.growth-audit-lead]
+verify_jwt = false
+
+[functions.growth-package-checkout]
+verify_jwt = false

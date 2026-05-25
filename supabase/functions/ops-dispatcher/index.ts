@@ -7,10 +7,15 @@ import {
 import {
   claimInviteHtml,
   LISTING_FROM,
-  postClaimNurtureHtml,
   siteUrl,
   socialPostText,
 } from "../_shared/listingEmail.ts";
+import {
+  processChecklistNurture,
+  processListingViewsNurture,
+  processPostClaimNurture,
+} from "../_shared/nurtureScheduler.ts";
+import { publishToSocialChannels } from "../_shared/socialPublish.ts";
 
 const CRON_SECRET = Deno.env.get("OPS_CRON_SECRET");
 const DAILY_SEND_CAP = Number(Deno.env.get("LISTING_DAILY_SEND_CAP") || "50");
@@ -154,51 +159,25 @@ async function handleEvent(
       if (!post) throw new Error("Post not found");
 
       const payload = post.payload as Record<string, string>;
-      const published: Record<string, string> = {};
       const channels: string[] = post.channels ?? ["facebook", "linkedin", "x"];
-
-      for (const ch of channels) {
-        const text = payload[ch] || socialPostText({
-          name: payload.name || "RTM Business",
-          city: payload.city || "Canada",
-          category: payload.category || "Business",
+      const published = await publishToSocialChannels(
+        channels,
+        {
+          facebook: payload.facebook,
+          linkedin: payload.linkedin,
+          x: payload.x,
           profileUrl: payload.profileUrl || siteUrl(),
-          channel: ch,
-        });
-        published[ch] = `dry-run:${ch}:${text.slice(0, 40)}...`;
-      }
-
-      const metaToken = Deno.env.get("META_PAGE_ACCESS_TOKEN");
-      const metaPageId = Deno.env.get("META_PAGE_ID");
-      if (metaToken && metaPageId && channels.includes("facebook")) {
-        try {
-          const message = payload.facebook || payload.linkedin || "";
-          const link = payload.profileUrl || siteUrl();
-          const res = await fetch(
-            `https://graph.facebook.com/v19.0/${metaPageId}/feed`,
-            {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                message,
-                link,
-                access_token: metaToken,
-              }),
-            },
-          );
-          const json = await res.json();
-          published.facebook = json.id
-            ? `https://facebook.com/${json.id}`
-            : `meta-error:${JSON.stringify(json)}`;
-        } catch (e) {
-          published.facebook = `meta-error:${e instanceof Error ? e.message : "failed"}`;
-        }
-      }
-
-      const linkedInToken = Deno.env.get("LINKEDIN_ACCESS_TOKEN");
-      if (linkedInToken && channels.includes("linkedin")) {
-        published.linkedin = "linkedin:configure-urn-in-META_PAGE_ID";
-      }
+          imageUrl: payload.image,
+        },
+        (ch) =>
+          socialPostText({
+            name: payload.name || "RTM Business",
+            city: payload.city || "Canada",
+            category: payload.category || "Business",
+            profileUrl: payload.profileUrl || siteUrl(),
+            channel: ch,
+          }),
+      );
 
       await admin
         .from("social_post_queue")
@@ -212,7 +191,7 @@ async function handleEvent(
       return { published };
     }
     case "checklist_lead.created": {
-      return { ok: true };
+      return { ok: true, note: "day 1/3/7 nurture handled by cron" };
     }
     default:
       return { ignored: event.event_type };
@@ -330,8 +309,14 @@ Deno.serve(async (req) => {
     }
 
     let reminders: string[] = [];
+    let checklistNurture: string[] = [];
+    let postClaimNurture: string[] = [];
+    let listingViewsNurture: string[] = [];
     if (resend) {
       reminders = await processReminders(admin, resend);
+      checklistNurture = await processChecklistNurture(admin, resend);
+      postClaimNurture = await processPostClaimNurture(admin, resend);
+      listingViewsNurture = await processListingViewsNurture(admin, resend);
     }
 
     const { data: approved } = await admin
@@ -362,6 +347,9 @@ Deno.serve(async (req) => {
       eventsProcessed: processed.length,
       processed,
       reminders,
+      checklistNurture,
+      postClaimNurture,
+      listingViewsNurture,
     });
   } catch (e) {
     return jsonResponse(

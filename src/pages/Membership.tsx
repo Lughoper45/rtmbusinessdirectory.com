@@ -23,6 +23,7 @@ import {
   Store,
   UtensilsCrossed,
   HandCoins,
+  TrendingUp,
   Wallet,
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
@@ -32,7 +33,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { FALLBACK_MEMBERSHIP_PLANS, type MembershipPlan } from "@/data/membershipPlans";
-import { openMembershipJoin, getGrantsWorkspaceUrl } from "@/lib/site";
+import { getGrowPortalUrl, openMembershipJoin, getGrantsWorkspaceUrl } from "@/lib/site";
 import { fetchPlatformMembership } from "@/services/membership";
 import {
   AID_WAITING_PERIOD_LABEL,
@@ -662,6 +663,30 @@ const Membership = () => {
                   );
                 })}
               </div>
+            </div>
+          </section>
+
+          <section className="border-t border-border/60 bg-muted/30 py-16 md:py-20">
+            <div className="container mx-auto max-w-[1280px] px-6">
+              <Card className="border-[#cc0000]/25 overflow-hidden">
+                <CardContent className="p-8 md:p-10 flex flex-col md:flex-row md:items-center gap-8">
+                  <div className="flex-1">
+                    <div className="inline-flex items-center gap-2 text-[#cc0000] font-bold text-sm uppercase tracking-wide">
+                      <TrendingUp className="h-4 w-4" />
+                      Member benefit
+                    </div>
+                    <h2 className="mt-3 text-2xl md:text-3xl font-black">RTM Growth Services</h2>
+                    <p className="mt-3 text-muted-foreground leading-relaxed max-w-xl">
+                      Members save ~30% on Visibility Starter, Sales Engine, and Growth OS monthly packages.
+                      Get visible online, capture leads on WhatsApp, and automate with AI — on{" "}
+                      <strong className="text-foreground">grow.rtmbusinessdirectory.com</strong>.
+                    </p>
+                  </div>
+                  <Button size="lg" className="bg-[#cc0000] hover:bg-[#b30000] shrink-0" asChild>
+                    <a href={getGrowPortalUrl("/?source=membership")}>Book free growth audit</a>
+                  </Button>
+                </CardContent>
+              </Card>
             </div>
           </section>
 

@@ -1,4 +1,4 @@
-import { GRANTS_APP_URL, WORLDCUP_APP_URL } from "@/lib/site";
+import { GRANTS_APP_URL, GROW_APP_URL, WORLDCUP_APP_URL } from "@/lib/site";
 
 export const PLATFORM_AUTH_STORAGE_KEY = "rtm-platform-auth";
 
@@ -7,40 +7,44 @@ export type HandoffTokens = {
   refresh_token: string;
 };
 
-export function isGrantsOrWorldcupHost(targetUrl: string): boolean {
+const PLATFORM_APP_BASES = [GRANTS_APP_URL, GROW_APP_URL, WORLDCUP_APP_URL];
+
+function hostsMatch(baseUrl: string, destinationHost: string): boolean {
   try {
-    const host = new URL(targetUrl).host;
-    return [GRANTS_APP_URL, WORLDCUP_APP_URL].some((base) => {
-      try {
-        return new URL(base).host === host;
-      } catch {
-        return false;
-      }
-    });
+    return new URL(baseUrl).host === destinationHost;
   } catch {
     return false;
   }
 }
 
-export function buildGrantsAuthHandoffUrl(
+export function isPlatformAppHost(targetUrl: string): boolean {
+  try {
+    const host = new URL(targetUrl).host;
+    return PLATFORM_APP_BASES.some((base) => hostsMatch(base, host));
+  } catch {
+    return false;
+  }
+}
+
+/** @deprecated use isPlatformAppHost */
+export function isGrantsOrWorldcupHost(targetUrl: string): boolean {
+  return isPlatformAppHost(targetUrl);
+}
+
+export function buildPlatformAuthHandoffUrl(
   tokens: HandoffTokens,
   returnUrl: string,
 ): string {
   const destination = new URL(returnUrl);
-  const grantsBase = [GRANTS_APP_URL, WORLDCUP_APP_URL].find((base) => {
-    try {
-      return new URL(base).host === destination.host;
-    } catch {
-      return false;
-    }
-  });
+  const appBase = PLATFORM_APP_BASES.find((base) => hostsMatch(base, destination.host));
 
-  if (!grantsBase) {
+  if (!appBase) {
     return returnUrl;
   }
 
-  const returnPath = `${destination.pathname}${destination.search}${destination.hash}` || "/grants";
-  const url = new URL("/auth", grantsBase.replace(/\/$/, ""));
+  const returnPath =
+    `${destination.pathname}${destination.search}${destination.hash}` || "/";
+  const url = new URL("/auth", appBase.replace(/\/$/, ""));
   url.searchParams.set("returnUrl", returnPath.startsWith("/") ? returnPath : `/${returnPath}`);
   const hash = new URLSearchParams({
     access_token: tokens.access_token,
@@ -51,16 +55,36 @@ export function buildGrantsAuthHandoffUrl(
   return url.toString();
 }
 
+/** @deprecated use buildPlatformAuthHandoffUrl */
+export function buildGrantsAuthHandoffUrl(tokens: HandoffTokens, returnUrl: string): string {
+  return buildPlatformAuthHandoffUrl(tokens, returnUrl);
+}
+
+function getWorkspaceUrl(
+  appBase: string,
+  session: { access_token: string; refresh_token: string } | null,
+  returnPath: string,
+): string {
+  const base = appBase.replace(/\/$/, "");
+  const fullReturn = `${base}${returnPath.startsWith("/") ? returnPath : `/${returnPath}`}`;
+  if (!session?.access_token || !session.refresh_token) {
+    const url = new URL("/auth", base);
+    url.searchParams.set("returnUrl", returnPath.startsWith("/") ? returnPath : `/${returnPath}`);
+    return url.toString();
+  }
+  return buildPlatformAuthHandoffUrl(session, fullReturn);
+}
+
 export function getGrantsWorkspaceUrl(
   session: { access_token: string; refresh_token: string } | null,
   returnPath = "/grants",
 ): string {
-  const grantsBase = GRANTS_APP_URL.replace(/\/$/, "");
-  const fullReturn = `${grantsBase}${returnPath.startsWith("/") ? returnPath : `/${returnPath}`}`;
-  if (!session?.access_token || !session.refresh_token) {
-    const url = new URL("/auth", grantsBase);
-    url.searchParams.set("returnUrl", returnPath.startsWith("/") ? returnPath : `/${returnPath}`);
-    return url.toString();
-  }
-  return buildGrantsAuthHandoffUrl(session, fullReturn);
+  return getWorkspaceUrl(GRANTS_APP_URL, session, returnPath);
+}
+
+export function getGrowWorkspaceUrl(
+  session: { access_token: string; refresh_token: string } | null,
+  returnPath = "/workspace",
+): string {
+  return getWorkspaceUrl(GROW_APP_URL, session, returnPath);
 }

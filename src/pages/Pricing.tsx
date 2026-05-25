@@ -16,6 +16,7 @@ import {
   ShoppingCart,
   Sparkles,
   Store,
+  TrendingUp,
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -32,7 +33,12 @@ import {
   type GrantPackageId,
 } from "@/lib/grantPackages";
 import { fetchPlatformMembership } from "@/services/membership";
-import { openMembershipJoin } from "@/lib/site";
+import { getGrowPortalUrl, openMembershipJoin } from "@/lib/site";
+import {
+  GROWTH_PACKAGES,
+  formatGrowthPrice,
+  getGrowthMonthlyPrice,
+} from "@/lib/growthPackages";
 import {
   COMPLIANCE_COPY,
   DISCOUNT_RANGE_LABEL,
@@ -418,6 +424,56 @@ const Pricing = () => {
                     </Button>
                   </CardFooter>
                 </Card>
+              </div>
+            </div>
+          </section>
+
+          {/* Growth Services */}
+          <section className="border-t border-border/60 py-16 md:py-20">
+            <div className="container mx-auto max-w-[1280px] px-6">
+              <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-8">
+                <div>
+                  <div className="flex items-center gap-2 text-[#cc0000]">
+                    <TrendingUp className="h-5 w-5" />
+                    <span className="text-sm font-bold uppercase tracking-wider">Grow My Business</span>
+                  </div>
+                  <h2 className="mt-2 text-3xl font-black">RTM Growth packages</h2>
+                  <p className="mt-2 text-muted-foreground max-w-2xl">
+                    Monthly subscriptions on grow.rtmbusinessdirectory.com. Members save ~30% on all tiers.
+                  </p>
+                </div>
+                <Button variant="outline" asChild>
+                  <a href={getGrowPortalUrl("/packages")}>View on Growth portal →</a>
+                </Button>
+              </div>
+              <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                {GROWTH_PACKAGES.filter((p) => p.subscription).map((pkg) => {
+                  const price = getGrowthMonthlyPrice(pkg, memberActive);
+                  return (
+                    <Card key={pkg.id}>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-lg">{pkg.name}</CardTitle>
+                        <CardDescription>{pkg.tagline}</CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-2xl font-bold">
+                          {price != null && formatGrowthPrice(price)}
+                          <span className="text-sm font-normal text-muted-foreground">/mo</span>
+                        </p>
+                        {memberActive && pkg.monthlyPrice != null && (
+                          <p className="text-xs text-muted-foreground line-through mt-1">
+                            {formatGrowthPrice(pkg.monthlyPrice)} list
+                          </p>
+                        )}
+                      </CardContent>
+                      <CardFooter>
+                        <Button className="w-full" size="sm" asChild>
+                          <a href={getGrowPortalUrl(`/packages?start=${pkg.id}`)}>Subscribe</a>
+                        </Button>
+                      </CardFooter>
+                    </Card>
+                  );
+                })}
               </div>
             </div>
           </section>

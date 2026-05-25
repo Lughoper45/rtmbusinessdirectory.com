@@ -46,17 +46,50 @@ Deno.serve(async (req) => {
 
     const results: { business_id: string; contacts_added: number; error?: string }[] = [];
 
+    const placesKey = Deno.env.get("GOOGLE_PLACES_API_KEY")?.trim();
+
     for (const biz of businesses ?? []) {
       try {
         let added = 0;
-        const websiteDomain = domainFromUrl(biz.website);
+        let website = biz.website;
 
-        if (biz.website) {
+        if (placesKey && biz.name && biz.city) {
+          try {
+            const q = encodeURIComponent(`${biz.name} ${biz.city} Canada`);
+            const findRes = await fetch(
+              `https://maps.googleapis.com/maps/api/place/findplacefromtext/json?input=${q}&inputtype=textquery&fields=place_id,website,formatted_phone_number&key=${placesKey}`,
+            );
+            const findJson = await findRes.json();
+            const placeId = findJson?.candidates?.[0]?.place_id;
+            if (placeId) {
+              const detRes = await fetch(
+                `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&fields=website,formatted_phone_number&key=${placesKey}`,
+              );
+              const det = await detRes.json();
+              const place = det?.result;
+              if (place?.website && !website) website = place.website;
+              if (place?.formatted_phone_number && !biz.phone) {
+                await admin
+                  .from("businesses")
+                  .update({ phone: place.formatted_phone_number, website: website ?? biz.website })
+                  .eq("business_id", biz.business_id);
+              } else if (website && website !== biz.website) {
+                await admin.from("businesses").update({ website }).eq("business_id", biz.business_id);
+              }
+            }
+          } catch {
+            /* Places optional */
+          }
+        }
+
+        const resolvedDomain = domainFromUrl(website);
+
+        if (website) {
           const controller = new AbortController();
           const timeout = setTimeout(() => controller.abort(), 8000);
           try {
             const res = await fetch(
-              biz.website.startsWith("http") ? biz.website : `https://${biz.website}`,
+              website.startsWith("http") ? website : `https://${website}`,
               {
                 signal: controller.signal,
                 headers: { "User-Agent": "RTM-Directory-Bot/1.0 (+https://rtmbusinessdirectory.com)" },
@@ -65,11 +98,11 @@ Deno.serve(async (req) => {
             clearTimeout(timeout);
             if (res.ok) {
               const html = await res.text();
-              const emails = extractEmailsFromHtml(html, websiteDomain);
+              const emails = extractEmailsFromHtml(html, resolvedDomain);
               for (const found of emails.slice(0, 3)) {
                 const { confidence, casl_basis } = scoreContact({
                   email: found.email,
-                  websiteDomain,
+                  websiteDomain: resolvedDomain,
                   foundOnContactPage: found.foundOnContactPage,
                   foundInFooter: found.foundInFooter,
                   isMailto: found.isMailto,
@@ -81,7 +114,7 @@ Deno.serve(async (req) => {
                     business_id: biz.business_id,
                     email: found.email,
                     source: "website",
-                    source_url: biz.website,
+                    source_url: website,
                     confidence,
                     casl_basis,
                     is_primary: added === 0,
@@ -99,7 +132,7 @@ Deno.serve(async (req) => {
                       business_id: biz.business_id,
                       email: found.email,
                       source: "website",
-                      source_url: biz.website,
+                      source_url: website,
                       confidence,
                       casl_basis,
                       is_primary: added === 0,
@@ -114,11 +147,11 @@ Deno.serve(async (req) => {
           }
         }
 
-        if (added === 0 && websiteDomain) {
-          const guessed = `info@${websiteDomain}`;
+        if (added === 0 && resolvedDomain) {
+          const guessed = `info@${resolvedDomain}`;
           const { confidence, casl_basis } = scoreContact({
             email: guessed,
-            websiteDomain,
+            websiteDomain: resolvedDomain,
           });
           if (confidence >= 50) {
             await admin.from("listing_contacts").insert({

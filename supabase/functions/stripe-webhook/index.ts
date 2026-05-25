@@ -32,6 +32,74 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+async function fulfillGrowthPackageOrder(
+  supabase: ReturnType<typeof createClient>,
+  session: Stripe.Checkout.Session,
+) {
+  if (session.metadata?.checkoutType !== "growth_package") return false;
+
+  const orderId = session.metadata?.orderId;
+  const engagementId = session.metadata?.engagementId;
+  const userId = session.metadata?.userId;
+  const packageId = session.metadata?.packageId;
+
+  if (!orderId || !engagementId || !userId || !packageId) {
+    console.error("[stripe-webhook] growth_package missing metadata", session.metadata);
+    return true;
+  }
+
+  const subscriptionId =
+    typeof session.subscription === "string"
+      ? session.subscription
+      : session.subscription?.id ?? null;
+
+  const paymentIntentId =
+    typeof session.payment_intent === "string"
+      ? session.payment_intent
+      : session.payment_intent?.id ?? null;
+
+  const { error: orderError } = await supabase
+    .from("growth_service_orders")
+    .update({
+      status: "paid",
+      stripe_checkout_session_id: session.id,
+      stripe_subscription_id: subscriptionId,
+      stripe_payment_intent_id: paymentIntentId,
+      engagement_id: engagementId,
+    })
+    .eq("id", orderId);
+
+  if (orderError) throw orderError;
+
+  const { error: engagementError } = await supabase
+    .from("growth_engagements")
+    .update({
+      status: "active",
+      started_at: new Date().toISOString(),
+      order_id: orderId,
+    })
+    .eq("id", engagementId);
+
+  if (engagementError) throw engagementError;
+
+  const resendKey = Deno.env.get("RESEND_API_KEY");
+  if (resendKey) {
+    const resend = new Resend(resendKey);
+    const growUrl = Deno.env.get("GROW_APP_URL") || "https://grow.rtmbusinessdirectory.com";
+    await resend.emails.send({
+      from: "RTM Growth Services <noreply@rtmbusinessdirectory.com>",
+      to: RTM_NOTIFY_EMAIL,
+      subject: `New growth subscription — ${packageId}`,
+      html: `<p><strong>Package:</strong> ${packageId}</p>
+<p>Engagement: ${engagementId}<br/>Order: ${orderId}<br/>User: ${userId}</p>
+<p><a href="https://rtmbusinessdirectory.com/admin/growth">Open admin growth →</a></p>
+<p><a href="${growUrl}/workspace">Client workspace →</a></p>`,
+    });
+  }
+
+  return true;
+}
+
 async function fulfillGrantPackageOrder(
   supabase: ReturnType<typeof createClient>,
   session: Stripe.Checkout.Session,
@@ -162,6 +230,9 @@ Deno.serve(async (req) => {
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
+        const isGrowthPackage = await fulfillGrowthPackageOrder(supabase, session);
+        if (isGrowthPackage) break;
+
         const isGrantPackage = await fulfillGrantPackageOrder(supabase, session);
         if (isGrantPackage) break;
 

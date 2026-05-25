@@ -10,6 +10,7 @@ import {
   socialPostText,
 } from "../_shared/listingEmail.ts";
 import { scoreContact, domainFromUrl } from "../_shared/listingContactScore.ts";
+import { isOpenRouterConfigured, openRouterChat } from "../_shared/openrouter.ts";
 
 type Action =
   | "list-unclaimed"
@@ -275,8 +276,33 @@ Deno.serve(async (req) => {
           claimed_by_user_id: claim.user_id,
           is_verified: true,
           owner_email: claim.business_email,
+          claim_approved_at: new Date().toISOString(),
+          listing_view_count: 25,
         })
         .eq("business_id", claim.business_id);
+
+      const { data: contactId } = await admin.rpc("upsert_crm_contact", {
+        p_email: claim.business_email,
+        p_name: null,
+        p_source: "listing_claim",
+        p_tags: ["directory_owner", "claimed"],
+      });
+
+      if (contactId) {
+        await admin.from("crm_deals").insert({
+          contact_id: contactId,
+          deal_type: "featured_listing",
+          stage: "discovery",
+          business_id: claim.business_id,
+          notes: "Created when listing claim was approved — follow up for featured placement.",
+        });
+        await admin.from("crm_activities").insert({
+          contact_id: contactId,
+          kind: "claim_approved",
+          payload: { business_id: claim.business_id, claim_id: claimId },
+          created_by: "system",
+        });
+      }
 
       await admin
         .from("listing_outreach")
@@ -390,14 +416,45 @@ Deno.serve(async (req) => {
         profileUrl,
         image: biz.image ?? "",
       };
+
+      if (isOpenRouterConfigured()) {
+        try {
+          const { text: draft } = await openRouterChat({
+            messages: [
+              {
+                role: "system",
+                content:
+                  "Write short social posts for a Canadian business directory listing. No grant guarantees. Return JSON only: {\"facebook\":\"...\",\"linkedin\":\"...\",\"x\":\"...\"}",
+              },
+              {
+                role: "user",
+                content: `Business: ${biz.name}, ${biz.category}, ${biz.city}. URL: ${profileUrl}. Max 280 chars for x.`,
+              },
+            ],
+            maxTokens: 600,
+            xTitle: "RTM Social Publisher",
+          });
+          const parsed = JSON.parse(
+            draft.replace(/^```json\s*/i, "").replace(/```\s*$/i, "").trim(),
+          ) as Record<string, string>;
+          for (const ch of ["facebook", "linkedin", "x"]) {
+            if (parsed[ch]) payload[ch] = parsed[ch];
+          }
+        } catch {
+          /* fall through to templates */
+        }
+      }
+
       for (const ch of ["facebook", "linkedin", "x"]) {
-        payload[ch] = socialPostText({
-          name: biz.name,
-          city: biz.city,
-          category: biz.category,
-          profileUrl,
-          channel: ch,
-        });
+        if (!payload[ch]) {
+          payload[ch] = socialPostText({
+            name: biz.name,
+            city: biz.city,
+            category: biz.category,
+            profileUrl,
+            channel: ch,
+          });
+        }
       }
 
       const { data: post, error: insErr } = await admin

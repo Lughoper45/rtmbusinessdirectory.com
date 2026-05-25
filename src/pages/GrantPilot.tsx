@@ -16,6 +16,7 @@ import {
   Search,
   ShoppingCart,
   ShieldCheck,
+  TrendingUp,
 } from 'lucide-react';
 import { Helmet } from 'react-helmet-async';
 import type { User } from '@supabase/supabase-js';
@@ -33,7 +34,7 @@ import {
   getPackageRequestMailto,
   type GrantPackageId,
 } from '@/lib/grantPackages';
-import { DIRECTORY_APP_URL, GRANTS_APP_URL, openMembershipJoin, SITE_CONTACT } from '@/lib/site';
+import { DIRECTORY_APP_URL, getGrowPortalUrl, GRANTS_APP_URL, openMembershipJoin, SITE_CONTACT } from '@/lib/site';
 
 const GRANT_CHECKLIST = [
   'Check eligibility criteria',
@@ -311,6 +312,31 @@ const GrantPilot = () => {
             </motion.section>
 
             <GrantAdvisoryDisclaimer variant="full" />
+
+            <section className="rounded-2xl border border-[#cc0000]/30 bg-gradient-to-r from-[#061f3a] to-[#0a2d52] p-6 md:p-8 text-white">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+                <div>
+                  <div className="inline-flex items-center gap-2 text-[#97c93d] text-sm font-bold uppercase tracking-wide">
+                    <TrendingUp className="h-4 w-4" />
+                    Grow My Business
+                  </div>
+                  <h2 className="mt-2 text-2xl font-bold">
+                    Grants can fund the digital tools RTM builds for you
+                  </h2>
+                  <p className="mt-2 text-white/80 max-w-xl text-sm leading-relaxed">
+                    Many programs support websites, marketing, CRM, and training. Pair GrantPilot with RTM Growth
+                    Services — visibility, sales systems, and automation on grow.rtmbusinessdirectory.com.
+                  </p>
+                </div>
+                <a
+                  href={getGrowPortalUrl("/?source=grantpilot")}
+                  className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-[#cc0000] px-6 py-3 font-semibold text-white hover:bg-[#a80000]"
+                >
+                  Free growth audit
+                  <ArrowRight className="h-5 w-5" />
+                </a>
+              </div>
+            </section>
 
             {/* How it works */}
             <section>
