@@ -112,7 +112,6 @@ export const AdminLayout = ({ children }: { children: React.ReactNode }) => {
         .eq("user_id", session.user.id)
         .maybeSingle();
 
-      console.log("Profile data for user", session.user.id, { data, error });
       setIsAdmin(data?.role === "admin");
       setIsLoading(false);
     })();

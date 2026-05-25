@@ -1,29 +1,5 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { handleCorsPreflight, jsonResponse } from "../_shared/cors.ts";
-
-async function requireAdmin(
-  req: Request,
-  authClient: ReturnType<typeof createClient>,
-) {
-  const token = req.headers.get("Authorization")?.replace("Bearer ", "");
-  if (!token) throw new Error("Unauthorized");
-
-  const {
-    data: { user },
-    error,
-  } = await authClient.auth.getUser(token);
-  if (error || !user) throw new Error("Unauthorized");
-
-  const { data: profile, error: profileError } = await authClient
-    .from("profiles")
-    .select("role")
-    .eq("user_id", user.id)
-    .maybeSingle();
-
-  if (profileError || profile?.role !== "admin") {
-    throw new Error("Admin access required");
-  }
-}
+import { requireAdmin } from "../_shared/adminAuth.ts";
 
 Deno.serve(async (req) => {
   const preflight = handleCorsPreflight(req);
@@ -38,9 +14,7 @@ Deno.serve(async (req) => {
       return jsonResponse(req, { error: "Server configuration incomplete." }, 500);
     }
 
-    const admin = createClient(supabaseUrl, serviceKey);
-    const authClient = createClient(supabaseUrl, anonKey);
-    await requireAdmin(req, authClient);
+    const { admin } = await requireAdmin(req, supabaseUrl, anonKey, serviceKey);
 
     const { data: profiles, error: profilesError } = await admin
       .from("profiles")
