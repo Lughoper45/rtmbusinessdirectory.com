@@ -67,12 +67,13 @@ Deno.serve(async (req) => {
 
     if (error) throw error;
 
-    const site = (Deno.env.get("GROW_APP_URL") ?? Deno.env.get("SITE_URL") ?? "https://grow.rtmbusinessdirectory.com").replace(/\/$/, "");
-    const growUrl = site;
+    const growUrl = (Deno.env.get("GROW_APP_URL") ?? "https://grow.rtmbusinessdirectory.com").replace(/\/$/, "");
+    const adminUrl = (Deno.env.get("SITE_URL") ?? "https://rtmbusinessdirectory.com").replace(/\/$/, "");
     const resendKey = Deno.env.get("RESEND_API_KEY");
     let emailsSent = false;
 
     if (resendKey) {
+      console.log(`growth-audit-lead: sending emails to=${email} from=${FROM}`);
       const resend = new Resend(resendKey);
       const greeting = body.name ? `Hi ${body.name},` : "Hello,";
 
@@ -100,11 +101,12 @@ Deno.serve(async (req) => {
 <p><strong>Business:</strong> ${answers.business_name ?? "—"}</p>
 <p><strong>Type:</strong> ${answers.business_type ?? "—"}</p>
 <p><strong>Challenge:</strong> ${answers.biggest_challenge ?? "—"}</p>
-<p><a href="https://rtmbusinessdirectory.com/admin/growth">Open admin →</a></p>`,
+<p><a href="${adminUrl}/admin/growth">Open admin →</a></p>`,
           ),
         }),
       ]);
 
+      console.log(`growth-audit-lead: confirm=${JSON.stringify(confirmResult.data ?? confirmResult.error)} notify=${JSON.stringify(notifyResult.data ?? notifyResult.error)}`);
       if (confirmResult.error) {
         console.error("growth-audit-lead: confirm email failed:", JSON.stringify(confirmResult.error));
       }
