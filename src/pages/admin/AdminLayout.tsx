@@ -6,6 +6,10 @@ import {
   Settings, 
   BarChart3,
   CreditCard,
+  FileText,
+  Megaphone,
+  TrendingUp,
+  Inbox,
   Loader2,
   ShieldAlert,
   X,
@@ -21,6 +25,10 @@ const navItems = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/businesses", label: "Businesses", icon: Building2 },
   { href: "/admin/users", label: "Users", icon: Users },
+  { href: "/admin/grants", label: "Grants", icon: FileText },
+  { href: "/admin/listings", label: "Listings", icon: Megaphone },
+  { href: "/admin/growth", label: "Growth", icon: TrendingUp },
+  { href: "/admin/ops", label: "Ops CRM", icon: Inbox },
   { href: "/admin/membership", label: "Membership", icon: CreditCard },
   { href: "/admin/analytics", label: "Analytics", icon: BarChart3 },
   { href: "/admin/settings", label: "Settings", icon: Settings },
@@ -106,7 +114,6 @@ export const AdminLayout = ({ children }: { children: React.ReactNode }) => {
         .eq("user_id", session.user.id)
         .maybeSingle();
 
-      console.log("Profile data for user", session.user.id, { data, error });
       setIsAdmin(data?.role === "admin");
       setIsLoading(false);
     })();

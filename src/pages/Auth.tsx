@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
+import { getAuthErrorMessage } from "@/lib/authErrors";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -30,8 +31,10 @@ const Auth = () => {
   const [tokenEmail, setTokenEmail] = useState<string | null>(null);
   const redirectTo = (() => {
     const params = new URLSearchParams(location.search);
-    const rawTarget = params.get("redirectTo");
-    if (!rawTarget || !rawTarget.startsWith("/")) return "/dashboard";
+    const rawTarget = params.get("redirectTo") ?? params.get("returnUrl");
+    if (!rawTarget || !rawTarget.startsWith("/")) {
+      return import.meta.env.VITE_APP_SURFACE === "grow" ? "/workspace" : "/dashboard";
+    }
     return rawTarget;
   })();
 
@@ -116,7 +119,7 @@ const Auth = () => {
     const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
 
     if (error) {
-      toast.error(error.message);
+      toast.error(getAuthErrorMessage(error));
     } else {
       toast.success("Welcome back!");
       // Small delay to ensure session is set before navigation
@@ -131,31 +134,27 @@ const Auth = () => {
 
     setIsLoading(true);
 
-    try {
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/signup`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: email.trim(),
-          password,
-          fullName: "",
-        }),
-      });
+    const emailConfirmRedirect = `${window.location.origin}/auth`;
+    const { data, error } = await supabase.auth.signUp({
+      email: email.trim(),
+      password,
+      options: {
+        emailRedirectTo: emailConfirmRedirect,
+        data: { full_name: "" },
+      },
+    });
 
-      const result = await response.json();
-
-      if (!response.ok) {
-        if (result.error?.includes("already been registered")) {
-          toast.error("This email is already registered. Please sign in instead.");
-        } else {
-          toast.error(result.error || "Registration failed");
-        }
-      } else {
-        toast.success("Account created! You can now sign in.");
-        setMode("login");
-      }
-    } catch (err) {
-      toast.error("Something went wrong. Please try again.");
+    if (error) {
+      toast.error(getAuthErrorMessage(error));
+    } else if (data.session) {
+      toast.success("Account created! Welcome.");
+      setTimeout(() => navigate(redirectTo, { replace: true }), 100);
+    } else {
+      toast.success(
+        "Account created! Check your email for a confirmation link, then sign in.",
+        { duration: 8000 },
+      );
+      setMode("login");
     }
     setIsLoading(false);
   };
@@ -209,7 +208,7 @@ const Auth = () => {
       });
 
       if (sessionError) {
-        toast.error(sessionError.message);
+        toast.error(getAuthErrorMessage(sessionError));
         setIsLoading(false);
         return;
       }
@@ -219,7 +218,7 @@ const Auth = () => {
     const { error } = await supabase.auth.updateUser({ password: newPassword });
 
     if (error) {
-      toast.error(error.message);
+      toast.error(getAuthErrorMessage(error));
     } else {
       toast.success("Password updated successfully!");
       // Clear URL params

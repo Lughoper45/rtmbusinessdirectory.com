@@ -86,7 +86,7 @@ const ApplicationStrengthAnalyzer = ({ formData, sections, mode }: ApplicationSt
     completenessScore < 100 && 'Complete all required fields',
     textareaQuality < 60 && 'Add more detail to narrative sections',
     documentScore < 80 && 'Upload all supporting documents',
-    mode === 'assisted' && 'Upgrade to Guided mode for AI assistance',
+    mode === 'assisted' && 'Upgrade to Guided mode for RTM advisor draft review',
   ].filter(Boolean);
 
   const overallInfo = getOverallLabel(overallScore);
@@ -201,7 +201,7 @@ const ApplicationStrengthAnalyzer = ({ formData, sections, mode }: ApplicationSt
         </motion.div>
       )}
 
-      {/* AI Tip */}
+      {/* Advisor tip */}
       {mode !== 'fullservice' && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -211,8 +211,8 @@ const ApplicationStrengthAnalyzer = ({ formData, sections, mode }: ApplicationSt
         >
           <div className="flex items-start gap-3">
             <Sparkles className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
-            <div>
-              <p className="text-sm font-medium text-foreground mb-1">AI Tip</p>
+            <motion.div>
+              <p className="text-sm font-medium text-foreground mb-1">Advisor tip</p>
               <p className="text-xs text-muted-foreground">
                 Applications with detailed project descriptions and clear objectives have a 47% higher approval rate.
               </p>

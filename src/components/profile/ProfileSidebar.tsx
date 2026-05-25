@@ -12,12 +12,16 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ProfileSidebarProps {
   business: Business;
 }
 
 const ProfileSidebar = ({ business }: ProfileSidebarProps) => {
+  const navigate = useNavigate();
+  const [claimLoading, setClaimLoading] = useState(false);
   const [contactForm, setContactForm] = useState({
     name: "",
     email: "",
@@ -30,8 +34,21 @@ const ProfileSidebar = ({ business }: ProfileSidebarProps) => {
     setContactForm({ name: "", email: "", message: "" });
   };
 
-  const handleClaim = () => {
-    toast.success("Claim request submitted! We'll verify your ownership.");
+  const handleClaim = async () => {
+    setClaimLoading(true);
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      const returnPath = `/claim?businessId=${encodeURIComponent(business.id)}`;
+      if (!session?.user) {
+        navigate(`/auth?redirectTo=${encodeURIComponent(returnPath)}`);
+        return;
+      }
+      navigate(returnPath);
+    } finally {
+      setClaimLoading(false);
+    }
   };
 
   // Mock business hours
@@ -276,7 +293,11 @@ const ProfileSidebar = ({ business }: ProfileSidebarProps) => {
               Add photos & videos
             </div>
           </div>
-          <Button onClick={handleClaim} className="w-full gap-2 shadow-lg shadow-primary/20">
+          <Button
+            onClick={() => void handleClaim()}
+            disabled={claimLoading}
+            className="w-full gap-2 shadow-lg shadow-primary/20"
+          >
             Claim Now - Free
             <ArrowRight className="w-4 h-4" />
           </Button>

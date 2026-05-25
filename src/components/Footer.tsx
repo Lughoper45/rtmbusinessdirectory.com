@@ -1,14 +1,14 @@
 import { Link } from "react-router-dom";
 import { Facebook, Instagram, Linkedin, Twitter, Youtube } from "lucide-react";
-import { GRANTS_APP_URL, SITE_CONTACT, WORLDCUP_APP_URL } from "@/lib/site";
+import { getGrantsPortalUrl, getGrowPortalUrl, getWorldCupPortalUrl, SITE_CONTACT } from "@/lib/site";
 
 const Footer = () => {
   const productLinks = [
     { label: "Find Businesses", to: "/directory" },
-    { label: "Access Grants", href: `${GRANTS_APP_URL}/grantpilot` },
-    { label: "Business Support", to: "/business-support" },
+    { label: "Access Grants", href: getGrantsPortalUrl("/grants") },
+    { label: "Growth Services", href: getGrowPortalUrl("/") },
     { label: "AI Search", to: "/ai-search" },
-    { label: "World Cup Ready", href: `${WORLDCUP_APP_URL}/worldcup` },
+    { label: "World Cup Ready", href: getWorldCupPortalUrl() },
     { label: "Marketplace", to: "/marketplace" },
     { label: "Pricing", to: "/pricing" },
   ];

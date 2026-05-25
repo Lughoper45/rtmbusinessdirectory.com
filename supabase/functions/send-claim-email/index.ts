@@ -12,15 +12,38 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { claimId, businessId, email, businessName, verificationToken, action } = await req.json();
+    const {
+      claimId,
+      businessId,
+      email,
+      businessName,
+      verificationToken,
+      action,
+      claimUrl,
+    } = await req.json();
 
     const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
     let subject = "";
     let html = "";
 
-    if (action === "verification") {
-      const verificationLink = `${Deno.env.get("SITE_URL") || "https://rtmbusinessdirectory.com"}/claim/verify?id=${claimId}&token=${verificationToken}`;
+    if (action === "owner_invite") {
+      const inviteLink = claimUrl ||
+        `${Deno.env.get("SITE_URL") || "https://www.rtmbusinessdirectory.com"}/claim?token=${verificationToken}`;
+      subject = `Your business is listed on RTM — claim ${businessName}`;
+      html = `
+        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2>Claim your listing on RTM</h2>
+          <p><strong>${businessName}</strong> is listed on RTM Business Directory. Claim your free profile to update information and connect with customers.</p>
+          <a href="${inviteLink}" style="display: inline-block; background: #cc0000; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 16px 0;">
+            Claim your listing →
+          </a>
+          <p style="font-size:12px;color:#666;">RTM is a private directory — not a government agency.</p>
+        </div>
+      `;
+    } else if (action === "verification") {
+      const verificationLink = claimUrl ||
+        `${Deno.env.get("SITE_URL") || "https://www.rtmbusinessdirectory.com"}/claim?claimId=${claimId}&token=${verificationToken}`;
       subject = `Verify your claim on ${businessName}`;
       html = `
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">

@@ -1,12 +1,20 @@
-import { stellarSupabase } from "@/integrations/supabase/stellarClient";
+import { supabase } from "@/integrations/supabase/client";
 import type { GrantProfile, GrantRecord, ScoredGrant } from "@/types/grant";
 import { provinceFromLocation } from "@/lib/grantProfile";
 
+export type GrantCatalogFilters = {
+  search?: string;
+  province?: string;
+  level?: string;
+  category?: string;
+  sector?: string;
+  difficulty?: string;
+  intakeOpen?: "all" | "open" | "closed";
+  processing?: "all" | "rtm" | "self";
+};
+
 function requireClient() {
-  if (!stellarSupabase) {
-    throw new Error("Grants database is not configured. Set VITE_STELLAR_SUPABASE_URL and VITE_STELLAR_SUPABASE_PUBLISHABLE_KEY.");
-  }
-  return stellarSupabase;
+  return supabase;
 }
 
 export async function fetchActiveGrants(): Promise<GrantRecord[]> {
@@ -82,12 +90,73 @@ export async function fetchRecommendedGrants(profile?: GrantProfile | null, limi
     .slice(0, limit);
 }
 
+export async function fetchGrantCatalog(
+  profile?: GrantProfile | null,
+  filters: GrantCatalogFilters = {},
+): Promise<ScoredGrant[]> {
+  const query = (filters.search ?? "").trim().toLowerCase();
+  const grants = await fetchActiveGrants();
+
+  return grants
+    .filter((grant) => {
+      if (filters.province && filters.province !== "all") {
+        const provinces = grant.provinces ?? [];
+        if (!provinces.includes("All Canada") && !provinces.includes(filters.province)) return false;
+      }
+      if (filters.level && filters.level !== "all" && grant.type !== filters.level && grant.level !== filters.level) {
+        return false;
+      }
+      if (filters.category && filters.category !== "all" && grant.category !== filters.category) return false;
+      if (filters.sector && filters.sector !== "all" && !(grant.sectors ?? []).includes(filters.sector)) return false;
+      if (filters.difficulty && filters.difficulty !== "all" && grant.difficulty !== filters.difficulty) return false;
+      if (filters.intakeOpen === "open" && grant.intake_open === false) return false;
+      if (filters.intakeOpen === "closed" && grant.intake_open !== false) return false;
+      if (filters.processing === "rtm" && grant.rtm_processing_eligible === false) return false;
+      if (filters.processing === "self" && grant.rtm_processing_eligible !== false) return false;
+      if (!query) return true;
+
+      const haystack = [
+        grant.name,
+        grant.organization,
+        grant.category,
+        grant.subcategory,
+        grant.description,
+        ...(grant.sectors ?? []),
+        ...(grant.tags ?? []),
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+      return haystack.includes(query);
+    })
+    .map((grant) => scoreGrantForProfile(grant, profile))
+    .sort((a, b) => b.computedMatch - a.computedMatch);
+}
+
 export function formatGrantAmount(amount: number): string {
   if (amount >= 1_000_000) return `Up to $${(amount / 1_000_000).toFixed(1)}M`;
   if (amount >= 1_000) return `Up to $${Math.round(amount / 1000)}K`;
   return `$${amount.toLocaleString()}`;
 }
 
+export function formatGrantFunding(grant: Pick<GrantRecord, "amount" | "amount_label" | "amount_max">): string {
+  if (grant.amount_label) return grant.amount_label;
+  return formatGrantAmount(Number(grant.amount_max ?? grant.amount ?? 0));
+}
+
 export function grantDetailPath(id: string): string {
   return `/grants/${id}`;
+}
+
+export const COMPATIBILITY_TOOLTIP =
+  "Based on your RTM profile and published program criteria. Only the program administrator can confirm eligibility.";
+
+export function formatCompatibilityPercent(score: number): string {
+  return `${Math.round(score)}% compatibility`;
+}
+
+export function getAdvisorContactMailto(grantName: string): string {
+  const subject = encodeURIComponent(`Grant advisory — ${grantName}`);
+  const body = encodeURIComponent(`I would like RTM advisor guidance for: ${grantName}`);
+  return `mailto:info@rtmbusinessdirectory.com?subject=${subject}&body=${body}`;
 }

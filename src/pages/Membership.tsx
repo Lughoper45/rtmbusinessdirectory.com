@@ -22,6 +22,8 @@ import {
   Sparkles,
   Store,
   UtensilsCrossed,
+  HandCoins,
+  TrendingUp,
   Wallet,
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
@@ -31,7 +33,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { FALLBACK_MEMBERSHIP_PLANS, type MembershipPlan } from "@/data/membershipPlans";
-import { openMembershipJoin } from "@/lib/site";
+import { getGrowPortalUrl, openMembershipJoin, getGrantsWorkspaceUrl } from "@/lib/site";
 import { fetchPlatformMembership } from "@/services/membership";
 import {
   AID_WAITING_PERIOD_LABEL,
@@ -355,6 +357,71 @@ const Membership = () => {
             </div>
           </section>
 
+          <section className="bg-white py-16 md:py-20 border-y border-border/60">
+            <div className="container mx-auto max-w-[1280px] px-6">
+              <div className="mx-auto max-w-3xl text-center">
+                <Badge variant="outline" className="border-primary/20 bg-primary/5 text-primary">
+                  Grants &amp; funding
+                </Badge>
+                <h2 className="mt-4 text-3xl font-black tracking-tight md:text-4xl">
+                  Grants &amp; Funding Workspace
+                </h2>
+                <p className="mt-4 text-lg text-muted-foreground">
+                  Active RTM members unlock profile-matched Canadian grant programs on the grants subdomain and receive{' '}
+                  <span className="font-semibold text-foreground">50% off</span> all RTM grant advisor packages — from
+                  eligibility checklists through full application coordination.
+                </p>
+              </div>
+              <div className="mt-10 grid gap-6 md:grid-cols-3 max-w-4xl mx-auto">
+                {[
+                  {
+                    title: "Profile-matched programs",
+                    description: "Build your business profile and browse programs ranked to your industry, location, and stage.",
+                  },
+                  {
+                    title: "50% member pricing",
+                    description: "Maple Checklist from $149, True North Standard from $1,000, and full-service tiers at half list price.",
+                  },
+                  {
+                    title: "Advisor-prepared applications",
+                    description: "Request RTM grant advisor packages for document review, narrative drafts, and submission support.",
+                  },
+                ].map((item) => (
+                  <Card key={item.title} className="border-primary/15 shadow-medium">
+                    <CardHeader>
+                      <div className="flex h-11 w-11 items-center justify-center rounded-full bg-primary/10 text-primary">
+                        <HandCoins className="h-5 w-5" />
+                      </div>
+                      <CardTitle className="text-lg">{item.title}</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm text-muted-foreground leading-6">{item.description}</p>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+              <div className="mt-8 flex flex-wrap justify-center gap-3">
+                <Button
+                  variant="hero"
+                  size="lg"
+                  onClick={async () => {
+                    const { data: { session } } = await supabase.auth.getSession();
+                    window.location.href = getGrantsWorkspaceUrl(session);
+                  }}
+                >
+                  Open grant workspace
+                  <ArrowRight className="h-5 w-5" />
+                </Button>
+                <Button variant="outline" size="lg" onClick={async () => {
+                  const { data: { session } } = await supabase.auth.getSession();
+                  window.location.href = getGrantsWorkspaceUrl(session, "/grants/packages");
+                }}>
+                  View advisor packages
+                </Button>
+              </div>
+            </div>
+          </section>
+
           <section className="bg-stone-50 py-20 md:py-24">
             <div className="container mx-auto max-w-[1280px] px-6">
               <div className="mx-auto max-w-3xl text-center">
@@ -596,6 +663,30 @@ const Membership = () => {
                   );
                 })}
               </div>
+            </div>
+          </section>
+
+          <section className="border-t border-border/60 bg-muted/30 py-16 md:py-20">
+            <div className="container mx-auto max-w-[1280px] px-6">
+              <Card className="border-[#cc0000]/25 overflow-hidden">
+                <CardContent className="p-8 md:p-10 flex flex-col md:flex-row md:items-center gap-8">
+                  <div className="flex-1">
+                    <div className="inline-flex items-center gap-2 text-[#cc0000] font-bold text-sm uppercase tracking-wide">
+                      <TrendingUp className="h-4 w-4" />
+                      Member benefit
+                    </div>
+                    <h2 className="mt-3 text-2xl md:text-3xl font-black">RTM Growth Services</h2>
+                    <p className="mt-3 text-muted-foreground leading-relaxed max-w-xl">
+                      Members save ~30% on Visibility Starter, Sales Engine, and Growth OS monthly packages.
+                      Get visible online, capture leads on WhatsApp, and automate with AI — on{" "}
+                      <strong className="text-foreground">grow.rtmbusinessdirectory.com</strong>.
+                    </p>
+                  </div>
+                  <Button size="lg" className="bg-[#cc0000] hover:bg-[#b30000] shrink-0" asChild>
+                    <a href={getGrowPortalUrl("/?source=membership")}>Book free growth audit</a>
+                  </Button>
+                </CardContent>
+              </Card>
             </div>
           </section>
 

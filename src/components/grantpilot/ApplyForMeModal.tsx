@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Bot, Zap, Crown, Check, ChevronRight, Sparkles, Shield, Clock, Users, Star, ArrowRight } from 'lucide-react';
+import { X, Zap, Crown, Check, ChevronRight, Sparkles, Shield, Clock, Users, Star, ArrowRight, FileText } from 'lucide-react';
 import ApplicationWizard from './ApplicationWizard';
+import { getPackageCheckoutUrl, getPackageRequestMailto } from '@/lib/grantPackages';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Grant {
   id: string;
@@ -44,36 +46,35 @@ const modes = [
   {
     id: 'guided' as ApplicationMode,
     name: 'Guided Mode',
-    icon: Bot,
-    price: '$99',
-    priceNote: 'per application',
+    icon: FileText,
+    price: 'From $1,000',
+    priceNote: 'member package',
     color: 'primary',
     popular: true,
     features: [
       'Everything in Assisted mode',
-      'AI writes draft answers to narratives',
+      'RTM advisor draft review for narratives',
       'Expert review before submission',
       'Priority support',
       'You approve final version',
     ],
-    cta: 'Get AI Assistance',
+    cta: 'Request True North package',
   },
   {
     id: 'fullservice' as ApplicationMode,
     name: 'Full Service',
     icon: Crown,
-    price: '$299',
-    priceNote: 'per application',
+    price: 'From $3,250',
+    priceNote: 'member package',
     color: 'warning',
     popular: false,
     features: [
-      'LaunchPad team takes over completely',
+      'RTM advisor coordination',
       'Professional grant writer review',
-      'We submit on your behalf',
       'Clear scope and review process',
       'Follow-up with grantor if needed',
     ],
-    cta: 'Let Us Handle It',
+    cta: 'Request Northern Star package',
   },
 ];
 
@@ -102,10 +103,23 @@ const ApplyForMeModal = ({ grant, onClose }: ApplyForMeModalProps) => {
     return colors[color] || colors.primary;
   };
 
-  const handleContinue = () => {
-    if (selectedMode) {
-      setShowWizard(true);
+  const handleContinue = async () => {
+    if (!selectedMode) return;
+    const { data } = await supabase.auth.getSession();
+    const session = data.session;
+    const handoff =
+      session?.access_token && session.refresh_token
+        ? { access_token: session.access_token, refresh_token: session.refresh_token }
+        : null;
+    if (selectedMode === 'fullservice') {
+      window.location.href = getPackageCheckoutUrl('northern-star', handoff);
+      return;
     }
+    if (selectedMode === 'guided') {
+      window.location.href = getPackageCheckoutUrl('true-north-standard', handoff);
+      return;
+    }
+    setShowWizard(true);
   };
 
   if (showWizard && selectedMode) {
@@ -134,13 +148,12 @@ const ApplyForMeModal = ({ grant, onClose }: ApplyForMeModalProps) => {
         onClick={(e) => e.stopPropagation()}
         className="w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-3xl glass-panel border border-primary/20"
       >
-        {/* Header */}
         <div className="sticky top-0 z-10 p-6 border-b border-border glass-panel rounded-t-3xl">
           <div className="flex items-start justify-between">
             <div>
               <div className="flex items-center gap-2 mb-2">
-                <Bot className="w-6 h-6 text-primary" />
-                <h2 className="font-orbitron font-bold text-xl text-foreground">Apply for Me</h2>
+                <FileText className="w-6 h-6 text-primary" />
+                <h2 className="font-orbitron font-bold text-xl text-foreground">Apply with RTM support</h2>
               </div>
               <p className="text-muted-foreground text-sm">
                 Choose how you want to apply for <span className="text-foreground font-medium">{grant.name}</span>
@@ -154,7 +167,6 @@ const ApplyForMeModal = ({ grant, onClose }: ApplyForMeModalProps) => {
             </button>
           </div>
 
-          {/* Grant Quick Info */}
           <div className="flex items-center gap-4 mt-4 p-3 rounded-xl bg-secondary/50">
             <div className="flex items-center gap-2">
               <span className="text-2xl font-orbitron font-bold text-gradient">
@@ -169,7 +181,7 @@ const ApplyForMeModal = ({ grant, onClose }: ApplyForMeModalProps) => {
             <div className="h-8 w-px bg-border" />
             <div className="flex items-center gap-2 text-sm">
               <Star className="w-4 h-4 text-warning" />
-              <span className="text-muted-foreground">{grant.matchScore}% match</span>
+              <span className="text-muted-foreground">{grant.matchScore}% profile match</span>
             </div>
             <div className="h-8 w-px bg-border" />
             <div className="flex items-center gap-2 text-sm">
@@ -179,7 +191,6 @@ const ApplyForMeModal = ({ grant, onClose }: ApplyForMeModalProps) => {
           </div>
         </div>
 
-        {/* Mode Selection */}
         <div className="p-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {modes.map((mode) => {
@@ -203,26 +214,22 @@ const ApplyForMeModal = ({ grant, onClose }: ApplyForMeModalProps) => {
                     </div>
                   )}
 
-                  {/* Selection Indicator */}
                   <div className={`absolute top-4 right-4 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${
                     isSelected ? `${colors.border} ${colors.bg}` : 'border-border'
                   }`}>
                     {isSelected && <Check className={`w-4 h-4 ${colors.text}`} />}
                   </div>
 
-                  {/* Icon */}
                   <div className={`w-12 h-12 rounded-xl ${colors.bg} flex items-center justify-center mb-4`}>
                     <Icon className={`w-6 h-6 ${colors.text}`} />
                   </div>
 
-                  {/* Title & Price */}
                   <h3 className="font-semibold text-foreground mb-1">{mode.name}</h3>
                   <div className="flex items-baseline gap-1 mb-4">
                     <span className={`text-2xl font-bold ${colors.text}`}>{mode.price}</span>
                     <span className="text-xs text-muted-foreground">{mode.priceNote}</span>
                   </div>
 
-                  {/* Features */}
                   <ul className="space-y-2">
                     {mode.features.map((feature, i) => (
                       <li key={i} className="flex items-start gap-2 text-sm">
@@ -236,7 +243,6 @@ const ApplyForMeModal = ({ grant, onClose }: ApplyForMeModalProps) => {
             })}
           </div>
 
-          {/* Continue Button */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: selectedMode ? 1 : 0.5, y: 0 }}
@@ -263,7 +269,6 @@ const ApplyForMeModal = ({ grant, onClose }: ApplyForMeModalProps) => {
             </button>
           </motion.div>
 
-          {/* Trust Badges */}
           <div className="flex items-center justify-center gap-6 mt-6 text-sm text-muted-foreground">
             <div className="flex items-center gap-2">
               <Shield className="w-4 h-4" />
@@ -271,11 +276,11 @@ const ApplyForMeModal = ({ grant, onClose }: ApplyForMeModalProps) => {
             </div>
             <div className="flex items-center gap-2">
               <Users className="w-4 h-4" />
-              <span>2,347 Successful Applications</span>
+              <span>Advisor-supported applications</span>
             </div>
             <div className="flex items-center gap-2">
               <Star className="w-4 h-4" />
-              <span>4.9/5 User Rating</span>
+              <span>Verified Canadian programs</span>
             </div>
           </div>
         </div>

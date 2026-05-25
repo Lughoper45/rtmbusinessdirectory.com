@@ -18,8 +18,32 @@ export const DIRECTORY_APP_URL =
 export const GRANTS_APP_URL =
   import.meta.env.VITE_GRANTS_APP_URL || "https://grants.rtmbusinessdirectory.com";
 
+export const GROW_APP_URL =
+  import.meta.env.VITE_GROW_APP_URL || "https://grow.rtmbusinessdirectory.com";
+
 export const WORLDCUP_APP_URL =
   import.meta.env.VITE_WORLDCUP_APP_URL || "https://worldcup.rtmbusinessdirectory.com";
+
+/** Public World Cup portal — subdomain root (not /worldcup path). */
+export const getWorldCupPortalUrl = () => WORLDCUP_APP_URL.replace(/\/$/, "");
+
+/** Grant workspace on grants subdomain (marketing links, no auth handoff). */
+export const getGrantsPortalUrl = (path = "/grants") => {
+  const base = GRANTS_APP_URL.replace(/\/$/, "");
+  const normalized = path.startsWith("/") ? path : `/${path}`;
+  return `${base}${normalized}`;
+};
+
+/** RTM Growth Services on grow subdomain. */
+export const getGrowPortalUrl = (path = "/") => {
+  const base = GROW_APP_URL.replace(/\/$/, "");
+  const normalized = path.startsWith("/") ? path : `/${path}`;
+  return `${base}${normalized}`;
+};
+
+export const openGrowPortal = (path = "/") => {
+  window.location.href = getGrowPortalUrl(path);
+};
 
 export const getMembershipJoinUrl = (options?: {
   referralCode?: string | null;
@@ -43,3 +67,5 @@ export const openExternalApp = (baseUrl: string, path = "/") => {
   const url = new URL(path, baseUrl.replace(/\/$/, ""));
   window.location.href = url.toString();
 };
+
+export { getGrantsWorkspaceUrl } from "@/lib/platformAuthHandoff";

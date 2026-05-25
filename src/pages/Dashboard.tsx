@@ -30,12 +30,11 @@ import {
   Star,
   ShieldCheck,
 } from "lucide-react";
-import { DashboardApplicationTracker } from "@/components/dashboard/DashboardApplicationTracker";
 import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
 import { fetchPlatformMembership } from "@/services/membership";
-import { openMembershipJoin } from "@/lib/site";
+import { openMembershipJoin, GRANTS_APP_URL, getGrantsWorkspaceUrl } from "@/lib/site";
 import { fetchRecommendedGrants, formatGrantAmount, grantDetailPath } from "@/lib/grants";
 import { loadGrantProfile } from "@/lib/grantProfile";
 import type { ScoredGrant } from "@/types/grant";
@@ -518,15 +517,6 @@ const Dashboard = () => {
                 <DollarSign className="w-4 h-4" />
                 Funding
               </TabsTrigger>
-              <TabsTrigger value="applications" className="flex items-center gap-2">
-                <FileText className="w-4 h-4" />
-                Applications
-                {applicationCount > 0 && (
-                  <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-xs">
-                    {applicationCount}
-                  </Badge>
-                )}
-              </TabsTrigger>
               <TabsTrigger value="activity" className="flex items-center gap-2">
                 <Clock className="w-4 h-4" />
                 Activity
@@ -553,14 +543,17 @@ const Dashboard = () => {
                         </div>
                       </div>
                     </Button>
-                    <Button variant="outline" className="w-full justify-start h-auto py-3" onClick={() => navigate("/grants")}>
+                    <Button variant="outline" className="w-full justify-start h-auto py-3" onClick={async () => {
+                      const { data: { session } } = await supabase.auth.getSession();
+                      window.location.href = getGrantsWorkspaceUrl(session);
+                    }}>
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
                           <DollarSign className="w-4 h-4 text-green-600" />
                         </div>
                         <div className="text-left">
-                          <div className="font-medium">Find Grants</div>
-                          <div className="text-xs text-muted-foreground">Discover funding</div>
+                          <div className="font-medium">Unlock your RTM Funding Workspace</div>
+                          <div className="text-xs text-muted-foreground">GrantPilot on grants subdomain</div>
                         </div>
                       </div>
                     </Button>
@@ -703,6 +696,20 @@ const Dashboard = () => {
             </TabsContent>
 
             <TabsContent value="funding" className="space-y-6">
+              <Card className="border-primary/20 bg-primary/5">
+                <CardHeader>
+                  <CardTitle className="text-lg">Unlock your RTM Funding Workspace</CardTitle>
+                  <CardDescription>
+                    Personalized grant matching, applications, and pipeline tracking live on GrantPilot at{' '}
+                    {GRANTS_APP_URL.replace(/^https?:\/\//, '')}.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Button onClick={() => { window.location.href = `${GRANTS_APP_URL.replace(/\/$/, '')}/grants`; }}>
+                    Open grant workspace
+                  </Button>
+                </CardContent>
+              </Card>
               <Card>
                 <CardHeader>
                   <CardTitle className="text-lg">Funding Opportunities</CardTitle>
@@ -713,7 +720,15 @@ const Dashboard = () => {
                     <p className="text-sm text-muted-foreground">Loading recommended programs…</p>
                   ) : fundingOpportunities.length === 0 ? (
                     <p className="text-sm text-muted-foreground">
-                      Complete your profile on <Button variant="link" className="p-0 h-auto" onClick={() => navigate("/grants")}>Grants</Button> to see personalized matches.
+                      Open your profile on{' '}
+                      <Button
+                        variant="link"
+                        className="p-0 h-auto"
+                        onClick={() => { window.location.href = `${GRANTS_APP_URL.replace(/\/$/, '')}/grants`; }}
+                      >
+                        GrantPilot
+                      </Button>{' '}
+                      to see personalized matches.
                     </p>
                   ) : (
                     <div className="space-y-4">
@@ -772,15 +787,14 @@ const Dashboard = () => {
                       <div>
                         <p className="text-sm text-blue-700 dark:text-blue-400">Applications Submitted</p>
                         <p className="text-2xl font-bold text-blue-800 dark:text-blue-300">{applicationCount}</p>
+                        <Button variant="link" className="p-0 h-auto mt-1 text-blue-700 dark:text-blue-400" onClick={() => { window.location.href = `${GRANTS_APP_URL.replace(/\/$/, '')}/grants`; }}>
+                          Open tracker on GrantPilot →
+                        </Button>
                       </div>
                     </div>
                   </CardContent>
                 </Card>
               </div>
-            </TabsContent>
-
-            <TabsContent value="applications" className="space-y-6">
-              <DashboardApplicationTracker />
             </TabsContent>
 
             <TabsContent value="activity" className="space-y-6">

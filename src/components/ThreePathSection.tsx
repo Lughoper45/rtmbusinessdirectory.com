@@ -2,6 +2,7 @@ import { Search, DollarSign, TrendingUp, ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { DIRECTORY_COUNT_LABEL } from "@/content/siteCopy";
+import { openGrowPortal } from "@/lib/site";
 
 const ThreePathSection = () => {
   const navigate = useNavigate();
@@ -24,9 +25,10 @@ const ThreePathSection = () => {
     {
       icon: TrendingUp,
       title: "Grow My Business",
-      description: "Get AI-powered support, tools, and insights to scale faster",
-      cta: "Get Support",
-      action: () => navigate("/business-support"),
+      description:
+        "Digital marketing, websites, WhatsApp CRM, and AI tools — get visible online and convert more leads",
+      cta: "Free growth audit",
+      action: () => openGrowPortal("/"),
     },
   ];
 

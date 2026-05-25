@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en-CA">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Canadian Business Grant Application Checklist — RTM</title>
+  <style>
+    :root {
+      --navy: #061f3a;
+      --navy-mid: #0a2d52;
+      --red: #cc0000;
+      --text: #1e293b;
+      --muted: #475569;
+      --border: #cbd5e1;
+      --tip-bg: #f0f9ff;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", system-ui, -apple-system, Roboto, Helvetica, Arial, sans-serif;
+      font-size: 10.5pt;
+      line-height: 1.45;
+      color: var(--text);
+      background: #fff;
+    }
+    @page {
+      size: letter;
+      margin: 0.55in 0.6in;
+    }
+    @media print {
+      body { font-size: 10pt; }
+      .page-break { page-break-before: always; }
+      a { color: inherit; text-decoration: none; }
+      .no-print { display: none !important; }
+    }
+    .no-print {
+      background: #f1f5f9;
+      padding: 12px 16px;
+      font-size: 13px;
+      border-bottom: 1px solid var(--border);
+    }
+    .no-print strong { color: var(--navy); }
+    header.doc-header {
+      background: linear-gradient(135deg, var(--navy), var(--navy-mid));
+      color: #fff;
+      padding: 20px 24px 16px;
+      margin: 0 0 18px;
+    }
+    header.doc-header h1 {
+      margin: 0 0 6px;
+      font-size: 22pt;
+      font-weight: 700;
+      line-height: 1.15;
+    }
+    header.doc-header .subtitle {
+      margin: 0;
+      font-size: 11pt;
+      opacity: 0.92;
+      max-width: 36em;
+    }
+    .brand-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 14px;
+      padding-top: 12px;
+      border-top: 1px solid rgba(255,255,255,0.25);
+      font-size: 9pt;
+    }
+    .brand-bar .tagline {
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      font-size: 8.5pt;
+      opacity: 0.9;
+    }
+    main { padding: 0 24px 24px; max-width: 8.5in; margin: 0 auto; }
+    h2 {
+      color: var(--navy);
+      font-size: 13pt;
+      margin: 20px 0 8px;
+      border-bottom: 2px solid var(--red);
+      padding-bottom: 4px;
+    }
+    h3 {
+      color: var(--navy-mid);
+      font-size: 11pt;
+      margin: 14px 0 6px;
+    }
+    p { margin: 0 0 8px; color: var(--muted); }
+    ul { margin: 0 0 10px; padding-left: 1.2em; color: var(--muted); }
+    li { margin-bottom: 4px; }
+    .callout {
+      background: #f8fafc;
+      border-left: 4px solid var(--red);
+      padding: 10px 12px;
+      margin: 12px 0 16px;
+      font-size: 10pt;
+    }
+    .callout strong { color: var(--navy); }
+    .journey {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin: 12px 0 18px;
+    }
+    .journey-step {
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px;
+      background: #fff;
+    }
+    .journey-step .num {
+      display: inline-block;
+      background: var(--red);
+      color: #fff;
+      width: 22px;
+      height: 22px;
+      line-height: 22px;
+      text-align: center;
+      border-radius: 50%;
+      font-size: 9pt;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+    .journey-step h4 {
+      margin: 0 0 4px;
+      font-size: 10pt;
+      color: var(--navy);
+    }
+    .journey-step p {
+      margin: 0;
+      font-size: 9pt;
+      line-height: 1.35;
+    }
+    .tip {
+      background: var(--tip-bg);
+      border: 1px solid #bae6fd;
+      border-radius: 4px;
+      padding: 6px 10px;
+      margin: 6px 0 10px;
+      font-size: 9.5pt;
+      color: #0c4a6e;
+    }
+    .tip::before { content: "Tip: "; font-weight: 700; }
+    table.packages {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0 16px;
+      font-size: 9.5pt;
+    }
+    table.packages th,
+    table.packages td {
+      border: 1px solid var(--border);
+      padding: 8px 10px;
+      vertical-align: top;
+      text-align: left;
+    }
+    table.packages th {
+      background: var(--navy);
+      color: #fff;
+      font-weight: 600;
+    }
+    table.packages tr:nth-child(even) td { background: #f8fafc; }
+    .price-member { font-weight: 700; color: var(--navy); }
+    .price-list { color: var(--muted); font-size: 9pt; }
+    .urls {
+      font-size: 9.5pt;
+      margin: 16px 0;
+    }
+    .urls dt { font-weight: 600; color: var(--navy); margin-top: 8px; }
+    .urls dd { margin: 2px 0 0; color: var(--muted); }
+    footer.doc-footer {
+      margin-top: 20px;
+      padding-top: 12px;
+      border-top: 2px solid var(--navy);
+      font-size: 9pt;
+      color: var(--muted);
+      text-align: center;
+    }
+    footer.doc-footer .red { color: var(--red); font-weight: 700; }
+    .anchor-note {
+      font-size: 9pt;
+      font-style: italic;
+      color: var(--muted);
+      margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+  <p class="no-print">
+    <strong>Print to PDF:</strong> Open this page in Chrome or Edge → <kbd>Ctrl+P</kbd> → Destination: <strong>Save as PDF</strong> → Margins: Default → Background graphics: On.
+    Save as <code>RTM_Grant_Checklist.pdf</code> in this folder for deployment at <code>/downloads/RTM_Grant_Checklist.pdf</code>.
+  </p>
+
+  <header class="doc-header">
+    <h1>Canadian Business Grant Application Checklist</h1>
+    <p class="subtitle">General preparation guide for federal and provincial SME grants. RTM advisors prepare applications — this checklist is not a self-serve submission tool.</p>
+    <div class="brand-bar">
+      <div>
+        <div class="tagline">RTM Global Canada · Grow · Connect · Succeed</div>
+        <div>Business Grants &amp; Funding Guide</div>
+      </div>
+      <div style="text-align: right;">
+        <div><a href="https://www.rtmbusinessdirectory.com/grants" style="color:#fff;">www.rtmbusinessdirectory.com/grants</a></div>
+        <div>Tel: +1 416 900 8728</div>
+        <div>640 Sentinel Road, North York, ON M3J 0B2</div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="callout">
+      <strong>About this document:</strong> This free checklist covers <em>general</em> document and process preparation used across many Canadian programs.
+      A <strong>personalized program shortlist</strong> matched to your business comes with the <strong>Maple Checklist</strong> advisor package or your member <strong>Funding Workspace</strong> after you build your <strong>RTM Grant Profile</strong>.
+    </div>
+
+    <h2>How RTM fits your grant journey</h2>
+    <div class="journey">
+      <div class="journey-step">
+        <span class="num">1</span>
+        <h4>Build your RTM Grant Profile</h4>
+        <p>Join RTM at <strong>membership.rtmbusinessdirectory.com</strong> ($100/year). Active members use profile-based matching on the Funding Workspace — not generic search alone.</p>
+      </div>
+      <div class="journey-step">
+        <span class="num">2</span>
+        <h4>See matched programs</h4>
+        <p>On <strong>grants.rtmbusinessdirectory.com</strong>, review profile-matched federal, provincial, and sector programs with eligibility notes and deadlines.</p>
+      </div>
+      <div class="journey-step">
+        <span class="num">3</span>
+        <h4>Choose an advisor package</h4>
+        <p>Request Maple Checklist through Northern Star on <strong>www.rtmbusinessdirectory.com/grants</strong>. RTM grant advisors prepare narratives and submissions — you are not applying alone.</p>
+      </div>
+    </div>
+
+    <dl class="urls">
+      <dt>Grants marketing hub (packages, flyer, free checklist request)</dt>
+      <dd>https://www.rtmbusinessdirectory.com/grants</dd>
+      <dt>Member Funding Workspace (after signup + active membership)</dt>
+      <dd>https://grants.rtmbusinessdirectory.com</dd>
+      <dt>Join RTM membership</dt>
+      <dd>https://membership.rtmbusinessdirectory.com</dd>
+    </dl>
+
+    <h2>Step 1 — Confirm your business eligibility</h2>
+    <h3>Registered Canadian business</h3>
+    <p>Your business must be legally registered in Canada (federal or provincial incorporation, or sole proprietorship with a CRA business number).</p>
+    <div class="tip">Have your Business Number (BN) from CRA ready — it is required on almost every application.</div>
+
+    <h3>Operating in an eligible province or territory</h3>
+    <p>Most federal grants are Canada-wide. Provincial programs (e.g. Ontario, BC, Alberta) require you to operate and employ within that province.</p>
+
+    <h3>In operation for required minimum time</h3>
+    <p>Many programs require 1–2 years of operating history. Some startup grants accept businesses under 12 months. Check each program’s eligibility window.</p>
+    <div class="tip">Startup? Look for IRAP, BDC, and Ontario Starter Company Plus — these are often startup-friendly.</div>
+
+    <h3>Annual revenue within program range</h3>
+    <p>Grant programs often define SME thresholds: under $10M, under $50M, or fewer than 500 employees. Confirm your revenue band matches.</p>
+
+    <h3>Not majority government-owned or publicly listed</h3>
+    <p>Most SME grants exclude Crown corporations, publicly traded companies, and non-profits (unless the program is specifically for non-profits).</p>
+
+    <h2>Step 2 — Gather your core documents</h2>
+    <h3>CRA Business Number (BN) and GST/HST registration</h3>
+    <p>Required for almost every federal and most provincial applications. Download from your CRA My Business Account.</p>
+
+    <h3>Certificate of incorporation or business registration</h3>
+    <p>Federal programs need your articles of incorporation. Provincial programs accept provincial registration certificates.</p>
+    <div class="tip">Keep both the original and a notarized copy accessible.</div>
+
+    <h3>Two most recent years of financial statements</h3>
+    <p>Income statement, balance sheet, and cash flow. Audited preferred; accountant-prepared accepted for most SME programs.</p>
+    <div class="tip">No financials yet? Bank statements plus a CPA-signed summary may be accepted for smaller programs.</div>
+
+    <h3>Most recent CRA Notice of Assessment (NOA)</h3>
+    <p>Personal NOA for sole proprietors. Corporate T2 return for incorporated businesses.</p>
+
+    <h3>Business plan or project description (1–3 pages)</h3>
+    <p>Describes what your business does, what you plan to use the grant for, and expected outcomes. RTM grant advisors help prepare this for paid packages.</p>
+    <div class="tip">Be specific about jobs created, revenue impact, or innovation outcomes — reviewers spend only a few minutes per application.</div>
+
+    <h3>Proof of Canadian citizenship or permanent residency (if applicable)</h3>
+    <p>Required for programs targeting immigrant entrepreneurs, women-owned businesses, Indigenous-owned businesses, and similar streams.</p>
+
+    <h3>Payroll records or employee count documentation</h3>
+    <p>WSIB clearance certificate and payroll summary for programs tied to job creation or training.</p>
+
+    <div class="page-break"></div>
+
+    <h2>Step 3 — Identify the right programs for your business</h2>
+    <h3>Review federal programs (ISED, NRC-IRAP, CanExport, CDAP)</h3>
+    <p>ISED and NRC-IRAP are major federal SME funding sources. CanExport targets export-ready businesses. Verify whether CDAP or successor programs are open for your sector.</p>
+    <div class="tip">Program status changes often — confirm current intake before investing weeks in an application.</div>
+
+    <h3>Review your provincial program</h3>
+    <p>Ontario: Ontario Innovation Tax Credit, Starter Company Plus, Scale-Up Vouchers. BC: BCTECH Fund, Innovate BC. Alberta: Alberta Innovates.</p>
+
+    <h3>Check municipal and regional programs</h3>
+    <p>Many municipalities (Toronto, Ottawa, Calgary) run small business grant pools through economic development offices.</p>
+    <div class="tip">Toronto Starter Company Plus is delivered through partner organizations — applications open on a fixed cycle.</div>
+
+    <h3>Sector-specific and equity-focused streams</h3>
+    <p>Agri-food, clean tech, women-led, Black-owned, and immigrant entrepreneur streams are often less crowded. After you join RTM, profile-based matching via your <strong>RTM Grant Profile</strong> on the <strong>Funding Workspace</strong> (members at grants.rtmbusinessdirectory.com) highlights programs aligned to your industry, location, and ownership — not a generic one-size list.</p>
+
+    <h3>Confirm open intake periods and deadlines</h3>
+    <p>Many programs use fixed intake windows (quarterly or annually). Missing a deadline can mean waiting 3–12 months for the next cycle.</p>
+
+    <h2>Step 4 — Prepare and submit your application</h2>
+    <h3>Complete the online application form in full</h3>
+    <p>Do not leave fields blank. Use “N/A” where a section does not apply. Incomplete applications are often rejected without review.</p>
+
+    <h3>Write a clear project narrative</h3>
+    <p>Answer: What is the project? What problem does it solve? How will grant funds be used? What are measurable outcomes?</p>
+    <div class="tip">Lead with your strongest outcome in the first paragraph.</div>
+
+    <h3>Prepare a detailed budget breakdown</h3>
+    <p>Line-item salaries, equipment, contractors, marketing, etc. Must match the program’s eligible expense categories.</p>
+    <div class="tip">Ineligible expenses (e.g. rent or owner salary in some programs) can reduce approval or disqualify the application.</div>
+
+    <h3>Attach all required supporting documents</h3>
+    <p>Cross-reference the program checklist against your Step 2 documents. Upload PDFs with clear file names.</p>
+
+    <h3>Review and submit before the deadline</h3>
+    <p>Allow at least 48 hours before the deadline for portal issues. Government sites often slow near closing dates.</p>
+
+    <h3>Keep a copy of the submitted application</h3>
+    <p>Save confirmation numbers and a PDF of what you submitted for follow-up and post-award reporting.</p>
+    <div class="tip">RTM advisors review your full application before submission as part of the <strong>True North Standard</strong> package and above.</div>
+
+    <h2>Step 5 — After submission: track, follow up, and report</h2>
+    <h3>Log reference number and expected decision date</h3>
+    <p>Timelines range from about 4 weeks (municipal) to 6 months (federal).</p>
+
+    <h3>Respond promptly to requests for additional information</h3>
+    <p>Officers may request clarification within 2–4 weeks. Slow responses can disqualify you.</p>
+
+    <h3>If approved: sign the funding agreement carefully</h3>
+    <p>Agreements specify eligible expenses, reporting, repayment, and IP terms. RTM advisors review agreements for clients on processing packages.</p>
+
+    <h3>If declined: request written feedback</h3>
+    <p>Use feedback to strengthen your next submission.</p>
+
+    <h3>Submit post-award reports on time</h3>
+    <p>Late reports can trigger clawbacks and affect future eligibility.</p>
+
+    <p class="anchor-note">Typical independent grant consultants charge about $4,000+ for full application support. RTM list prices are roughly 50% of that market rate; active RTM members ($100/year) receive an additional 50% off list on advisor packages below.</p>
+
+    <div class="page-break"></div>
+
+    <h2>RTM advisor packages</h2>
+    <p><strong>RTM membership — $100/year</strong> unlocks member package pricing and access to the Funding Workspace at grants.rtmbusinessdirectory.com. List prices apply until membership is active.</p>
+
+    <table class="packages">
+      <thead>
+        <tr>
+          <th>Package</th>
+          <th>Member price (CAD)</th>
+          <th>List price (CAD)</th>
+          <th>What you get</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Maple Checklist</strong></td>
+          <td class="price-member">$149</td>
+          <td class="price-list">$299</td>
+          <td>Eligibility scan, top programs for your profile, 30-minute RTM grant advisor call</td>
+        </tr>
+        <tr>
+          <td><strong>True North Standard</strong></td>
+          <td class="price-member">$1,000</td>
+          <td class="price-list">$2,000</td>
+          <td>One full grant intake, narrative draft, submission support</td>
+        </tr>
+        <tr>
+          <td><strong>Provincial Bridge</strong></td>
+          <td class="price-member">$1,600</td>
+          <td class="price-list">$3,200</td>
+          <td>True North Standard plus one provincial program (ON, BC, AB, etc.)</td>
+        </tr>
+        <tr>
+          <td><strong>Northern Star</strong></td>
+          <td class="price-member">$3,250</td>
+          <td class="price-list">$6,500</td>
+          <td>Up to 3 applications within 12 months, priority RTM grant advisor</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout">
+      <strong>Ready for a personalized shortlist?</strong> Request Maple Checklist or join RTM and open your Funding Workspace.
+      Marketing hub: <a href="https://www.rtmbusinessdirectory.com/grants">www.rtmbusinessdirectory.com/grants</a> ·
+      Membership: <a href="https://membership.rtmbusinessdirectory.com">membership.rtmbusinessdirectory.com</a> ·
+      Workspace: <a href="https://grants.rtmbusinessdirectory.com">grants.rtmbusinessdirectory.com</a>
+    </div>
+
+    <p><strong>Important:</strong> Programs, deadlines, and amounts change frequently. Verify current status at Canada.ca/grants-contributions or with an RTM grant advisor before investing significant time in an application.</p>
+
+    <footer class="doc-footer">
+      <p class="red">■ PROUDLY CANADIAN</p>
+      <p>RTM Business Directory · Grant Advisory</p>
+      <p>
+        <a href="mailto:info@rtmbusinessdirectory.com">info@rtmbusinessdirectory.com</a> ·
+        +1 416 900 8728 · 640 Sentinel Road, North York, ON M3J 0B2
+      </p>
+      <p>© RTM Global Canada · <a href="https://www.rtmbusinessdirectory.com/grants">rtmbusinessdirectory.com/grants</a></p>
+    </footer>
+  </main>
+</body>
+</html>

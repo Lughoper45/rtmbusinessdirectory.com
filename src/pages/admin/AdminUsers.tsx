@@ -45,23 +45,15 @@ export default function AdminUsers() {
   const loadUsers = async () => {
     setIsLoading(true);
     try {
-      const { data: profiles, error } = await supabase
-        .from("profiles")
-        .select("id, user_id, full_name, role, phone, avatar_url, created_at")
-        .order("created_at", { ascending: false });
+      const { data: payload, error } = await supabase.functions.invoke("list-admin-users");
 
       if (error) throw error;
 
-      const { data: { users: authUsers } } = await supabase.auth.admin.listUsers();
+      if (payload?.error) throw new Error(payload.error);
 
-      const authUserMap = new Map<string, string | null>(
-        (authUsers ?? []).map((user): [string, string | null] => [user.id, user.email ?? null]),
-      );
-
-      const normalizedUsers: UserProfile[] = (profiles || []).map((profile) => ({
+      const normalizedUsers: UserProfile[] = (payload?.users ?? []).map((profile: UserProfile) => ({
         ...profile,
-        email: authUserMap.get(profile.user_id) || null,
-        role: ((profile as any).role || "member") as UserProfile["role"],
+        role: (profile.role || "member") as UserProfile["role"],
       }));
 
       setUsers(normalizedUsers);

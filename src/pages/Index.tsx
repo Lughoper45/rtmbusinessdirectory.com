@@ -26,10 +26,31 @@ const Index = () => {
         <title>RTM Business Directory - Discover & List Businesses</title>
         <meta 
           name="description" 
-          content="Discover verified businesses, access exclusive deals, and get AI-powered support to grow your business. Your trusted business directory." 
+          content="RTM Global Canada — private business directory, membership, and grant advisory for Canadian SMEs." 
         />
-        <meta name="keywords" content="business directory, find businesses, list business, verified listings, business support" />
+        <meta name="keywords" content="business directory, find businesses, list business, verified listings, business support, Canadian grants" />
         <link rel="canonical" href="https://rtmbusinessdirectory.com" />
+        <script type="application/ld+json">
+          {JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'ProfessionalService',
+            name: 'RTM Global Canada',
+            description:
+              'Private Canadian business advisory platform for grant guidance, business directory, and membership services.',
+            url: 'https://www.rtmbusinessdirectory.com',
+            telephone: '+1-416-900-8728',
+            address: {
+              '@type': 'PostalAddress',
+              streetAddress: '640 Sentinel Road',
+              addressLocality: 'North York',
+              addressRegion: 'ON',
+              postalCode: 'M3J 0B2',
+              addressCountry: 'CA',
+            },
+            areaServed: 'CA',
+            knowsAbout: ['Canadian business grants', 'SME funding', 'grant advisory', 'business directory'],
+          })}
+        </script>
       </Helmet>
 
       <div className="min-h-screen bg-background">
