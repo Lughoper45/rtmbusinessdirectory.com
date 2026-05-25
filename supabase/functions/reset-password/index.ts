@@ -1,5 +1,5 @@
 import { createClient } from "npm:@supabase/supabase-js@2.34.0";
-import { Resend } from "npm:@resend/resend@1.1.0";
+import { Resend } from "https://esm.sh/resend@3.1.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",

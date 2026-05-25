@@ -351,22 +351,65 @@ export async function getBusinessStats(): Promise<{
   return stats;
 }
 
-export async function claimBusiness(businessId: string, email: string, userId: string): Promise<{ success: boolean; message: string }> {
-  const { error } = await (supabase as any)
+export async function claimBusiness(
+  businessId: string,
+  email: string,
+  userId: string,
+): Promise<{ success: boolean; message: string; claimId?: string }> {
+  const verificationToken = crypto.randomUUID();
+
+  const { data: claim, error } = await (supabase as any)
     .from('business_claims')
     .insert({
       business_id: businessId,
       user_id: userId,
       business_email: email,
       status: 'pending',
-      verification_token: crypto.randomUUID(),
-    });
+      verification_token: verificationToken,
+    })
+    .select('id')
+    .single();
 
   if (error) {
+    if (error.code === '23505') {
+      return { success: false, message: 'You already submitted a claim for this business.' };
+    }
     return { success: false, message: error.message };
   }
 
-  return { success: true, message: 'Claim request submitted. Check your email for verification.' };
+  const { data: biz } = await (supabase as any)
+    .from('businesses')
+    .select('name')
+    .eq('business_id', businessId)
+    .maybeSingle();
+
+  const site =
+    typeof window !== 'undefined'
+      ? window.location.origin
+      : 'https://www.rtmbusinessdirectory.com';
+  const claimUrl = `${site}/claim?claimId=${claim.id}&token=${encodeURIComponent(verificationToken)}`;
+
+  try {
+    await supabase.functions.invoke('send-claim-email', {
+      body: {
+        action: 'verification',
+        claimId: claim.id,
+        businessId,
+        email,
+        businessName: biz?.name ?? 'your business',
+        verificationToken,
+        claimUrl,
+      },
+    });
+  } catch (e) {
+    console.warn('send-claim-email failed', e);
+  }
+
+  return {
+    success: true,
+    message: 'Claim request submitted. Check your email for verification.',
+    claimId: claim.id,
+  };
 }
 
 export async function saveBusiness(userId: string, businessId: string): Promise<{ success: boolean }> {

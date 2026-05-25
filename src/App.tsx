@@ -26,6 +26,10 @@ import AdminGrants from "./pages/admin/AdminGrants";
 import AdminMembership from "./pages/admin/AdminMembership";
 import AdminAnalytics from "./pages/admin/AdminAnalytics";
 import AdminSettings from "./pages/admin/AdminSettings";
+import AdminListings from "./pages/admin/AdminListings";
+import AdminOps from "./pages/admin/AdminOps";
+import ClaimBusiness from "./pages/ClaimBusiness";
+import ListingOptOut from "./pages/ListingOptOut";
 import WorldCupRedirect from "./pages/WorldCupRedirect";
 
 const queryClient = new QueryClient();
@@ -67,11 +71,15 @@ const App = () => (
             <Route path="/accessibility" element={<ContentPage />} />
             <Route path="/content/:slug" element={<ContentPage />} />
             <Route path="/directory/:category/:city/:slug" element={<BusinessProfile />} />
+            <Route path="/claim" element={<ClaimBusiness />} />
+            <Route path="/listing-opt-out" element={<ListingOptOut />} />
             <Route path="/404" element={<NotFound />} />
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/admin/businesses" element={<AdminBusinesses />} />
             <Route path="/admin/users" element={<AdminUsers />} />
             <Route path="/admin/grants" element={<AdminGrants />} />
+            <Route path="/admin/listings" element={<AdminListings />} />
+            <Route path="/admin/ops" element={<AdminOps />} />
             <Route path="/admin/membership" element={<AdminMembership />} />
             <Route path="/admin/analytics" element={<AdminAnalytics />} />
             <Route path="/admin/settings" element={<AdminSettings />} />

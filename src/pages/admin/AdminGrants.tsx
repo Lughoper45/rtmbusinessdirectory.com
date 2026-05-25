@@ -526,7 +526,7 @@ export default function AdminGrants() {
                       Intake queue
                     </CardTitle>
                     <CardDescription>
-                      {filteredIntakes.length} intake{filteredIntakes.length !== 1 ? "s" : ""} — readiness from Application Assistant
+                      {filteredIntakes.length} intake{filteredIntakes.length !== 1 ? "s" : ""} — readiness scores from intake workflow
                     </CardDescription>
                   </div>
                   <div className="flex gap-2">

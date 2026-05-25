@@ -1,19 +1,34 @@
+const PRODUCTION_ORIGIN = "https://www.rtmbusinessdirectory.com";
+
 const ALLOWED_ORIGINS = new Set([
   "https://www.rtmbusinessdirectory.com",
   "https://rtmbusinessdirectory.com",
   "https://grants.rtmbusinessdirectory.com",
   "https://membership.rtmbusinessdirectory.com",
+  "https://worldcup.rtmbusinessdirectory.com",
   "http://localhost:8080",
+  "http://localhost:8081",
   "http://localhost:5173",
   "http://127.0.0.1:8080",
+  "http://127.0.0.1:8081",
   "http://127.0.0.1:5173",
 ]);
 
+function isAllowedOrigin(origin: string): boolean {
+  if (!origin) return false;
+  if (ALLOWED_ORIGINS.has(origin)) return true;
+  try {
+    const { hostname, protocol } = new URL(origin);
+    if (protocol !== "http:" && protocol !== "https:") return false;
+    return hostname === "localhost" || hostname === "127.0.0.1";
+  } catch {
+    return false;
+  }
+}
+
 export function corsHeadersForRequest(req: Request): Record<string, string> {
   const origin = req.headers.get("Origin") ?? "";
-  const allowOrigin = ALLOWED_ORIGINS.has(origin)
-    ? origin
-    : "https://www.rtmbusinessdirectory.com";
+  const allowOrigin = isAllowedOrigin(origin) ? origin : PRODUCTION_ORIGIN;
 
   return {
     "Access-Control-Allow-Origin": allowOrigin,

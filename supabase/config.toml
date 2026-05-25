@@ -34,7 +34,7 @@ verify_jwt = true
 verify_jwt = true
 
 [functions.send-claim-email]
-verify_jwt = true
+verify_jwt = false
 
 [functions.check-membership]
 verify_jwt = false
@@ -57,5 +57,20 @@ verify_jwt = false
 [functions.directory-assistant]
 verify_jwt = false
 
+[functions.grant-os-tools]
+verify_jwt = false
+
 [functions.grant-package-checkout]
 verify_jwt = true
+
+[functions.listing-contact-enricher]
+verify_jwt = false
+
+[functions.listing-admin-bff]
+verify_jwt = false
+
+[functions.listing-public]
+verify_jwt = false
+
+[functions.ops-dispatcher]
+verify_jwt = false
