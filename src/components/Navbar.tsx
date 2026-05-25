@@ -29,7 +29,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { User as SupabaseUser } from "@supabase/supabase-js";
 import BusinessListingWizard from "./BusinessListingWizard";
-import { openMembershipJoin, SITE_CONTACT, WORLDCUP_APP_URL } from "@/lib/site";
+import { getGrantsPortalUrl, getWorldCupPortalUrl, openMembershipJoin, SITE_CONTACT } from "@/lib/site";
 import { toast } from "sonner";
 
 const Navbar = () => {
@@ -71,8 +71,8 @@ const Navbar = () => {
   };
 
   const resourcesItems = [
-    { label: "Grants & Funding", icon: HandCoins, to: "/grants", description: "Canadian grants and funding programs" },
-    { label: "World Cup Ready", icon: Globe, href: `${WORLDCUP_APP_URL}/worldcup`, description: "FIFA 2026 business portal" },
+    { label: "Grants & Funding", icon: HandCoins, href: getGrantsPortalUrl("/grants"), description: "GrantPilot workspace on grants.rtmbusinessdirectory.com" },
+    { label: "World Cup Ready", icon: Globe, href: getWorldCupPortalUrl(), description: "FIFA 2026 business portal" },
     { label: "Magazine", icon: Newspaper, action: () => openComingSoon("Magazine"), description: "Editorial and business stories" },
     { label: "Bookstore", icon: BookOpen, action: () => openComingSoon("Bookstore"), description: "Reading and learning resources" },
     { label: "Support Center", icon: CircleHelp, href: "/#support", description: "Help, contact, and onboarding" },
@@ -221,12 +221,12 @@ const Navbar = () => {
                 </DropdownMenuContent>
               </DropdownMenu>
 
-              <Link
-                to="/grants"
+              <a
+                href={getGrantsPortalUrl("/grants")}
                 className="font-medium text-foreground transition-colors hover:text-primary"
               >
                 Grants
-              </Link>
+              </a>
 
               <DropdownMenu>
                 <DropdownMenuTrigger className="inline-flex items-center gap-1 font-medium text-foreground transition-colors hover:text-primary">
@@ -383,15 +383,15 @@ const Navbar = () => {
                   ) : null}
                 </div>
 
-                <Link
-                  to="/grants"
+                <a
+                  href={getGrantsPortalUrl("/grants")}
                   className="rounded-xl border px-4 py-3 font-medium block"
                   onClick={() => setIsOpen(false)}
                 >
                   Grants
-                </Link>
+                </a>
                 <a
-                  href={`${WORLDCUP_APP_URL}/worldcup`}
+                  href={getWorldCupPortalUrl()}
                   className="rounded-xl border px-4 py-3 font-medium block"
                   onClick={() => setIsOpen(false)}
                 >

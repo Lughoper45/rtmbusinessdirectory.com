@@ -21,6 +21,16 @@ export const GRANTS_APP_URL =
 export const WORLDCUP_APP_URL =
   import.meta.env.VITE_WORLDCUP_APP_URL || "https://worldcup.rtmbusinessdirectory.com";
 
+/** Public World Cup portal — subdomain root (not /worldcup path). */
+export const getWorldCupPortalUrl = () => WORLDCUP_APP_URL.replace(/\/$/, "");
+
+/** Grant workspace on grants subdomain (marketing links, no auth handoff). */
+export const getGrantsPortalUrl = (path = "/grants") => {
+  const base = GRANTS_APP_URL.replace(/\/$/, "");
+  const normalized = path.startsWith("/") ? path : `/${path}`;
+  return `${base}${normalized}`;
+};
+
 export const getMembershipJoinUrl = (options?: {
   referralCode?: string | null;
   returnUrl?: string | null;

@@ -1,11 +1,10 @@
 import { useEffect } from "react";
 import { Helmet } from "react-helmet-async";
-import { WORLDCUP_APP_URL } from "@/lib/site";
+import { getWorldCupPortalUrl } from "@/lib/site";
 
 const WorldCupRedirect = () => {
   useEffect(() => {
-    const target = new URL("/worldcup", WORLDCUP_APP_URL).toString();
-    window.location.replace(target);
+    window.location.replace(getWorldCupPortalUrl());
   }, []);
 
   return (
