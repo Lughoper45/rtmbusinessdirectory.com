@@ -67,15 +67,16 @@ Deno.serve(async (req) => {
 
     if (error) throw error;
 
-    const site = (Deno.env.get("SITE_URL") ?? "https://www.rtmbusinessdirectory.com").replace(/\/$/, "");
-    const growUrl = `${site}/grow`;
+    const site = (Deno.env.get("GROW_APP_URL") ?? Deno.env.get("SITE_URL") ?? "https://grow.rtmbusinessdirectory.com").replace(/\/$/, "");
+    const growUrl = site;
     const resendKey = Deno.env.get("RESEND_API_KEY");
     let emailsSent = false;
 
     if (resendKey) {
       const resend = new Resend(resendKey);
       const greeting = body.name ? `Hi ${body.name},` : "Hello,";
-      await Promise.all([
+
+      const [confirmResult, notifyResult] = await Promise.all([
         resend.emails.send({
           from: FROM,
           to: email,
@@ -99,11 +100,20 @@ Deno.serve(async (req) => {
 <p><strong>Business:</strong> ${answers.business_name ?? "—"}</p>
 <p><strong>Type:</strong> ${answers.business_type ?? "—"}</p>
 <p><strong>Challenge:</strong> ${answers.biggest_challenge ?? "—"}</p>
-<p><a href="${site}/admin/growth">Open admin →</a></p>`,
+<p><a href="https://rtmbusinessdirectory.com/admin/growth">Open admin →</a></p>`,
           ),
         }),
       ]);
-      emailsSent = true;
+
+      if (confirmResult.error) {
+        console.error("growth-audit-lead: confirm email failed:", JSON.stringify(confirmResult.error));
+      }
+      if (notifyResult.error) {
+        console.error("growth-audit-lead: notify email failed:", JSON.stringify(notifyResult.error));
+      }
+      emailsSent = !confirmResult.error;
+    } else {
+      console.warn("growth-audit-lead: RESEND_API_KEY not set — email skipped");
     }
 
     return jsonResponse(req, { success: true, leadId: lead.id, emailsSent });
