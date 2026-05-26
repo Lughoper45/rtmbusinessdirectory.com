@@ -22,9 +22,9 @@ export const GROW_APP_URL =
   import.meta.env.VITE_GROW_APP_URL || "https://grow.rtmbusinessdirectory.com";
 
 export const WORLDCUP_APP_URL =
-  import.meta.env.VITE_WORLDCUP_APP_URL || "https://worldcup.rtmbusinessdirectory.com";
+  import.meta.env.VITE_WORLDCUP_APP_URL || "https://grants.rtmbusinessdirectory.com/worldcup";
 
-/** Public World Cup portal — subdomain root (not /worldcup path). */
+/** Public World Cup portal — lives under grants subdomain. */
 export const getWorldCupPortalUrl = () => WORLDCUP_APP_URL.replace(/\/$/, "");
 
 /** Grant workspace on grants subdomain (marketing links, no auth handoff). */
