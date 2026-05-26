@@ -281,6 +281,28 @@ Deno.serve(async (req) => {
           } catch (provisionErr) {
             console.error("[stripe-webhook] provision-member-account error:", provisionErr);
           }
+
+          // Provision free education grant access on govgranteducation.ca
+          try {
+            const eduRes = await fetch(`${supabaseUrl}/functions/v1/provision-edu-grant`, {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${supabaseKey}`,
+                apikey: supabaseKey,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                email: customerEmail,
+                userId: userId ?? undefined,
+                memberName: session.customer_details?.name ?? undefined,
+              }),
+            });
+            if (!eduRes.ok) {
+              console.error("[stripe-webhook] provision-edu-grant failed:", await eduRes.text());
+            }
+          } catch (eduErr) {
+            console.error("[stripe-webhook] provision-edu-grant error:", eduErr);
+          }
         }
         break;
       }

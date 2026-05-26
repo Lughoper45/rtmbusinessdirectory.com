@@ -4,6 +4,7 @@ const ALLOWED_ORIGINS = new Set([
   "https://www.rtmbusinessdirectory.com",
   "https://rtmbusinessdirectory.com",
   "https://grants.rtmbusinessdirectory.com",
+  "https://grow.rtmbusinessdirectory.com",
   "https://membership.rtmbusinessdirectory.com",
   "https://worldcup.rtmbusinessdirectory.com",
   "http://localhost:8080",

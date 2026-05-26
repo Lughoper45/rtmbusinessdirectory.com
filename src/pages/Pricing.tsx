@@ -5,10 +5,12 @@ import type { User } from "@supabase/supabase-js";
 import {
   ArrowRight,
   BadgeCheck,
+  BookOpen,
   Building2,
   Check,
   ChevronDown,
   Crown,
+  ExternalLink,
   HelpCircle,
   Lock,
   Rocket,
@@ -51,6 +53,7 @@ const membershipFeatures = [
   "GrantPilot workspace access on grants.rtmbusinessdirectory.com",
   "50% off all RTM grant advisor packages",
   "Profile-matched grant catalog (217+ programs)",
+  "Free Education Grant access on govgranteducation.ca (activated automatically)",
   "Community fund eligibility after 90 active days",
   "Member deals and directory perks",
 ];
@@ -84,6 +87,10 @@ const faqs = [
   {
     q: "Can I list my business for free?",
     a: "Yes. Basic directory listings are free. Contact RTM for featured placement, campaigns, or World Cup 2026 supplier opportunities.",
+  },
+  {
+    q: "What is the Education Grant and how do I access it?",
+    a: "RTM members get free access to govgranteducation.ca — Canada's education grant platform. Access is activated automatically when your membership payment is confirmed. No additional steps required; check your member dashboard or visit govgranteducation.ca and sign in with the same email.",
   },
   {
     q: "How do refunds work on grant packages?",
@@ -478,6 +485,92 @@ const Pricing = () => {
             </div>
           </section>
 
+          {/* Education Grant — member benefit */}
+          <section className="border-t border-border/60 bg-emerald-50/60 dark:bg-emerald-950/20 py-16 md:py-20">
+            <div className="container mx-auto max-w-[1280px] px-6">
+              <div className="grid gap-10 lg:grid-cols-[1fr_1.1fr] lg:items-center">
+                <div>
+                  <div className="inline-flex items-center gap-2 text-emerald-700 dark:text-emerald-400">
+                    <BookOpen className="h-5 w-5" />
+                    <span className="text-sm font-bold uppercase tracking-wider">Member Benefit — Free</span>
+                  </div>
+                  <h2 className="mt-3 text-3xl font-black md:text-4xl">
+                    Education Grant Access
+                  </h2>
+                  <p className="mt-4 text-muted-foreground leading-relaxed">
+                    RTM members unlock free access to{" "}
+                    <strong className="text-foreground">govgranteducation.ca</strong> — Canada's education grant platform.
+                    Once your requirements are met, education grants are among the highest-approval programs available to
+                    Canadian families and businesses. This is your built-in advantage as an RTM member.
+                  </p>
+                  <ul className="mt-6 space-y-3">
+                    {[
+                      "Access activated automatically when your membership is confirmed",
+                      "Higher approval rate than most business grants — once eligibility is met",
+                      "Covers tuition, skills upgrading, and workforce training programs",
+                      "Full govgranteducation.ca workspace at no extra cost",
+                    ].map((f) => (
+                      <li key={f} className="flex items-start gap-3 text-sm">
+                        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900">
+                          <Check className="h-3 w-3 text-emerald-700 dark:text-emerald-300" />
+                        </span>
+                        {f}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <Card className="border-2 border-emerald-300/60 shadow-xl bg-white dark:bg-card">
+                  <CardHeader className="pb-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <CardTitle className="text-2xl font-black">Education Grant Portal</CardTitle>
+                      <Badge className="bg-emerald-600 text-white shrink-0">Free for members</Badge>
+                    </div>
+                    <CardDescription>govgranteducation.ca — automatically provisioned</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-5xl font-black text-emerald-700 dark:text-emerald-400">$0</span>
+                      <span className="text-muted-foreground">with RTM membership</span>
+                    </div>
+                    <p className="mt-4 text-sm text-muted-foreground">
+                      List price on govgranteducation.ca: <span className="font-semibold text-foreground">$49/year</span>
+                      {" "}— included free in your RTM membership.
+                    </p>
+                  </CardContent>
+                  <CardFooter className="flex flex-col gap-3">
+                    {memberActive ? (
+                      <Button
+                        size="lg"
+                        className="w-full bg-emerald-700 hover:bg-emerald-800 gap-2"
+                        asChild
+                      >
+                        <a href="https://www.govgranteducation.ca" target="_blank" rel="noopener noreferrer">
+                          Go to Education Grant Portal
+                          <ExternalLink className="h-4 w-4" />
+                        </a>
+                      </Button>
+                    ) : (
+                      <>
+                        <Button
+                          size="lg"
+                          className="w-full gap-2"
+                          onClick={() => openMembershipJoin({ returnUrl })}
+                        >
+                          <Lock className="h-4 w-4" />
+                          Join RTM to unlock — $100/year
+                        </Button>
+                        <p className="text-center text-xs text-muted-foreground">
+                          Access activates automatically after payment
+                        </p>
+                      </>
+                    )}
+                  </CardFooter>
+                </Card>
+              </div>
+            </div>
+          </section>
+
           {/* Comparison strip */}
           <section className="py-12">
             <div className="container mx-auto max-w-[1280px] px-6">
@@ -498,6 +591,7 @@ const Pricing = () => {
                       ["Member discounts", "—", "✓", "—"],
                       ["Grant package pricing", "List price", "50% off", "Per package"],
                       ["Application prep & review", "—", "—", "✓"],
+                      ["Education Grant portal (govgranteducation.ca)", "—", "Free (auto-provisioned)", "—"],
                       ["Community fund (after 90 days)", "—", "✓", "—"],
                     ].map(([feature, free, member, grants]) => (
                       <tr key={feature}>
