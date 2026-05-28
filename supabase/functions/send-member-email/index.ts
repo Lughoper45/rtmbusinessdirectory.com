@@ -1,6 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { Resend } from "https://esm.sh/resend@3.1.0";
-import { corsHeaders } from "../_shared/cors.ts";
+import { corsHeadersForRequest, handleCorsPreflight } from "../_shared/cors.ts";
 
 const FROM = "RTM Membership <noreply@rtmbusinessdirectory.com>";
 const MEMBERSHIP_URL = "https://membership.rtmbusinessdirectory.com";
@@ -150,7 +150,10 @@ function buildEmail(template: Template, name: string, extra?: Record<string, str
 }
 
 Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+  const preflight = handleCorsPreflight(req);
+  if (preflight) return preflight;
+
+  const cors = corsHeadersForRequest(req);
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -158,7 +161,7 @@ Deno.serve(async (req) => {
   const resendKey = Deno.env.get("RESEND_API_KEY");
 
   if (!resendKey) {
-    return new Response(JSON.stringify({ error: "RESEND_API_KEY not configured" }), { status: 500, headers: corsHeaders });
+    return new Response(JSON.stringify({ error: "RESEND_API_KEY not configured" }), { status: 500, headers: cors });
   }
 
   const admin = createClient(supabaseUrl, serviceKey);
@@ -172,11 +175,11 @@ Deno.serve(async (req) => {
     });
     const { data: { user }, error: authErr } = await userClient.auth.getUser();
     if (authErr || !user) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: corsHeaders });
+      return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: cors });
     }
-    const { data: isAdmin } = await admin.rpc("is_admin", { uid: user.id });
+    const { data: isAdmin } = await admin.rpc("is_admin", { check_user_id: user.id });
     if (!isAdmin) {
-      return new Response(JSON.stringify({ error: "Forbidden — admins only" }), { status: 403, headers: corsHeaders });
+      return new Response(JSON.stringify({ error: "Forbidden — admins only" }), { status: 403, headers: cors });
     }
     sentBy = user.id;
   }
@@ -186,7 +189,7 @@ Deno.serve(async (req) => {
     const { profileId, profileEmail, displayName, template, customSubject, customHtml } = body;
 
     if (!template) {
-      return new Response(JSON.stringify({ error: "template required" }), { status: 400, headers: corsHeaders });
+      return new Response(JSON.stringify({ error: "template required" }), { status: 400, headers: cors });
     }
 
     // Resolve profile — by ID (admin/system calls) or by email (signup_welcome before profile exists)
@@ -203,7 +206,7 @@ Deno.serve(async (req) => {
         .maybeSingle();
 
       if (profileErr || !profile?.email) {
-        return new Response(JSON.stringify({ error: "Profile not found" }), { status: 404, headers: corsHeaders });
+        return new Response(JSON.stringify({ error: "Profile not found" }), { status: 404, headers: cors });
       }
       recipientEmail = profile.email;
       recipientName = profile.display_name ?? profile.email;
@@ -220,7 +223,7 @@ Deno.serve(async (req) => {
         .maybeSingle();
       resolvedProfileId = existing?.id ?? null;
     } else {
-      return new Response(JSON.stringify({ error: "profileId or profileEmail required" }), { status: 400, headers: corsHeaders });
+      return new Response(JSON.stringify({ error: "profileId or profileEmail required" }), { status: 400, headers: cors });
     }
 
     let subject: string;
@@ -245,7 +248,7 @@ Deno.serve(async (req) => {
 
     if (sendErr) {
       console.error("send-member-email: Resend error:", JSON.stringify(sendErr));
-      return new Response(JSON.stringify({ error: sendErr.message }), { status: 500, headers: corsHeaders });
+      return new Response(JSON.stringify({ error: sendErr.message }), { status: 500, headers: cors });
     }
 
     if (resolvedProfileId) {
@@ -260,10 +263,10 @@ Deno.serve(async (req) => {
     }
 
     return new Response(JSON.stringify({ ok: true, messageId: msg?.id }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...cors, "Content-Type": "application/json" },
     });
   } catch (e) {
     console.error("send-member-email:", e);
-    return new Response(JSON.stringify({ error: String(e) }), { status: 500, headers: corsHeaders });
+    return new Response(JSON.stringify({ error: String(e) }), { status: 500, headers: cors });
   }
 });

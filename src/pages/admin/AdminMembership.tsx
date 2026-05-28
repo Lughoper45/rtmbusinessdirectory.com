@@ -4,6 +4,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
@@ -35,6 +38,10 @@ import {
   Clock,
   AlertCircle,
   SendHorizonal,
+  FileText,
+  Lock,
+  Pencil,
+  Eye,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -96,6 +103,14 @@ export default function AdminMembership() {
     name: string;
     template: string;
   } | null>(null);
+
+  // Template editor state
+  const [editingTemplate, setEditingTemplate] = useState<string | null>(null);
+  const [previewTemplate, setPreviewTemplate] = useState<string | null>(null);
+  const [templateOverrides, setTemplateOverrides] = useState<Record<string, { subject: string; notes: string }>>({
+    payment_reminder: { subject: "Your RTM membership is waiting for activation", notes: "" },
+    final_notice: { subject: "Final reminder — your RTM membership spot", notes: "" },
+  });
 
   useEffect(() => {
     void load();
@@ -220,14 +235,58 @@ export default function AdminMembership() {
   const fmtTime = (d: string) =>
     new Date(d).toLocaleString("en-CA", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
 
+  const TEMPLATE_DEFINITIONS = [
+    {
+      id: "signup_welcome",
+      label: "Signup welcome",
+      trigger: "Auto — fires when user registers",
+      locked: true,
+      description: "Sent immediately on account creation. Contains two-step activation guide, benefits list, and Education Grant highlight.",
+      preview: `Subject: Your RTM account is ready — complete your membership\n\nHi [name],\nThank you for signing up! Here's how to activate:\nStep 1 — Confirm your email\nStep 2 — Complete your $100 membership payment at your dashboard\n\nYou unlock: Member card, 5–50% savings, 50% off grants, FREE Education Grant, community fund.`,
+    },
+    {
+      id: "payment_reminder",
+      label: "Payment reminder",
+      trigger: "Manual — send from outreach panel",
+      locked: false,
+      description: "First follow-up for pending_payment members. Highlights Education Grant as the new benefit added to membership.",
+      preview: `Subject: Your RTM membership is waiting for activation\n\nHi [name],\nWe noticed you haven't completed your activation...\n\n[Education Grant callout]\nFREE govgranteducation.ca access ($49/year value) — activated automatically.`,
+    },
+    {
+      id: "final_notice",
+      label: "Final notice",
+      trigger: "Manual — send from outreach panel",
+      locked: false,
+      description: "Last follow-up before marking inactive. Urgent tone, includes phone number for personal contact.",
+      preview: `Subject: Final reminder — your RTM membership spot\n\nHi [name],\nThis is our last message about your pending RTM membership. Your spot is still reserved.\n\n[Activate now button]\n\nQuestions? Call +1 416 900 8728`,
+    },
+    {
+      id: "activation_welcome",
+      label: "Activation welcome",
+      trigger: "Auto — fires when payment confirmed",
+      locked: true,
+      description: "Sent after payment succeeds. Includes dashboard link, referral code, Education Grant access, and grants workspace.",
+      preview: `Subject: Welcome to RTM — you're activated!\n\nHi [name] 🎉\nYour membership is active!\n\n→ Dashboard: membership.rtmbusinessdirectory.com/dashboard\n→ Education Grant: govgranteducation.ca (auto-provisioned)\n→ Grants workspace: grants.rtmbusinessdirectory.com\n→ Referral link: earn 30% per member`,
+    },
+  ];
+
   return (
     <AdminLayout>
-      <div className="p-6 lg:p-8 space-y-8">
+      <div className="p-6 lg:p-8 space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold">Membership</h1>
+          <p className="text-muted-foreground">Track signups, send follow-up emails, manage templates, and activate members.</p>
+        </div>
+
+        <Tabs defaultValue="outreach">
+          <TabsList className="bg-card border border-border">
+            <TabsTrigger value="outreach">Outreach</TabsTrigger>
+            <TabsTrigger value="templates">Email Templates</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="outreach" className="mt-6 space-y-8">
         <div className="flex items-end justify-between gap-4 flex-wrap">
-          <div>
-            <h1 className="text-3xl font-bold">Membership</h1>
-            <p className="text-muted-foreground">Track signups, send follow-up emails, and activate members.</p>
-          </div>
+          <div />
           <div className="flex gap-2">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -545,6 +604,103 @@ export default function AdminMembership() {
             </CardContent>
           </Card>
         )}
+          </TabsContent>
+
+          {/* ── Email Templates tab ── */}
+          <TabsContent value="templates" className="mt-6 space-y-4">
+            <div>
+              <h2 className="text-xl font-bold">Email Templates</h2>
+              <p className="text-sm text-muted-foreground mt-1">
+                View all member email templates. Locked templates are auto-sent by the system. Manual templates can be customised per send from the outreach panel.
+              </p>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              {TEMPLATE_DEFINITIONS.map((tpl) => (
+                <Card key={tpl.id} className={tpl.locked ? "border-border/50 opacity-90" : "border-primary/30"}>
+                  <CardHeader className="pb-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
+                        <CardTitle className="text-base">{tpl.label}</CardTitle>
+                      </div>
+                      {tpl.locked ? (
+                        <Badge variant="outline" className="gap-1 text-xs shrink-0">
+                          <Lock className="h-3 w-3" /> Auto
+                        </Badge>
+                      ) : (
+                        <Badge className="gap-1 text-xs shrink-0 bg-primary/10 text-primary border-0">
+                          <Pencil className="h-3 w-3" /> Manual
+                        </Badge>
+                      )}
+                    </div>
+                    <CardDescription className="text-xs">{tpl.trigger}</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <p className="text-sm text-muted-foreground">{tpl.description}</p>
+
+                    {!tpl.locked && templateOverrides[tpl.id] && (
+                      <div className="space-y-2">
+                        <Label className="text-xs">Subject line</Label>
+                        <Input
+                          value={templateOverrides[tpl.id].subject}
+                          onChange={(e) =>
+                            setTemplateOverrides((prev) => ({
+                              ...prev,
+                              [tpl.id]: { ...prev[tpl.id], subject: e.target.value },
+                            }))
+                          }
+                          className="text-sm h-8"
+                        />
+                        <Label className="text-xs">Notes for yourself (not sent)</Label>
+                        <Textarea
+                          value={templateOverrides[tpl.id].notes}
+                          onChange={(e) =>
+                            setTemplateOverrides((prev) => ({
+                              ...prev,
+                              [tpl.id]: { ...prev[tpl.id], notes: e.target.value },
+                            }))
+                          }
+                          className="text-sm resize-none"
+                          rows={2}
+                          placeholder="e.g. Use this after 2 days of no response"
+                        />
+                      </div>
+                    )}
+
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="gap-1 w-full"
+                      onClick={() => setPreviewTemplate(previewTemplate === tpl.id ? null : tpl.id)}
+                    >
+                      <Eye className="h-3 w-3" />
+                      {previewTemplate === tpl.id ? "Hide preview" : "Preview content"}
+                    </Button>
+
+                    {previewTemplate === tpl.id && (
+                      <pre className="text-xs bg-muted/60 rounded-lg p-3 whitespace-pre-wrap text-muted-foreground leading-relaxed">
+                        {tpl.preview}
+                      </pre>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            <Card className="border-dashed">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Mail className="h-4 w-4" /> Send a custom one-off email
+                </CardTitle>
+                <CardDescription>Send a custom message to a specific member by email address.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <CustomEmailForm members={members} onSent={() => void load()} />
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
 
       {/* Confirm send dialog */}
@@ -576,5 +732,71 @@ export default function AdminMembership() {
         </Dialog>
       )}
     </AdminLayout>
+  );
+}
+
+function CustomEmailForm({
+  members,
+  onSent,
+}: {
+  members: MemberRow[];
+  onSent: () => void;
+}) {
+  const [profileId, setProfileId] = useState("");
+  const [subject, setSubject] = useState("");
+  const [body, setBody] = useState("");
+  const [sending, setSending] = useState(false);
+
+  const send = async () => {
+    if (!profileId || !subject.trim() || !body.trim()) {
+      toast.error("Select a member and fill in subject + message");
+      return;
+    }
+    setSending(true);
+    try {
+      const { error } = await supabase.functions.invoke("send-member-email", {
+        body: { profileId, template: "custom", customSubject: subject, customHtml: `<p style="font-family:Arial,sans-serif;line-height:1.7;color:#0f172a;">${body.replace(/\n/g, "<br/>")}</p>` },
+      });
+      if (error) throw error;
+      toast.success("Custom email sent");
+      setProfileId(""); setSubject(""); setBody("");
+      onSent();
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : String(e));
+    } finally {
+      setSending(false);
+    }
+  };
+
+  return (
+    <div className="space-y-3">
+      <div>
+        <Label className="text-xs">Recipient</Label>
+        <Select value={profileId} onValueChange={setProfileId}>
+          <SelectTrigger className="text-sm">
+            <SelectValue placeholder="Select a member…" />
+          </SelectTrigger>
+          <SelectContent>
+            {members.map((m) => (
+              <SelectItem key={m.id} value={m.id}>
+                {m.display_name || m.email} {m.membership_status === "pending_payment" ? "· pending" : "· active"}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <div>
+        <Label className="text-xs">Subject</Label>
+        <Input value={subject} onChange={(e) => setSubject(e.target.value)} placeholder="Email subject…" className="text-sm" />
+      </div>
+      <div>
+        <Label className="text-xs">Message</Label>
+        <Textarea value={body} onChange={(e) => setBody(e.target.value)} rows={4} placeholder="Write your message here…" className="text-sm resize-none" />
+      </div>
+      <Button onClick={send} disabled={sending} className="gap-2 w-full">
+        {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <SendHorizonal className="h-4 w-4" />}
+        Send custom email
+      </Button>
+    </div>
   );
 }
