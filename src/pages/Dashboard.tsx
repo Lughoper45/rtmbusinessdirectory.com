@@ -327,41 +327,6 @@ const Dashboard = () => {
 
   const hasActiveMembership = membership?.active === true;
 
-  if (user && membershipChecked && !hasActiveMembership) {
-    return (
-      <>
-        <Helmet>
-          <title>Dashboard | RTM Business Directory</title>
-        </Helmet>
-        <Navbar />
-        <main className="min-h-screen flex items-center justify-center px-6 pt-24 pb-16">
-          <Card className="max-w-lg w-full text-center">
-            <CardHeader>
-              <div className="mx-auto mb-2 flex h-14 w-14 items-center justify-center rounded-full bg-primary/10">
-                <ShieldCheck className="h-7 w-7 text-primary" />
-              </div>
-              <CardTitle>RTM membership required</CardTitle>
-              <CardDescription>
-                Your dashboard, member deals, and grant applications unlock after membership is active.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <p className="text-sm text-muted-foreground">
-                Current status: {membership?.status ?? "not active"}
-              </p>
-              <Button className="w-full" onClick={() => openMembershipJoin({ returnUrl: window.location.href })}>
-                Activate membership
-              </Button>
-              <Button variant="outline" className="w-full" onClick={() => navigate("/deals")}>
-                View deals preview
-              </Button>
-            </CardContent>
-          </Card>
-        </main>
-      </>
-    );
-  }
-
   return (
     <>
       <Helmet>
@@ -373,6 +338,25 @@ const Dashboard = () => {
 
       <main className="min-h-screen bg-gradient-to-br from-muted/30 to-background pt-20 pb-12">
         <div className="container mx-auto max-w-7xl px-6">
+
+          {/* Free-tier soft banner — shown to non-active members */}
+          {!hasActiveMembership && membershipChecked && (
+            <div className="mb-6 flex flex-col sm:flex-row sm:items-center gap-3 rounded-xl border border-primary/20 bg-primary/5 px-4 py-3">
+              <p className="flex-1 text-sm text-foreground">
+                <strong>Free tier</strong> — browse grants and build your profile at no cost.
+                Activate your membership to submit applications, upload documents, and contact an advisor.
+              </p>
+              <div className="flex gap-2 shrink-0">
+                <Button size="sm" variant="outline" asChild>
+                  <a href={`${GRANTS_APP_URL.replace(/\/$/, "")}/grants`}>Browse grants</a>
+                </Button>
+                <Button size="sm" onClick={() => openMembershipJoin({ returnUrl: window.location.href })}>
+                  Activate — $100/yr
+                </Button>
+              </div>
+            </div>
+          )}
+
           {/* Header */}
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
             <div>

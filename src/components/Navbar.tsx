@@ -36,6 +36,8 @@ const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const onGrantsPage = location.pathname === "/grants" || location.pathname.startsWith("/grants/");
+  const grantsAuthUrl = `${GRANTS_APP_URL.replace(/\/$/, "")}/auth`;
+  const grantsWorkspaceUrl = `${GRANTS_APP_URL.replace(/\/$/, "")}/grants`;
   const [isOpen, setIsOpen] = useState(false);
   const [isWizardOpen, setIsWizardOpen] = useState(false);
   const [mobileResourcesOpen, setMobileResourcesOpen] = useState(false);
@@ -251,7 +253,7 @@ const Navbar = () => {
               </Link>
               {onGrantsPage ? (
                 <Button variant="nav" size="default" asChild>
-                  <a href={`${GRANTS_APP_URL.replace(/\/$/, "")}/grants`}>
+                  <a href={user ? grantsWorkspaceUrl : grantsAuthUrl}>
                     Apply for Grant
                     <ChevronRight className="h-4 w-4" />
                   </a>
@@ -287,7 +289,7 @@ const Navbar = () => {
 
               {onGrantsPage ? (
                 <Button variant="nav" size="default" asChild>
-                  <a href={`${GRANTS_APP_URL.replace(/\/$/, "")}/grants`}>
+                  <a href={user ? grantsWorkspaceUrl : grantsAuthUrl}>
                     Apply for Grant
                     <ChevronRight className="h-4 w-4" />
                   </a>
@@ -500,7 +502,7 @@ const Navbar = () => {
 
                   {onGrantsPage ? (
                     <Button variant="nav" size="lg" className="w-full" asChild>
-                      <a href={`${GRANTS_APP_URL.replace(/\/$/, "")}/grants`} onClick={() => setIsOpen(false)}>
+                      <a href={user ? grantsWorkspaceUrl : grantsAuthUrl} onClick={() => setIsOpen(false)}>
                         Apply for Grant
                         <ChevronRight className="h-5 w-5" />
                       </a>

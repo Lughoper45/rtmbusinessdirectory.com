@@ -179,6 +179,8 @@ const GrantPilot = () => {
   };
 
   const workspaceUrl = `${GRANTS_APP_URL.replace(/\/$/, '')}/grants`;
+  // Non-logged-in users go to stellar /auth (Sign Up tab opens by default)
+  const signupUrl = `${GRANTS_APP_URL.replace(/\/$/, '')}/auth`;
 
   return (
     <>
@@ -234,12 +236,17 @@ const GrantPilot = () => {
                   <div className="mt-8 grid gap-6 lg:grid-cols-[1fr_auto] lg:items-start">
                     <div className="flex flex-wrap gap-3">
                       <a
-                        href={workspaceUrl}
+                        href={memberActive ? workspaceUrl : (user ? workspaceUrl : signupUrl)}
                         className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#cc0000] px-6 py-3 font-semibold text-white transition-colors hover:bg-[#a80000]"
                       >
                         {memberActive ? "Open grant workspace" : "Apply for Grant"}
                         <ExternalLink className="h-5 w-5" />
                       </a>
+                      {!user && (
+                        <p className="w-full text-xs text-[#061f3a]/60 mt-1">
+                          Free to start · No credit card required · Activate when you're ready to apply
+                        </p>
+                      )}
                       <GrantChecklistRequestDialog
                         triggerClassName="inline-flex items-center justify-center gap-2 rounded-xl border border-[#cc0000]/40 bg-red-50 px-6 py-3 font-semibold text-[#061f3a] transition-colors hover:bg-red-100"
                       />
@@ -439,14 +446,17 @@ const GrantPilot = () => {
                 Join RTM for member package pricing, or open GrantPilot on the grants subdomain if you already have an
                 active membership.
               </p>
-              <motion.div className="flex flex-wrap justify-center gap-3">
+              <motion.div className="flex flex-col items-center gap-2">
                 <a
-                  href={workspaceUrl}
+                  href={memberActive ? workspaceUrl : (user ? workspaceUrl : signupUrl)}
                   className="px-6 py-3 rounded-xl bg-primary text-primary-foreground font-semibold inline-flex items-center gap-2"
                 >
-                  {memberActive ? "Go to grant workspace" : "Apply for Grant"}
+                  {memberActive ? "Go to grant workspace" : "Start free grant profile"}
                   <ExternalLink className="w-5 h-5" />
                 </a>
+                {!user && (
+                  <p className="text-xs text-muted-foreground">Free to start · No credit card required</p>
+                )}
               </motion.div>
             </motion.section>
           </div>
