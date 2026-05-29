@@ -32,6 +32,7 @@ import ClaimBusiness from "./pages/ClaimBusiness";
 import ListingOptOut from "./pages/ListingOptOut";
 import GrowRedirect from "./pages/GrowRedirect";
 import AdminGrowth from "./pages/admin/AdminGrowth";
+import AdminBehavior from "./pages/admin/AdminBehavior";
 import WorldCupRedirect from "./pages/WorldCupRedirect";
 
 const queryClient = new QueryClient();
@@ -87,6 +88,7 @@ const App = () => (
             <Route path="/admin/growth" element={<AdminGrowth />} />
             <Route path="/admin/membership" element={<AdminMembership />} />
             <Route path="/admin/analytics" element={<AdminAnalytics />} />
+            <Route path="/admin/behavior" element={<AdminBehavior />} />
             <Route path="/admin/settings" element={<AdminSettings />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

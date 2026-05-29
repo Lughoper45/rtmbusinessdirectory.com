@@ -1,9 +1,9 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { 
-  LayoutDashboard, 
-  Building2, 
-  Users, 
-  Settings, 
+  LayoutDashboard,
+  Building2,
+  Users,
+  Settings,
   BarChart3,
   CreditCard,
   FileText,
@@ -13,7 +13,8 @@ import {
   Loader2,
   ShieldAlert,
   X,
-  Menu
+  Menu,
+  MousePointerClick
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -31,6 +32,7 @@ const navItems = [
   { href: "/admin/ops", label: "Ops CRM", icon: Inbox },
   { href: "/admin/membership", label: "Membership", icon: CreditCard },
   { href: "/admin/analytics", label: "Analytics", icon: BarChart3 },
+  { href: "/admin/behavior", label: "Behavior", icon: MousePointerClick },
   { href: "/admin/settings", label: "Settings", icon: Settings },
 ];
 

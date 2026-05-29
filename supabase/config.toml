@@ -99,3 +99,6 @@ verify_jwt = false
 
 [functions.growth-package-checkout]
 verify_jwt = false
+
+[functions.membership-email-trigger]
+verify_jwt = false
