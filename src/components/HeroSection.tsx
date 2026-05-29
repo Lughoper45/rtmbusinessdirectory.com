@@ -44,7 +44,7 @@ const HeroSection = () => {
 
   const valuePills = [
     { icon: Building2, text: DIRECTORY_COUNT_LABEL, color: "text-primary", action: () => navigate("/directory") },
-    { icon: DollarSign, text: "Grant guidance", color: "text-accent", action: () => navigate("/grants") },
+    { icon: DollarSign, text: "Free grant profile", color: "text-accent", action: () => navigate("/grants") },
     { icon: Bot, text: "Growth services", color: "text-primary", action: () => openGrowPortal("/") },
     { icon: Trophy, text: "World Cup Ready", color: "text-accent", action: () => navigate("/directory?filter=world-cup") },
   ];
@@ -170,7 +170,7 @@ const HeroSection = () => {
           </div>
 
           {/* Popular Searches */}
-          <p className="text-sm text-muted-foreground mb-10 animate-fade-up" style={{ animationDelay: "0.3s" }}>
+          <p className="text-sm text-muted-foreground mb-4 animate-fade-up" style={{ animationDelay: "0.3s" }}>
             Popular:{" "}
             {popularSearches.map((search, index) => (
               <span key={search}>
@@ -184,6 +184,17 @@ const HeroSection = () => {
               </span>
             ))}
           </p>
+
+          {/* Free grant profile CTA */}
+          <div className="mb-8 animate-fade-up" style={{ animationDelay: "0.35s" }}>
+            <button
+              onClick={() => navigate("/grants")}
+              className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/5 px-5 py-2 text-sm font-semibold text-primary hover:bg-primary/10 transition-colors"
+            >
+              <DollarSign className="w-4 h-4" />
+              Start your free grant profile — no credit card required
+            </button>
+          </div>
 
           {/* Value Proposition Pills */}
           <div className="flex flex-wrap justify-center gap-4 animate-fade-up" style={{ animationDelay: "0.4s" }}>
