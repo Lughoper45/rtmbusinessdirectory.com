@@ -16,25 +16,40 @@ const json = (body: unknown, status = 200) =>
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
 
-async function isActiveMember(
+type MembershipResult = {
+  status: string;
+  active: boolean;
+  source: string;
+  membershipUserId?: string;
+};
+
+async function getMembershipStatus(
   admin: ReturnType<typeof createClient>,
   userId: string | null,
   email: string | null,
-) {
+): Promise<MembershipResult> {
   if (userId) {
     const { data: byId } = await admin
       .from("profiles")
       .select("membership_status")
       .eq("id", userId)
       .maybeSingle();
-    if (byId?.membership_status === "active") return { active: true, source: "profile_id" as const };
+
+    if (byId?.membership_status) {
+      const s = byId.membership_status as string;
+      return { status: s, active: s === "active", source: "profile_id" };
+    }
 
     const { data: byUserId } = await admin
       .from("profiles")
       .select("membership_status")
       .eq("user_id", userId)
       .maybeSingle();
-    if (byUserId?.membership_status === "active") return { active: true, source: "profile_user_id" as const };
+
+    if (byUserId?.membership_status) {
+      const s = byUserId.membership_status as string;
+      return { status: s, active: s === "active", source: "profile_user_id" };
+    }
 
     const { data: legacy } = await admin
       .from("user_memberships")
@@ -43,7 +58,10 @@ async function isActiveMember(
       .eq("status", "active")
       .gt("expires_at", new Date().toISOString())
       .maybeSingle();
-    if (legacy) return { active: true, source: "legacy_user_memberships" as const };
+
+    if (legacy) {
+      return { status: "active", active: true, source: "legacy_user_memberships" };
+    }
   }
 
   if (email) {
@@ -52,12 +70,19 @@ async function isActiveMember(
       .select("membership_status, id")
       .ilike("email", email)
       .maybeSingle();
-    if (byEmail?.membership_status === "active") {
-      return { active: true, source: "profile_email" as const, membershipUserId: byEmail.id };
+
+    if (byEmail?.membership_status) {
+      const s = byEmail.membership_status as string;
+      return {
+        status: s,
+        active: s === "active",
+        source: "profile_email",
+        membershipUserId: byEmail.id,
+      };
     }
   }
 
-  return { active: false, source: "none" as const };
+  return { status: "profile_incomplete", active: false, source: "none" };
 }
 
 Deno.serve(async (req) => {
@@ -70,7 +95,7 @@ Deno.serve(async (req) => {
     const platformServiceKey = Deno.env.get("PLATFORM_SERVICE_KEY");
 
     if (!supabaseUrl || !serviceKey || !anonKey) {
-      return json({ active: false, error: "Server configuration incomplete." }, 500);
+      return json({ active: false, status: "profile_incomplete", error: "Server configuration incomplete." }, 500);
     }
 
     const admin = createClient(supabaseUrl, serviceKey);
@@ -88,7 +113,7 @@ Deno.serve(async (req) => {
     if (!serviceAuthorized) {
       const authHeader = req.headers.get("Authorization");
       if (!authHeader?.startsWith("Bearer ")) {
-        return json({ active: false, error: "Unauthorized" }, 401);
+        return json({ active: false, status: "profile_incomplete", error: "Unauthorized" }, 401);
       }
 
       const authClient = createClient(supabaseUrl, anonKey, {
@@ -96,24 +121,24 @@ Deno.serve(async (req) => {
       });
       const { data: userData, error: userError } = await authClient.auth.getUser();
       if (userError || !userData.user) {
-        return json({ active: false, error: "Unauthorized" }, 401);
+        return json({ active: false, status: "profile_incomplete", error: "Unauthorized" }, 401);
       }
 
       userId = userData.user.id;
       email = email ?? userData.user.email?.toLowerCase() ?? null;
     }
 
-    const result = await isActiveMember(admin, userId, email);
+    const result = await getMembershipStatus(admin, userId, email);
 
     return json({
       active: result.active,
-      status: result.active ? "active" : "inactive",
-      membershipUserId: "membershipUserId" in result ? result.membershipUserId : userId,
+      status: result.status,
+      membershipUserId: result.membershipUserId ?? userId,
       email,
       source: result.source,
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Membership check failed.";
-    return json({ active: false, error: message }, 500);
+    return json({ active: false, status: "profile_incomplete", error: message }, 500);
   }
 });
