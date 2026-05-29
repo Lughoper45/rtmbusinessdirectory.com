@@ -180,7 +180,7 @@ const GrantPilot = () => {
 
   const workspaceUrl = `${GRANTS_APP_URL.replace(/\/$/, '')}/grants`;
   // Non-logged-in users go to stellar /auth (Sign Up tab opens by default)
-  const signupUrl = `${GRANTS_APP_URL.replace(/\/$/, '')}/auth`;
+  const signupUrl = `${GRANTS_APP_URL.replace(/\/$/, '')}/auth?mode=signup`;
 
   return (
     <>

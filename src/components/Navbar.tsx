@@ -36,7 +36,7 @@ const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const onGrantsPage = location.pathname === "/grants" || location.pathname.startsWith("/grants/");
-  const grantsAuthUrl = `${GRANTS_APP_URL.replace(/\/$/, "")}/auth`;
+  const grantsAuthUrl = `${GRANTS_APP_URL.replace(/\/$/, "")}/auth?mode=signup`;
   const grantsWorkspaceUrl = `${GRANTS_APP_URL.replace(/\/$/, "")}/grants`;
   const [isOpen, setIsOpen] = useState(false);
   const [isWizardOpen, setIsWizardOpen] = useState(false);
