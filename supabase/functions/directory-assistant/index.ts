@@ -16,6 +16,71 @@ import {
   enforceHourlyRateLimit,
 } from "../_shared/rateLimit.ts";
 
+/** Converts the client session snapshot into a system prompt block */
+function formatSessionContext(ctx: Record<string, unknown>): string {
+  const lines: string[] = ["\n\nLIVE USER SESSION CONTEXT (use this to personalise every response):"];
+
+  const page = String(ctx.currentPage ?? "");
+  if (page) lines.push(`- Current page: ${page}`);
+
+  const grant = ctx.currentGrant as { name?: string; matchScore?: number } | null | undefined;
+  if (grant?.name) {
+    lines.push(`- Grant being read: ${grant.name}${grant.matchScore ? ` (${grant.matchScore}% RTM match)` : ""}`);
+  }
+
+  const status = String(ctx.membershipStatus ?? "");
+  const statusLabel: Record<string, string> = {
+    profile_incomplete: "free tier — browsing, not yet applied",
+    grant_intake_started: "free tier — profile complete, matches visible",
+    payment_pending: "membership checkout in progress",
+    active: "active member — full access",
+    expired: "membership expired",
+  };
+  if (status) lines.push(`- Membership: ${status} (${statusLabel[status] ?? status})`);
+
+  const pct = Number(ctx.profileCompletion ?? 0);
+  if (pct > 0) {
+    const answered = Math.round((pct / 100) * 6);
+    lines.push(`- Grant profile: ${pct}% complete (${answered} of 6 questions answered)`);
+  }
+
+  const secs = Number(ctx.secondsOnPage ?? 0);
+  if (secs > 10) {
+    const mins = Math.floor(secs / 60);
+    const s = secs % 60;
+    lines.push(`- Time on current page: ${mins > 0 ? `${mins}m ` : ""}${s}s`);
+  }
+
+  const recent = ctx.recentPages as string[] | undefined;
+  if (recent?.length) lines.push(`- Recent pages: ${recent.join(" → ")}`);
+
+  const trigger = String(ctx.triggeredBy ?? "");
+  const triggerLabels: Record<string, string> = {
+    profile_builder_stall: "user stalled on a profile builder question",
+    grant_detail_dwell: "user read this grant page silently for 2+ minutes",
+    catalog_repeater: "user browsed the catalog 3+ times without opening any grant",
+    auth_friction: "user visited the sign-up page twice without completing",
+    post_match_idle: "user saw grant matches but opened none",
+    membership_hesitation: "user dismissed the membership prompt twice",
+    rage_click: "user rage-clicked — something frustrated them",
+    long_idle: "user has been idle for 5+ minutes",
+  };
+  if (trigger && triggerLabels[trigger]) {
+    lines.push(`- Bot opened because: ${triggerLabels[trigger]}`);
+  }
+
+  const confusion = Number(ctx.confusionScore ?? 0);
+  if (confusion >= 40) lines.push(`- Confusion signal: ${confusion}/100 — user may be uncertain or frustrated`);
+
+  lines.push(
+    "\nInstruction: open your response by acknowledging WHERE the user is and WHAT they're likely thinking.",
+    "Be specific — name the grant if they're reading one, reference their profile stage, skip generic intros.",
+    "Your tone: direct, warm, knowledgeable. One clear next step at the end.",
+  );
+
+  return lines.join("\n");
+}
+
 const LAUNCHBOT_FORMAT_PROMPT = `
 LaunchBot UI mode: format every reply with GitHub-flavored Markdown.
 Use **bold** for emphasis, bullet lists for programs, and [descriptive link text](https://url) for RTM pages.
@@ -98,9 +163,13 @@ Deno.serve(async (req) => {
 
     const liveContext = await buildLiveContextBlock(admin, lastUserMessage, memberProfile);
 
+    // Build live session context block from client-side session state
+    const userContext = body?.userContext as Record<string, unknown> | null | undefined;
+    const sessionBlock = userContext ? formatSessionContext(userContext) : "";
+
     const source = body?.source === "launchbot" ? "launchbot" : "directory";
     const launchBotExtra = source === "launchbot" ? `\n\n${LAUNCHBOT_FORMAT_PROMPT}` : "";
-    const systemContent = `${DIRECTORY_SYSTEM_PROMPT}${liveContext}${memberContext}${launchBotExtra}`;
+    const systemContent = `${DIRECTORY_SYSTEM_PROMPT}${liveContext}${memberContext}${sessionBlock}${launchBotExtra}`;
     const messages = [
       { role: "system" as const, content: systemContent },
       ...turns.map((t) => ({ role: t.role, content: t.content })),
