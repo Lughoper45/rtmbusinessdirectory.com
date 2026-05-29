@@ -1,5 +1,24 @@
 project_id = "kajwpmyloxaqeciyndwf"
 
+[auth]
+enabled = true
+site_url = "https://membership.rtmbusinessdirectory.com"
+additional_redirect_urls = [
+  "http://localhost:3000/**",
+  "http://localhost:5173/**",
+  "http://127.0.0.1:5173/**",
+  "https://grants.rtmbusinessdirectory.com/**",
+  "https://membership.rtmbusinessdirectory.com/**",
+  "https://rtmbusinessdirectory.com/**",
+  "https://www.rtmbusinessdirectory.com/**",
+  "https://worldcup.rtmbusinessdirectory.com/**",
+  "https://grow.rtmbusinessdirectory.com/**",
+]
+
+[auth.email.template.magic_link]
+subject = "Your RTM Grants verification code"
+content_path = "./supabase/templates/magic_link.html"
+
 [functions.analyze-website]
 verify_jwt = true
 
