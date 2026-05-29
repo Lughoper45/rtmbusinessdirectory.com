@@ -25,12 +25,12 @@ END $$;
 
 -- ─────────────────────────────────────────────────────────────────────────────
 -- Step 2: Migrate existing data in profiles table
--- Maps every existing status to the nearest equivalent in the new model.
--- 'pending_payment' → 'profile_incomplete'  (free tier, not blocked)
--- 'active'          → 'active'              (unchanged)
--- 'expired'         → 'expired'             (unchanged)
--- anything else     → 'profile_incomplete'  (safe default)
+-- Drop the DEFAULT first — Postgres cannot auto-cast the old default literal
+-- to the new enum type. We restore the correct default after the type change.
 -- ─────────────────────────────────────────────────────────────────────────────
+ALTER TABLE profiles
+  ALTER COLUMN membership_status DROP DEFAULT;
+
 ALTER TABLE profiles
   ALTER COLUMN membership_status TYPE membership_status_v2
   USING CASE membership_status::text
@@ -40,6 +40,10 @@ ALTER TABLE profiles
     WHEN 'suspended'       THEN 'suspended'::membership_status_v2
     ELSE 'profile_incomplete'::membership_status_v2
   END;
+
+-- Restore default using the new enum value
+ALTER TABLE profiles
+  ALTER COLUMN membership_status SET DEFAULT 'profile_incomplete'::membership_status_v2;
 
 -- ─────────────────────────────────────────────────────────────────────────────
 -- Step 3: Add profile completion score column
