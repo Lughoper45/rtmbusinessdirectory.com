@@ -10,7 +10,6 @@ import {
   ExternalLink,
   Globe2,
   Lock,
-  Mail,
   Phone,
   Rocket,
   Search,
@@ -234,33 +233,13 @@ const GrantPilot = () => {
 
                   <div className="mt-8 grid gap-6 lg:grid-cols-[1fr_auto] lg:items-start">
                     <div className="flex flex-wrap gap-3">
-                      {memberActive ? (
-                        <a
-                          href={workspaceUrl}
-                          className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#cc0000] px-6 py-3 font-semibold text-white transition-colors hover:bg-[#a80000]"
-                        >
-                          Open grant workspace
-                          <ExternalLink className="h-5 w-5" />
-                        </a>
-                      ) : (
-                        <>
-                          <button
-                            type="button"
-                            onClick={() => openMembershipJoin({ returnUrl })}
-                            className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#cc0000] px-6 py-3 font-semibold text-white transition-colors hover:bg-[#a80000]"
-                          >
-                            Join RTM
-                            <ArrowRight className="h-5 w-5" />
-                          </button>
-                          <a
-                            href={workspaceUrl}
-                            className="inline-flex items-center justify-center gap-2 rounded-xl border-2 border-[#061f3a] px-6 py-3 font-semibold text-[#061f3a] transition-colors hover:bg-[#061f3a] hover:text-white"
-                          >
-                            Sign in on grants site
-                            <ExternalLink className="h-4 w-4" />
-                          </a>
-                        </>
-                      )}
+                      <a
+                        href={workspaceUrl}
+                        className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#cc0000] px-6 py-3 font-semibold text-white transition-colors hover:bg-[#a80000]"
+                      >
+                        {memberActive ? "Open grant workspace" : "Apply for Grant"}
+                        <ExternalLink className="h-5 w-5" />
+                      </a>
                       <GrantChecklistRequestDialog
                         triggerClassName="inline-flex items-center justify-center gap-2 rounded-xl border border-[#cc0000]/40 bg-red-50 px-6 py-3 font-semibold text-[#061f3a] transition-colors hover:bg-red-100"
                       />
@@ -461,24 +440,13 @@ const GrantPilot = () => {
                 active membership.
               </p>
               <motion.div className="flex flex-wrap justify-center gap-3">
-                {memberActive ? (
-                  <a
-                    href={workspaceUrl}
-                    className="px-6 py-3 rounded-xl bg-primary text-primary-foreground font-semibold inline-flex items-center gap-2"
-                  >
-                    Go to grant workspace
-                    <ExternalLink className="w-5 h-5" />
-                  </a>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => openMembershipJoin({ returnUrl })}
-                    className="px-6 py-3 rounded-xl bg-primary text-primary-foreground font-semibold inline-flex items-center gap-2"
-                  >
-                    Join RTM
-                    <ArrowRight className="w-5 h-5" />
-                  </button>
-                )}
+                <a
+                  href={workspaceUrl}
+                  className="px-6 py-3 rounded-xl bg-primary text-primary-foreground font-semibold inline-flex items-center gap-2"
+                >
+                  {memberActive ? "Go to grant workspace" : "Apply for Grant"}
+                  <ExternalLink className="w-5 h-5" />
+                </a>
               </motion.div>
             </motion.section>
           </div>

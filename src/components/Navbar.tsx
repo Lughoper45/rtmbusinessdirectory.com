@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import {
   BookOpen,
   BriefcaseBusiness,
@@ -29,11 +29,13 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { User as SupabaseUser } from "@supabase/supabase-js";
 import BusinessListingWizard from "./BusinessListingWizard";
-import { getGrantsPortalUrl, getWorldCupPortalUrl, openMembershipJoin, SITE_CONTACT } from "@/lib/site";
+import { getGrantsPortalUrl, getWorldCupPortalUrl, GRANTS_APP_URL, openMembershipJoin, SITE_CONTACT } from "@/lib/site";
 import { toast } from "sonner";
 
 const Navbar = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const onGrantsPage = location.pathname === "/grants" || location.pathname.startsWith("/grants/");
   const [isOpen, setIsOpen] = useState(false);
   const [isWizardOpen, setIsWizardOpen] = useState(false);
   const [mobileResourcesOpen, setMobileResourcesOpen] = useState(false);
@@ -71,7 +73,7 @@ const Navbar = () => {
   };
 
   const resourcesItems = [
-    { label: "Grants & Funding", icon: HandCoins, href: getGrantsPortalUrl("/grants"), description: "GrantPilot workspace on grants.rtmbusinessdirectory.com" },
+    { label: "Grants & Funding", icon: HandCoins, to: "/grants", description: "Browse grant programs and start your free profile" },
     { label: "World Cup Ready", icon: Globe, href: getWorldCupPortalUrl(), description: "FIFA 2026 business portal" },
     { label: "Magazine", icon: Newspaper, action: () => openComingSoon("Magazine"), description: "Editorial and business stories" },
     { label: "Bookstore", icon: BookOpen, action: () => openComingSoon("Bookstore"), description: "Reading and learning resources" },
@@ -221,12 +223,12 @@ const Navbar = () => {
                 </DropdownMenuContent>
               </DropdownMenu>
 
-              <a
-                href={getGrantsPortalUrl("/grants")}
+              <Link
+                to="/grants"
                 className="font-medium text-foreground transition-colors hover:text-primary"
               >
                 Grants
-              </a>
+              </Link>
 
               <DropdownMenu>
                 <DropdownMenuTrigger className="inline-flex items-center gap-1 font-medium text-foreground transition-colors hover:text-primary">
@@ -247,10 +249,19 @@ const Navbar = () => {
               <Link to="/deals" className="font-medium text-primary">
                 Deals
               </Link>
-              <Button variant="nav" size="default" onClick={() => setIsWizardOpen(true)}>
-                List Your Business
-                <ChevronRight className="h-4 w-4" />
-              </Button>
+              {onGrantsPage ? (
+                <Button variant="nav" size="default" asChild>
+                  <a href={`${GRANTS_APP_URL.replace(/\/$/, "")}/grants`}>
+                    Apply for Grant
+                    <ChevronRight className="h-4 w-4" />
+                  </a>
+                </Button>
+              ) : (
+                <Button variant="nav" size="default" onClick={() => setIsWizardOpen(true)}>
+                  List Your Business
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              )}
             </div>
 
             <div className="hidden items-center gap-4 lg:flex">
@@ -274,10 +285,19 @@ const Navbar = () => {
                 </Link>
               )}
 
-              <Button variant="nav" size="default" onClick={() => setIsWizardOpen(true)}>
-                List Your Business
-                <ChevronRight className="h-4 w-4" />
-              </Button>
+              {onGrantsPage ? (
+                <Button variant="nav" size="default" asChild>
+                  <a href={`${GRANTS_APP_URL.replace(/\/$/, "")}/grants`}>
+                    Apply for Grant
+                    <ChevronRight className="h-4 w-4" />
+                  </a>
+                </Button>
+              ) : (
+                <Button variant="nav" size="default" onClick={() => setIsWizardOpen(true)}>
+                  List Your Business
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              )}
             </div>
 
             <button
@@ -383,13 +403,13 @@ const Navbar = () => {
                   ) : null}
                 </div>
 
-                <a
-                  href={getGrantsPortalUrl("/grants")}
+                <Link
+                  to="/grants"
                   className="rounded-xl border px-4 py-3 font-medium block"
                   onClick={() => setIsOpen(false)}
                 >
                   Grants
-                </a>
+                </Link>
                 <a
                   href={getWorldCupPortalUrl()}
                   className="rounded-xl border px-4 py-3 font-medium block"
@@ -478,10 +498,19 @@ const Navbar = () => {
                     </Link>
                   )}
 
-                  <Button variant="nav" size="lg" className="w-full" onClick={() => { setIsOpen(false); setIsWizardOpen(true); }}>
-                    List Your Business
-                    <ChevronRight className="h-5 w-5" />
-                  </Button>
+                  {onGrantsPage ? (
+                    <Button variant="nav" size="lg" className="w-full" asChild>
+                      <a href={`${GRANTS_APP_URL.replace(/\/$/, "")}/grants`} onClick={() => setIsOpen(false)}>
+                        Apply for Grant
+                        <ChevronRight className="h-5 w-5" />
+                      </a>
+                    </Button>
+                  ) : (
+                    <Button variant="nav" size="lg" className="w-full" onClick={() => { setIsOpen(false); setIsWizardOpen(true); }}>
+                      List Your Business
+                      <ChevronRight className="h-5 w-5" />
+                    </Button>
+                  )}
                 </div>
               </div>
             </div>
