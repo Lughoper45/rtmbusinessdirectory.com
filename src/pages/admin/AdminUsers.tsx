@@ -13,13 +13,17 @@ import { supabase } from "@/integrations/supabase/client";
 
 interface UserProfile {
   id: string;
-  user_id: string;
+  user_id: string | null;
   full_name: string | null;
   email: string | null;
   role: "member" | "business" | "admin";
   phone: string | null;
   avatar_url: string | null;
   created_at: string;
+}
+
+function profileUserId(user: UserProfile): string {
+  return user.user_id ?? user.id;
 }
 
 const stats = [
@@ -53,6 +57,7 @@ export default function AdminUsers() {
 
       const normalizedUsers: UserProfile[] = (payload?.users ?? []).map((profile: UserProfile) => ({
         ...profile,
+        user_id: profile.user_id ?? profile.id,
         role: (profile.role || "member") as UserProfile["role"],
       }));
 
@@ -72,10 +77,13 @@ export default function AdminUsers() {
   };
 
   const filteredUsers = users.filter((user) => {
+    const q = searchQuery.toLowerCase();
+    const uid = profileUserId(user);
     const matchesSearch =
-      user.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.user_id.toLowerCase().includes(searchQuery.toLowerCase());
+      (user.full_name ?? "").toLowerCase().includes(q) ||
+      (user.email ?? "").toLowerCase().includes(q) ||
+      uid.toLowerCase().includes(q) ||
+      user.id.toLowerCase().includes(q);
 
     const matchesRole = roleFilter === "all" || user.role === roleFilter;
     return matchesSearch && matchesRole;
@@ -86,7 +94,7 @@ export default function AdminUsers() {
       const { error } = await supabase
         .from("profiles")
         .update({ role })
-        .eq("user_id", userId);
+        .or(`user_id.eq.${userId},id.eq.${userId}`);
 
       if (error) throw error;
 
@@ -200,7 +208,7 @@ export default function AdminUsers() {
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell className="text-sm text-gray-500">{user.user_id}</TableCell>
+                      <TableCell className="text-sm text-gray-500">{profileUserId(user)}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <Calendar className="h-4 w-4 text-gray-400" />
@@ -246,7 +254,7 @@ export default function AdminUsers() {
                   <label className="text-sm font-medium">Role</label>
                   <Select
                     defaultValue={selectedUser.role}
-                    onValueChange={(value: UserProfile["role"]) => handleUpdateUserRole(selectedUser.user_id, value)}
+                    onValueChange={(value: UserProfile["role"]) => handleUpdateUserRole(profileUserId(selectedUser), value)}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select role" />
@@ -271,7 +279,7 @@ export default function AdminUsers() {
                     supabase
                       .from("profiles")
                       .update({ full_name: name })
-                      .eq("user_id", selectedUser.user_id)
+                      .eq("id", selectedUser.id)
                       .then(() => {
                         toast.success("User updated");
                         setIsEditOpen(false);

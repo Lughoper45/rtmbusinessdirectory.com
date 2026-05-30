@@ -42,11 +42,15 @@ Deno.serve(async (req) => {
       page += 1;
     }
 
-    const users = (profiles ?? []).map((profile) => ({
-      ...profile,
-      email: emailByUserId.get(profile.user_id) ?? null,
-      role: profile.role || "member",
-    }));
+    const users = (profiles ?? []).map((profile) => {
+      const authUserId = profile.user_id ?? profile.id;
+      return {
+        ...profile,
+        user_id: authUserId,
+        email: emailByUserId.get(authUserId) ?? emailByUserId.get(profile.id) ?? null,
+        role: profile.role || "member",
+      };
+    });
 
     return jsonResponse(req, { users });
   } catch (error) {
