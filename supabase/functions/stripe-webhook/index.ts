@@ -201,8 +201,20 @@ Deno.serve(async (req) => {
     const stripeSecretKey = Deno.env.get("STRIPE_SECRET_KEY");
     const webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET");
 
-    if (!stripeSecretKey || !webhookSecret) {
-      throw new Error("Stripe not configured");
+    if (!stripeSecretKey) {
+      console.error("[stripe-webhook] STRIPE_SECRET_KEY not set");
+      return new Response(JSON.stringify({ error: "Stripe not configured" }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (!webhookSecret) {
+      console.error("[stripe-webhook] STRIPE_WEBHOOK_SECRET not set — cannot verify signature");
+      return new Response(JSON.stringify({ error: "Webhook secret not configured" }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     const stripe = new Stripe(stripeSecretKey, {
@@ -213,14 +225,24 @@ Deno.serve(async (req) => {
     const signature = req.headers.get("stripe-signature");
 
     if (!signature) {
-      throw new Error("No signature");
+      console.error("[stripe-webhook] Missing stripe-signature header");
+      return new Response(JSON.stringify({ error: "No signature" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     let event: Stripe.Event;
     try {
       event = await stripe.webhooks.constructEventAsync(body, signature, webhookSecret);
     } catch (err) {
-      throw new Error(`Webhook signature verification failed: ${err}`);
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error("[stripe-webhook] Signature verification failed:", msg);
+      // Return 400 so Stripe stops retrying — this is not a recoverable server error
+      return new Response(JSON.stringify({ error: `Webhook signature invalid: ${msg}` }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
@@ -244,18 +266,22 @@ Deno.serve(async (req) => {
           null;
 
         if (userId && subscriptionId) {
-          const subscription = await stripe.subscriptions.retrieve(subscriptionId);
-
-          await supabase.from("subscriptions").upsert({
-            user_id: userId,
-            stripe_subscription_id: subscriptionId,
-            stripe_customer_id: session.customer as string,
-            stripe_price_id: subscription.items.data[0].price.id,
-            status: subscription.status,
-            current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
-            current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
-            cancel_at_period_end: subscription.cancel_at_period_end,
-          });
+          try {
+            const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+            await supabase.from("subscriptions").upsert({
+              user_id: userId,
+              stripe_subscription_id: subscriptionId,
+              stripe_customer_id: session.customer as string,
+              stripe_price_id: subscription.items.data[0]?.price?.id ?? null,
+              status: subscription.status,
+              current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
+              current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+              cancel_at_period_end: subscription.cancel_at_period_end,
+            });
+          } catch (subErr) {
+            // Non-fatal — log and continue to provision member account
+            console.error("[stripe-webhook] subscription upsert failed:", subErr instanceof Error ? subErr.message : subErr);
+          }
         }
 
         if (customerEmail || userId) {
@@ -347,8 +373,9 @@ Deno.serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
-    console.error("Webhook error:", error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error("[stripe-webhook] Unhandled error:", message);
+    return new Response(JSON.stringify({ error: message }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
