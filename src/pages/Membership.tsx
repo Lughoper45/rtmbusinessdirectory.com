@@ -55,8 +55,8 @@ const heroHighlights = [
 ];
 
 const introBenefits = [
-  `Join RTM for ${MEMBERSHIP_PRICE_LABEL} and unlock savings at participating businesses and stores.`,
-  "Use the RTM Business Directory Discount Program to support local merchants that support the community.",
+  "Free to explore Canadian grants and build your profile — activate your RTM Submission Passport when you're ready to submit.",
+  `Your ${MEMBERSHIP_PRICE_LABEL} Passport unlocks member savings, grant advisor pricing, education grants, and directory benefits.`,
   "Referral earnings are optional; the core value is savings, local discovery, and community support.",
 ];
 
@@ -233,7 +233,7 @@ const Membership = () => {
         <title>RTM Membership | Save More Across Canada</title>
         <meta
           name="description"
-          content="Join RTM for $100/year, get a digital discount card, save 5% to 50% at partner stores, and become eligible for community aid after 90 days."
+          content="Free to explore grants. RTM Submission Passport $100/year unlocks submit support, member discounts, education grants, and community benefits after 90 days."
         />
       </Helmet>
 
@@ -250,10 +250,10 @@ const Membership = () => {
                   For RTM members
                 </Badge>
                 <h1 className="mt-6 text-5xl font-black leading-[0.98] tracking-tight text-white md:text-7xl">
-                  Join RTM for {MEMBERSHIP_PRICE_LABEL}
+                  Free to explore · {MEMBERSHIP_PRICE_LABEL} when you submit
                 </h1>
                 <p className="mt-6 max-w-2xl text-lg font-medium leading-8 text-white/86 md:text-xl">
-                  Unlock member savings at participating businesses, receive your digital card, and become eligible for community aid after the waiting period.
+                  Browse grants and build your profile for free. Activate your RTM Submission Passport to submit with advisor support, unlock member savings, and access community aid after the waiting period.
                 </p>
 
                 <div className="mt-8 grid gap-3">
@@ -278,7 +278,7 @@ const Membership = () => {
 
                 <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                   <Button variant="heroWhite" size="xl" onClick={() => scrollTo("plans")}>
-                    Join RTM - $100/year
+                    Get your Submission Passport
                     <ArrowRight className="h-5 w-5" />
                   </Button>
                   <Button variant="heroOutline" size="xl" onClick={() => navigate("/affiliate")}>

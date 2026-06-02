@@ -35,8 +35,12 @@ type Action =
   | "create-crm-task"
   | "update-crm-task"
   | "bulk-update-crm-contacts"
+  | "sync-crm-from-sources"
   | "list-suppressions"
   | "dispatch-now";
+
+const GRANT_CRM_SOURCES = ["grant_checklist", "grants_page", "email_inbound"];
+const GROWTH_CRM_SOURCES = ["growth_audit", "grow_page"];
 
 Deno.serve(async (req) => {
   const preflight = handleCorsPreflight(req);
@@ -518,7 +522,13 @@ Deno.serve(async (req) => {
         .range(offset, offset + limit - 1);
 
       if (body.stage) q = q.eq("stage", String(body.stage));
-      if (body.source) q = q.eq("source", String(body.source));
+      if (body.source) {
+        const src = String(body.source);
+        if (src === "grant_checklist") q = q.in("source", GRANT_CRM_SOURCES);
+        else if (src === "growth_audit") q = q.in("source", GROWTH_CRM_SOURCES);
+        else if (src === "member") q = q.eq("source", "member");
+        else q = q.eq("source", src);
+      }
       if (body.search) {
         const s = `%${String(body.search)}%`;
         q = q.or(`name.ilike.${s},email.ilike.${s},company.ilike.${s}`);
@@ -611,6 +621,12 @@ Deno.serve(async (req) => {
         .eq("id", taskId);
       if (error) throw error;
       return jsonResponse(req, { ok: true });
+    }
+
+    if (action === "sync-crm-from-sources") {
+      const { data, error } = await admin.rpc("backfill_crm_contacts");
+      if (error) throw error;
+      return jsonResponse(req, { ok: true, stats: data });
     }
 
     if (action === "bulk-update-crm-contacts") {

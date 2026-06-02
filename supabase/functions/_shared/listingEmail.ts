@@ -113,15 +113,16 @@ export function checklistNurtureHtml(opts: {
   const subjects: Record<number, string> = {
     1: "Quick tip: your Canadian grant checklist",
     3: "Programs that fit Canadian SMEs — RTM grants hub",
-    7: "Last note: membership unlocks grant workspace tools",
+    7: "See your free grant matches — then decide if RTM support is right",
   };
   const bodies: Record<number, string> = {
     1: `<p>${greeting}</p><p>Following up on your Free Grant Checklist request. If you have not downloaded it yet:</p>
 <div style="text-align:center;margin:20px 0;"><a href="${opts.checklistPdfUrl}" style="display:inline-block;background:#cc0000;color:#fff;padding:12px 24px;text-decoration:none;border-radius:8px;">Download checklist (PDF)</a></div>`,
     3: `<p>${greeting}</p><p>Many Canadian businesses use RTM to explore verified federal and provincial programs in one place — with RTM compatibility estimates, not government eligibility guarantees.</p>
 <div style="text-align:center;margin:20px 0;"><a href="${opts.grantsUrl}" style="display:inline-block;background:#061f3a;color:#fff;padding:12px 24px;text-decoration:none;border-radius:8px;">Browse grants hub</a></div>`,
-    7: `<p>${greeting}</p><p>RTM membership ($100/year) unlocks member pricing on grant advisor packages and the GrantPilot workspace for profile-matched programs.</p>
-<div style="text-align:center;margin:20px 0;"><a href="${opts.membershipUrl}" style="display:inline-block;background:#cc0000;color:#fff;padding:12px 24px;text-decoration:none;border-radius:8px;">Join RTM membership</a></div>`,
+    7: `<p>${greeting}</p><p>Your free RTM grant profile takes about 3 minutes — see which Canadian programs may match your business before you decide on advisor support.</p>
+<div style="text-align:center;margin:20px 0;"><a href="${opts.grantsUrl}" style="display:inline-block;background:#cc0000;color:#fff;padding:12px 24px;text-decoration:none;border-radius:8px;">See my free grant matches</a></div>
+<p style="color:#64748b;font-size:13px;text-align:center;margin-top:12px;">Activate your RTM Submission Passport ($100/yr) only when you're ready to submit with advisor support.</p>`,
   };
   const subject = subjects[opts.day];
   const footer = `<p style="color:#64748b;font-size:12px;margin-top:16px;">${GRANT_DISCLAIMER}</p>

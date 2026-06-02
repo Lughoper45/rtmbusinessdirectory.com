@@ -82,6 +82,23 @@ async function fulfillGrowthPackageOrder(
 
   if (engagementError) throw engagementError;
 
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("email")
+    .eq("id", userId)
+    .maybeSingle();
+  if (profile?.email) {
+    await supabase.rpc("upsert_crm_contact", {
+      p_email: profile.email,
+      p_source: "growth_package",
+      p_tags: ["growth_client"],
+    });
+    await supabase
+      .from("crm_contacts")
+      .update({ stage: "client", updated_at: new Date().toISOString() })
+      .ilike("email", profile.email);
+  }
+
   const resendKey = Deno.env.get("RESEND_API_KEY");
   if (resendKey) {
     const resend = new Resend(resendKey);
@@ -188,6 +205,23 @@ async function fulfillGrantPackageOrder(
     userId,
     intakeId,
   });
+
+  const { data: grantProfile } = await supabase
+    .from("profiles")
+    .select("email")
+    .eq("id", userId)
+    .maybeSingle();
+  if (grantProfile?.email) {
+    await supabase.rpc("upsert_crm_contact", {
+      p_email: grantProfile.email,
+      p_source: "grant_package",
+      p_tags: ["grant_client"],
+    });
+    await supabase
+      .from("crm_contacts")
+      .update({ stage: "client", updated_at: new Date().toISOString() })
+      .ilike("email", grantProfile.email);
+  }
 
   return true;
 }
@@ -303,6 +337,29 @@ Deno.serve(async (req) => {
             if (!provisionRes.ok) {
               const errText = await provisionRes.text();
               console.error("[stripe-webhook] provision-member-account failed:", errText);
+            } else {
+              const provisionBody = await provisionRes.json().catch(() => ({})) as { userId?: string };
+              const profileId = provisionBody.userId ?? userId;
+              if (profileId) {
+                try {
+                  const welcomeRes = await fetch(`${supabaseUrl}/functions/v1/send-member-email`, {
+                    method: "POST",
+                    headers: {
+                      Authorization: `Bearer ${supabaseKey}`,
+                      "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ profileId, template: "activation_welcome" }),
+                  });
+                  if (!welcomeRes.ok) {
+                    console.error(
+                      "[stripe-webhook] activation_welcome failed:",
+                      await welcomeRes.text(),
+                    );
+                  }
+                } catch (welcomeErr) {
+                  console.error("[stripe-webhook] activation_welcome error:", welcomeErr);
+                }
+              }
             }
           } catch (provisionErr) {
             console.error("[stripe-webhook] provision-member-account error:", provisionErr);

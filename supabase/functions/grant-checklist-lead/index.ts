@@ -49,18 +49,13 @@ We received your request. Download your <strong>general preparation checklist</s
 <a href="${opts.checklistPdfUrl}" style="display:inline-block;background:#cc0000;color:#fff;padding:14px 32px;text-decoration:none;border-radius:8px;font-weight:600;">Download checklist (PDF) →</a>
 </div>
 <p style="color:#475569;line-height:1.7;margin:0 0 16px;font-size:14px;">
-This PDF covers document prep and application steps used across many programs. A <strong>personalized program shortlist</strong> comes with the Maple Checklist advisor package or your member Funding Workspace after you build your RTM Grant Profile.
+This PDF covers document prep and application steps used across many programs. For a <strong>personalised program shortlist</strong>, build your free RTM Grant Profile — 6 questions, about 3 minutes, no payment required.
 </p>
-<p style="color:#475569;line-height:1.7;margin:0 0 24px;">Explore grant packages and featured programs on our grants hub:</p>
-<div style="text-align:center;margin:20px 0;">
-<a href="${opts.grantsUrl}" style="display:inline-block;border:2px solid #061f3a;color:#061f3a;padding:12px 28px;text-decoration:none;border-radius:8px;font-weight:600;">View grants hub →</a>
+<div style="text-align:center;margin:24px 0;">
+<a href="${opts.grantsUrl}" style="display:inline-block;background:#cc0000;color:#fff;padding:14px 32px;text-decoration:none;border-radius:8px;font-weight:600;">Start my free grant profile →</a>
 </div>
-<p style="color:#475569;line-height:1.7;margin:0 0 12px;">
-<strong>RTM membership ($100/year)</strong> unlocks member package pricing (50% off list — Maple Checklist from $149) and the Funding Workspace for profile-matched programs and application tracking:
-<a href="${opts.fundingWorkspaceUrl}" style="color:#2563eb;">${opts.fundingWorkspaceUrl}</a>
-</p>
-<p style="text-align:center;margin:20px 0;">
-<a href="${opts.membershipUrl}" style="color:#061f3a;font-weight:600;">Join RTM membership →</a>
+<p style="color:#475569;line-height:1.7;margin:0 0 12px;font-size:14px;">
+Browse 217+ Canadian grant programs and see your matches for free. Activate your RTM Submission Passport ($100/yr) only when you're ready to submit with RTM advisor support.
 </p>
 <p style="color:#64748b;font-size:14px;margin:24px 0 0;">
 Questions? Reply to this email or contact us at

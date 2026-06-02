@@ -9,10 +9,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { Loader2, ExternalLink, Plus, X, Download } from "lucide-react";
+import { Loader2, ExternalLink, Plus, X, Download, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { format, formatDistanceToNow } from "date-fns";
 import { invokeListingAdmin } from "@/services/listingAdmin";
+import { supabase } from "@/integrations/supabase/client";
 
 type CrmContact = {
   id: string;
@@ -71,13 +72,18 @@ type ContactDetail = {
   deals: CrmDeal[];
 };
 
-const STAGES = ["visitor", "lead", "qualified", "member", "opportunity", "customer", "alumni"] as const;
+const STAGES = ["stranger", "explorer", "ready_to_submit", "member", "client"] as const;
 
 const stageBadgeClass: Record<string, string> = {
+  stranger: "bg-gray-100 text-gray-700",
+  explorer: "bg-blue-100 text-blue-700",
+  ready_to_submit: "bg-orange-100 text-orange-700",
+  member: "bg-emerald-100 text-emerald-700",
+  client: "bg-green-100 text-green-700",
+  // legacy (pre-migration rows, if any)
   visitor: "bg-gray-100 text-gray-700",
   lead: "bg-blue-100 text-blue-700",
   qualified: "bg-purple-100 text-purple-700",
-  member: "bg-emerald-100 text-emerald-700",
   opportunity: "bg-orange-100 text-orange-700",
   customer: "bg-green-100 text-green-700",
   alumni: "bg-slate-100 text-slate-700",
@@ -112,13 +118,15 @@ function FunnelBar({
   contacts,
   activeStage,
   onStageClick,
+  lifecycleCounts,
 }: {
   contacts: CrmContact[];
   activeStage: string;
   onStageClick: (stage: string) => void;
+  lifecycleCounts?: Record<string, number>;
 }) {
   const counts = STAGES.reduce<Record<string, number>>((acc, s) => {
-    acc[s] = contacts.filter((c) => c.stage === s).length;
+    acc[s] = lifecycleCounts?.[s] ?? contacts.filter((c) => c.stage === s).length;
     return acc;
   }, {});
 
@@ -501,6 +509,19 @@ export default function AdminOps() {
   const [bulkStage, setBulkStage] = useState("");
   const [applyingBulk, setApplyingBulk] = useState(false);
   const [drawerContactId, setDrawerContactId] = useState<string | null>(null);
+  const [totalCount, setTotalCount] = useState<number | null>(null);
+  const [syncing, setSyncing] = useState(false);
+  const [lifecycleCounts, setLifecycleCounts] = useState<Record<string, number>>({});
+
+  const loadLifecycleFunnel = useCallback(async () => {
+    const { data, error } = await supabase.from("crm_lifecycle_funnel").select("stage, contact_count");
+    if (error) return;
+    const counts: Record<string, number> = {};
+    for (const row of data ?? []) {
+      counts[row.stage] = row.contact_count;
+    }
+    setLifecycleCounts(counts);
+  }, []);
 
   const loadContacts = useCallback(async () => {
     setLoading(true);
@@ -511,6 +532,7 @@ export default function AdminOps() {
       if (search.trim()) payload.search = search.trim();
       const res = await invokeListingAdmin<{ contacts: CrmContact[]; total: number }>("list-crm-contacts", payload);
       setAllContacts(res.contacts ?? []);
+      setTotalCount(res.total ?? res.contacts?.length ?? 0);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Failed to load contacts");
     } finally {
@@ -520,7 +542,8 @@ export default function AdminOps() {
 
   useEffect(() => {
     void loadContacts();
-  }, [loadContacts]);
+    void loadLifecycleFunnel();
+  }, [loadContacts, loadLifecycleFunnel]);
 
   const filtered = allContacts;
 
@@ -538,6 +561,22 @@ export default function AdminOps() {
       setSelectedIds(new Set());
     } else {
       setSelectedIds(new Set(filtered.map((c) => c.id)));
+    }
+  }
+
+  async function handleSyncFromSources() {
+    setSyncing(true);
+    try {
+      const res = await invokeListingAdmin<{ ok: boolean; stats: Record<string, unknown> }>("sync-crm-from-sources");
+      const stats = res.stats ?? {};
+      toast.success(
+        `Synced: ${stats.grant_checklist_leads ?? 0} grant, ${stats.growth_audit_leads ?? 0} growth, ${stats.profiles ?? 0} members, ${stats.listing_contacts ?? 0} listing`,
+      );
+      void loadContacts();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Sync failed");
+    } finally {
+      setSyncing(false);
     }
   }
 
@@ -560,10 +599,30 @@ export default function AdminOps() {
   return (
     <AdminLayout>
       <div className="p-6 max-w-7xl mx-auto space-y-6">
-        <h1 className="text-2xl font-bold">Ops CRM</h1>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h1 className="text-2xl font-bold">Ops CRM</h1>
+            {!loading && totalCount != null && (
+              <p className="text-sm text-muted-foreground mt-0.5">
+                {filtered.length} shown{totalCount !== filtered.length ? ` · ${totalCount} total` : ""}
+              </p>
+            )}
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-1.5"
+            onClick={() => void handleSyncFromSources()}
+            disabled={syncing || loading}
+          >
+            {syncing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
+            Sync from leads
+          </Button>
+        </div>
 
         {!loading && (
           <FunnelBar
+            lifecycleCounts={lifecycleCounts}
             contacts={allContacts}
             activeStage={stageFilter}
             onStageClick={(s) => { setStageFilter(s); setSelectedIds(new Set()); }}

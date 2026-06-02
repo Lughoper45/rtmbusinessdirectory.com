@@ -15,6 +15,7 @@ import {
   processListingViewsNurture,
   processPostClaimNurture,
 } from "../_shared/nurtureScheduler.ts";
+import { processGrantLifecycleNurture } from "../_shared/grantLifecycleNurture.ts";
 import { publishToSocialChannels } from "../_shared/socialPublish.ts";
 
 const CRON_SECRET = Deno.env.get("OPS_CRON_SECRET");
@@ -312,11 +313,13 @@ Deno.serve(async (req) => {
     let checklistNurture: string[] = [];
     let postClaimNurture: string[] = [];
     let listingViewsNurture: string[] = [];
+    let grantLifecycleNurture: Record<string, string[]> = {};
     if (resend) {
       reminders = await processReminders(admin, resend);
       checklistNurture = await processChecklistNurture(admin, resend);
       postClaimNurture = await processPostClaimNurture(admin, resend);
       listingViewsNurture = await processListingViewsNurture(admin, resend);
+      grantLifecycleNurture = await processGrantLifecycleNurture(admin, resend);
     }
 
     const { data: approved } = await admin
@@ -350,6 +353,7 @@ Deno.serve(async (req) => {
       checklistNurture,
       postClaimNurture,
       listingViewsNurture,
+      grantLifecycleNurture,
     });
   } catch (e) {
     return jsonResponse(

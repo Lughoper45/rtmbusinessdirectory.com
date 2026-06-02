@@ -17,6 +17,11 @@ dist-ssr
 RTM_SECRETS.local.env
 docs/RTM_SECRETS.local.env
 
+# Supabase local artifacts
+supabase/.temp/
+supabase/functions/*.zip
+supabase/*.zip
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

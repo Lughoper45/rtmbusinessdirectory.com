@@ -13,7 +13,9 @@
  */
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { Resend } from "https://esm.sh/resend@3.1.0";
+import { profileJsonFields } from "../_shared/grantProfileSignals.ts";
 
 const FROM = "RTM Grants <noreply@rtmbusinessdirectory.com>";
 const GRANTS_URL = "https://grants.rtmbusinessdirectory.com";
@@ -71,10 +73,63 @@ function profileIncompleteEmail(name: string): EmailTemplate {
   };
 }
 
-function grantMatchesEmail(name: string): EmailTemplate {
+async function buildGrantMatchesEmail(
+  admin: SupabaseClient,
+  userId: string,
+  name: string,
+): Promise<EmailTemplate> {
   const n = name || "there";
+
+  const { data: gp } = await admin
+    .from("grant_profiles")
+    .select("profile")
+    .eq("user_id", userId)
+    .maybeSingle();
+  const { businessName, province, sector } = profileJsonFields(
+    gp?.profile as Record<string, unknown>,
+  );
+  const bizLabel = businessName || "your business";
+
+  // Prefer true per-user matches if available.
+  // This table is populated by `refresh_grant_profile_matches` (triggered on grant_profiles updates).
+  const { data: matches } = await admin
+    .from("grant_profile_matches")
+    .select("grant_id, score")
+    .eq("user_id", userId)
+    .order("score", { ascending: false })
+    .limit(3);
+
+  const grantIds = (matches ?? []).map((m) => m.grant_id).filter(Boolean);
+  const { data: grantRows } = grantIds.length
+    ? await admin
+        .from("grants")
+        .select("id, name, amount")
+        .in("id", grantIds)
+    : { data: [] as Array<{ id: string; name: string; amount: number }> };
+
+  const rowsById = new Map((grantRows ?? []).map((g) => [g.id, g]));
+  const grants = (matches ?? [])
+    .map((m) => {
+      const g = rowsById.get(m.grant_id);
+      if (!g) return null;
+      return { name: g.name, amount: g.amount, match_score: m.score };
+    })
+    .filter(Boolean) as Array<{ name: string; amount: number; match_score: number }>;
+
+  const matchCount = matches?.length ?? 0;
+
+  const topLines = (grants ?? []).map((g) => {
+    const amt = g.amount ? ` — up to ${g.amount}` : "";
+    const score = g.match_score != null ? ` — ${g.match_score}% RTM compatibility` : "";
+    return `<li><strong>${g.name}</strong>${amt}${score}</li>`;
+  }).join("");
+
+  const subject = province && matchCount > 0
+    ? `We found ${matchCount}+ grants for ${bizLabel} in ${province}`
+    : `Your grant matches are ready — here's what we found`;
+
   return {
-    subject: "Your grant matches are ready — here's what we found",
+    subject,
     html: `<!doctype html><html lang="en"><head><meta charset="utf-8"/></head>
 <body style="margin:0;background:#f8fafc;font-family:Arial,sans-serif;color:#0f172a;">
 <table width="100%" cellspacing="0" cellpadding="0"><tr><td align="center" style="padding:32px 16px;">
@@ -85,20 +140,22 @@ function grantMatchesEmail(name: string): EmailTemplate {
 </td></tr>
 <tr><td style="padding:32px;">
   <h2 style="margin:0 0 12px;">Hi ${n},</h2>
-  <p style="line-height:1.7;color:#475569;">Your grant profile is now active. We've matched it against our catalog of Canadian federal and provincial programs.</p>
-  <p style="line-height:1.7;color:#475569;margin-top:12px;font-weight:600;">Your personalised matches are waiting in your grant workspace.</p>
+  <p style="line-height:1.7;color:#475569;">We've matched <strong>${bizLabel}</strong> against Canadian federal and provincial programs in the RTM catalog.</p>
+  ${topLines ? `<p style="margin:16px 0 8px;font-weight:700;font-size:14px;">Programs to explore first:</p>
+  <ul style="margin:0 0 20px;padding:0 0 0 18px;color:#475569;font-size:14px;line-height:2;">${topLines}</ul>` : ""}
   <p style="text-align:center;margin:28px 0;">
-    <a href="${GRANTS_URL}/grants" style="display:inline-block;background:#b91c1c;color:#fff;text-decoration:none;padding:14px 32px;border-radius:8px;font-weight:700;">See my grant matches →</a>
+    <a href="${GRANTS_URL}/grants" style="display:inline-block;background:#b91c1c;color:#fff;text-decoration:none;padding:14px 32px;border-radius:8px;font-weight:700;">View my grant matches →</a>
   </p>
   <div style="background:#f1f5f9;border-radius:10px;padding:16px;">
     <p style="margin:0 0 8px;font-weight:700;font-size:14px;">What you can do now — for free:</p>
     <ul style="margin:0;padding:0 0 0 18px;color:#475569;font-size:14px;line-height:2;">
-      <li>View all matched programs with compatibility scores</li>
-      <li>Save your shortlist</li>
-      <li>Start your intake questions for any program</li>
+      <li>View compatibility scores and save your shortlist</li>
+      <li>Start intake questions for any program</li>
     </ul>
-    <p style="margin:12px 0 0;font-size:13px;color:#64748b;font-style:italic;">Activate RTM membership ($100/yr) when you're ready to submit applications or contact an advisor. Not required to browse.</p>
+    <p style="margin:12px 0 0;font-size:13px;color:#64748b;font-style:italic;">Activate your RTM Submission Passport ($100/yr) when you're ready to submit with advisor support.</p>
   </div>
+  <p style="margin:16px 0 0;font-size:13px;color:#64748b;">Education grants are a different, often easier path — included with your Passport at <a href="https://www.govgranteducation.ca" style="color:#b91c1c;">govgranteducation.ca</a>.</p>
+  <p style="margin:12px 0 0;font-size:13px;color:#64748b;">Business grants are also on <a href="https://rtmbusinessdirectory.com/grants" style="color:#b91c1c;">rtmbusinessdirectory.com/grants</a> — same free profile, same account.</p>
   <p style="margin:24px 0 0;font-size:13px;color:#94a3b8;">Questions? Call +1 416 900 8728 or reply to this email.</p>
 </td></tr>
 </table></td></tr></table></body></html>`,
@@ -172,7 +229,7 @@ Deno.serve(async (req) => {
     } else if (type === "UPDATE") {
       if (oldStatus !== "grant_intake_started" && newStatus === "grant_intake_started") {
         template = "grant_matches_found";
-        emailData = grantMatchesEmail(name);
+        emailData = await buildGrantMatchesEmail(admin, record.id, name);
       } else if (oldStatus !== "expired" && newStatus === "expired") {
         template = "membership_expired";
         emailData = membershipExpiredEmail(name);
