@@ -3,7 +3,7 @@ import { Search, Building2, DollarSign, Bot, Trophy, Check, Sparkles, TrendingUp
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import SuccessSimulator from "./SuccessSimulator";
-import heroBackground from "@/assets/hero-background.jpg";
+import heroBackground from "@/assets/48yvo.jpg";
 import { DIRECTORY_COUNT_LABEL, PUBLIC_POSITIONING } from "@/content/siteCopy";
 import { openGrowPortal } from "@/lib/site";
 
@@ -13,9 +13,8 @@ const HeroSection = () => {
   const [isSimulatorOpen, setIsSimulatorOpen] = useState(false);
   const [activeProvince, setActiveProvince] = useState<string | null>(null);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-  const heroRef = useRef<HTMLDivElement>(null);
+  const heroRef = useRef<HTMLElement>(null);
 
-  // Parallax mouse effect
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if (heroRef.current) {
@@ -43,10 +42,10 @@ const HeroSection = () => {
   };
 
   const valuePills = [
-    { icon: Building2, text: DIRECTORY_COUNT_LABEL, color: "text-primary", action: () => navigate("/directory") },
-    { icon: DollarSign, text: "Free grant profile", color: "text-accent", action: () => navigate("/grants") },
-    { icon: Bot, text: "Growth services", color: "text-primary", action: () => openGrowPortal("/") },
-    { icon: Trophy, text: "World Cup Ready", color: "text-accent", action: () => navigate("/directory?filter=world-cup") },
+    { icon: Building2, text: DIRECTORY_COUNT_LABEL, action: () => navigate("/directory") },
+    { icon: DollarSign, text: "Free grant profile", action: () => navigate("/grants") },
+    { icon: Bot, text: "Growth services", action: () => openGrowPortal("/") },
+    { icon: Trophy, text: "World Cup Ready", action: () => navigate("/directory?filter=world-cup") },
   ];
 
   const popularSearches = [
@@ -63,182 +62,172 @@ const HeroSection = () => {
   };
 
   return (
-    <section 
+    <section
       ref={heroRef}
-      className="relative min-h-[750px] md:min-h-[700px] lg:min-h-[800px] overflow-hidden"
+      className="relative min-h-[92vh] flex items-center overflow-hidden"
+      aria-label="Discover Canadian businesses"
     >
-      {/* Background Image */}
-      <div 
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: `url(${heroBackground})` }}
+      <img
+        src={heroBackground}
+        alt="Toronto skyline at dusk with CN Tower"
+        className="absolute inset-0 h-full w-full object-cover object-[center_35%]"
+        fetchPriority="high"
       />
-      {/* Keep the image visible while protecting the text area */}
-      <div className="absolute inset-0 bg-gradient-to-br from-slate-950/30 via-slate-950/10 to-transparent" />
-      <div className="absolute inset-y-0 left-0 w-full bg-gradient-to-r from-background/95 via-background/82 to-background/18 lg:w-[62%]" />
-      <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-background via-background/65 to-transparent" />
-      
-      {/* Animated particles */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+
+      <div className="absolute inset-0 bg-slate-950/45" />
+      <div className="absolute inset-0 bg-gradient-to-br from-slate-950/55 via-slate-900/35 to-slate-950/25" />
+      <div className="absolute inset-y-0 left-0 w-full bg-gradient-to-r from-slate-950/88 via-slate-950/72 to-slate-950/35 lg:w-[70%]" />
+      <div className="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-background via-background/80 to-transparent" />
+
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
         {[...Array(20)].map((_, i) => (
           <div
             key={i}
-            className="absolute rounded-full bg-primary/10 animate-float"
+            className="absolute h-1 w-1 rounded-full bg-white/20 animate-pulse"
             style={{
-              width: Math.random() * 60 + 20,
-              height: Math.random() * 60 + 20,
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-              animationDelay: `${Math.random() * 5}s`,
-              animationDuration: `${Math.random() * 10 + 10}s`,
+              left: `${(i * 17) % 100}%`,
+              top: `${(i * 23) % 100}%`,
+              animationDelay: `${i * 0.2}s`,
             }}
           />
         ))}
       </div>
 
-      {/* 3D floating shapes with parallax */}
-      <div 
-        className="absolute inset-0 overflow-hidden pointer-events-none"
+      <div
+        className="pointer-events-none absolute right-[8%] top-[20%] h-32 w-32 rounded-full bg-primary/20 blur-3xl transition-transform duration-300"
         style={{ transform: `translate(${mousePosition.x}px, ${mousePosition.y}px)` }}
-      >
-        <div className="absolute top-20 left-[10%] w-72 h-72 bg-primary/5 rounded-full blur-3xl animate-pulse-slow" />
-        <div className="absolute bottom-20 right-[10%] w-96 h-96 bg-accent/5 rounded-full blur-3xl animate-pulse-slow" style={{ animationDelay: "1s" }} />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] opacity-[0.03]">
-          <svg viewBox="0 0 100 100" className="w-full h-full fill-primary animate-spin-slow">
-            <path d="M50 5 L60 40 L95 50 L60 60 L50 95 L40 60 L5 50 L40 40 Z" />
-          </svg>
-        </div>
-      </div>
+      />
+      <div
+        className="pointer-events-none absolute bottom-[25%] left-[12%] h-24 w-24 rounded-full bg-accent/15 blur-2xl transition-transform duration-300"
+        style={{ transform: `translate(${-mousePosition.x}px, ${-mousePosition.y}px)` }}
+      />
 
-      <div className="container mx-auto max-w-[1280px] px-6 py-16 md:py-20 relative z-10">
-        <div className="mx-auto max-w-[900px] rounded-[2rem] px-4 py-6 text-center backdrop-blur-[1px] md:px-8 md:py-8">
-          {/* Live counter badge */}
-          <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-full px-4 py-2 mb-8 animate-fade-up">
+      <div className="container relative z-10 mx-auto max-w-[1280px] px-6 py-20 md:py-28">
+        <div className="mx-auto max-w-[900px] rounded-[2rem] border border-white/10 bg-slate-950/40 px-4 py-6 text-center shadow-2xl backdrop-blur-md md:px-8 md:py-8">
+          <div className="mb-8 inline-flex animate-fade-up items-center gap-2 rounded-full border border-white/25 bg-white/15 px-4 py-2 backdrop-blur-sm">
             <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
             </span>
-            <span className="text-sm font-medium text-foreground">Canadian business discovery, deals, and support</span>
-            <TrendingUp className="w-4 h-4 text-primary" />
+            <span className="text-sm font-medium text-white">Canadian business discovery, deals, and support</span>
+            <TrendingUp className="h-4 w-4 text-emerald-300" />
           </div>
 
-          {/* Main Headline */}
-          <h1 className="text-4xl md:text-5xl lg:text-7xl font-extrabold text-foreground leading-[1.1] mb-6 animate-fade-up">
+          <h1 className="mb-6 animate-fade-up text-4xl font-extrabold leading-[1.1] text-white drop-shadow-[0_2px_12px_rgba(0,0,0,0.45)] md:text-5xl lg:text-7xl">
             Discover & List{" "}
-            <span className="text-gradient relative inline-block">
+            <span className="relative inline-block text-primary drop-shadow-[0_2px_8px_rgba(0,0,0,0.35)]">
               Businesses
-              <Sparkles className="absolute -right-8 -top-4 w-6 h-6 text-accent animate-pulse" />
+              <Sparkles className="absolute -right-8 -top-4 h-6 w-6 animate-pulse text-amber-300" />
             </span>
           </h1>
 
-          {/* Subheadline */}
-          <p className="text-lg md:text-xl text-muted-foreground max-w-[700px] mx-auto mb-8 animate-fade-up" style={{ animationDelay: "0.1s" }}>
+          <p
+            className="mx-auto mb-8 max-w-[700px] animate-fade-up text-lg font-medium text-white/95 drop-shadow-sm md:text-xl"
+            style={{ animationDelay: "0.1s" }}
+          >
             {PUBLIC_POSITIONING}
           </p>
 
-          {/* Interactive Success Simulator Trigger */}
           <button
+            type="button"
             onClick={() => setIsSimulatorOpen(true)}
-            className="inline-flex items-center gap-2 text-primary hover:text-primary/80 font-medium mb-10 animate-fade-up group"
+            className="group mb-10 inline-flex animate-fade-up items-center gap-2 font-semibold text-amber-200 transition-colors hover:text-white"
             style={{ animationDelay: "0.15s" }}
           >
-            <Sparkles className="w-5 h-5 group-hover:animate-spin" />
-            See your potential success
-            <span className="text-xs bg-accent text-accent-foreground px-2 py-0.5 rounded-full">Interactive</span>
+            <Sparkles className="h-5 w-5 shrink-0 group-hover:animate-spin" />
+            <span>See your potential success</span>
+            <span className="inline-flex items-center rounded-full bg-amber-400 px-2.5 py-0.5 text-xs font-bold leading-none text-slate-900">
+              Interactive
+            </span>
           </button>
 
-          {/* Search Bar */}
-          <div className="max-w-[800px] mx-auto mb-6 animate-fade-up" style={{ animationDelay: "0.2s" }}>
-            <div className="relative group">
-              <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 via-accent/20 to-primary/20 rounded-2xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-              
-              <div className="relative bg-background border-2 border-border rounded-2xl shadow-heavy p-2 flex items-center gap-2 hover:border-primary/30 transition-all duration-300 focus-within:border-primary focus-within:shadow-glow transform hover:scale-[1.01]">
-                <Search className="w-6 h-6 text-muted-foreground ml-4 shrink-0" />
-                <input
-                  type="text"
-                  placeholder="Search businesses, deals, grants guidance..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  onKeyDown={handleSearchKeyDown}
-                  className="flex-1 bg-transparent text-lg text-foreground placeholder:text-muted-foreground outline-none py-3"
-                />
-                <Button variant="hero" size="lg" className="shrink-0 group" onClick={handleSearch}>
-                  <span>Search</span>
-                  <Sparkles className="w-4 h-4 ml-2 opacity-0 group-hover:opacity-100 transition-opacity" />
-                </Button>
-              </div>
+          <div className="relative mx-auto mb-6 max-w-[700px] animate-fade-up" style={{ animationDelay: "0.2s" }}>
+            <div className="absolute -inset-1 rounded-2xl bg-gradient-to-r from-primary/30 via-accent/20 to-primary/30 opacity-60 blur-lg" />
+            <div className="relative flex items-center gap-2 rounded-2xl border-2 border-border bg-background p-2 shadow-heavy transition-all duration-300 focus-within:border-primary focus-within:shadow-glow hover:border-primary/30 hover:scale-[1.01]">
+              <Search className="ml-3 h-6 w-6 shrink-0 self-center text-muted-foreground" aria-hidden />
+              <input
+                type="search"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={handleSearchKeyDown}
+                placeholder="Search businesses, deals, grants guidance..."
+                className="min-w-0 flex-1 bg-transparent py-3 text-lg text-foreground outline-none placeholder:text-muted-foreground"
+                aria-label="Search businesses, deals, and grants"
+              />
+              <Button variant="hero" size="lg" className="shrink-0 rounded-xl px-6" onClick={handleSearch}>
+                Search
+              </Button>
             </div>
           </div>
 
-          {/* Popular Searches */}
-          <p className="text-sm text-muted-foreground mb-4 animate-fade-up" style={{ animationDelay: "0.3s" }}>
-            Popular:{" "}
+          <p className="mb-4 animate-fade-up text-sm text-white/85" style={{ animationDelay: "0.3s" }}>
+            <span className="text-white/70">Popular:</span>{" "}
             {popularSearches.map((search, index) => (
               <span key={search}>
                 <button
+                  type="button"
                   onClick={() => navigate(`/directory?search=${encodeURIComponent(search)}`)}
-                  className="text-primary hover:underline hover:text-primary/80 transition-colors"
+                  className="font-medium text-white underline-offset-2 transition-colors hover:text-amber-200 hover:underline"
                 >
                   {search}
                 </button>
-                {index < popularSearches.length - 1 && " • "}
+                {index < popularSearches.length - 1 && <span className="text-white/50"> · </span>}
               </span>
             ))}
           </p>
 
-          {/* Free grant profile CTA */}
           <div className="mb-8 animate-fade-up" style={{ animationDelay: "0.35s" }}>
             <button
+              type="button"
               onClick={() => navigate("/grants")}
-              className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/5 px-5 py-2 text-sm font-semibold text-primary hover:bg-primary/10 transition-colors"
+              className="inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/15 px-5 py-2.5 text-sm font-semibold text-white backdrop-blur-sm transition-colors hover:bg-white/25"
             >
-              <DollarSign className="w-4 h-4" />
+              <DollarSign className="h-4 w-4 text-emerald-300" />
               Start your free grant profile — no credit card required
             </button>
           </div>
 
-          {/* Value Proposition Pills */}
-          <div className="flex flex-wrap justify-center gap-4 animate-fade-up" style={{ animationDelay: "0.4s" }}>
-            {valuePills.map((pill, index) => (
-              <button
-                key={pill.text}
-                onClick={pill.action}
-                className="group flex items-center gap-2 bg-background border border-border rounded-full px-5 py-3 shadow-soft hover:shadow-medium hover:border-primary/30 transition-all duration-300 hover:-translate-y-1 cursor-pointer"
-                style={{ animationDelay: `${0.4 + index * 0.1}s` }}
-              >
-                <div className="relative">
-                  <Check className="w-5 h-5 text-primary transition-transform group-hover:scale-110" />
-                </div>
-                <span className="text-sm md:text-base font-medium text-foreground">
-                  {pill.text}
-                </span>
-              </button>
+          <div
+            className="mx-auto grid max-w-4xl animate-fade-up grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4"
+            style={{ animationDelay: "0.4s" }}
+          >
+            {valuePills.map((pill) => (
+                <button
+                  key={pill.text}
+                  type="button"
+                  onClick={pill.action}
+                  className="group flex cursor-pointer items-center justify-center gap-2 rounded-full border border-border bg-background px-3 py-2.5 shadow-soft transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-medium sm:px-4 sm:py-3"
+                >
+                  <Check className="h-4 w-4 shrink-0 text-primary transition-transform group-hover:scale-110 sm:h-5 sm:w-5" />
+                  <span className="text-left text-xs font-medium leading-snug text-foreground sm:text-sm">{pill.text}</span>
+                </button>
             ))}
           </div>
 
-          {/* Mini Province Map Preview */}
-          <div className="mt-12 animate-fade-up" style={{ animationDelay: "0.5s" }}>
-            <p className="text-xs text-muted-foreground mb-4 flex items-center justify-center gap-2">
-              <MapPin className="w-4 h-4" />
+          <div className="mt-10 animate-fade-up" style={{ animationDelay: "0.5s" }}>
+            <p className="mb-4 flex items-center justify-center gap-2 text-xs text-white/75">
+              <MapPin className="h-3.5 w-3.5" />
               Hover to see regional stats
             </p>
-            <div className="flex justify-center gap-3">
+            <div className="flex flex-wrap justify-center gap-2">
               {Object.entries(provinceStats).map(([province, stats]) => (
                 <button
                   key={province}
+                  type="button"
                   onMouseEnter={() => setActiveProvince(province)}
                   onMouseLeave={() => setActiveProvince(null)}
                   onClick={() => navigate(`/directory?province=${province}`)}
-                  className={`relative px-4 py-2 rounded-lg border transition-all duration-300 ${
+                  className={`relative rounded-lg border px-4 py-2 transition-all duration-300 ${
                     activeProvince === province
-                      ? "bg-primary text-primary-foreground border-primary scale-105"
-                      : "bg-background border-border hover:border-primary/50"
+                      ? "scale-105 border-primary bg-primary text-primary-foreground"
+                      : "border-border bg-background hover:border-primary/50"
                   }`}
                 >
                   <span className="font-bold">{province}</span>
                   {activeProvince === province && (
-                    <div className="absolute -bottom-16 left-1/2 -translate-x-1/2 bg-navy text-white text-xs px-3 py-2 rounded-lg shadow-lg whitespace-nowrap z-20 animate-fade-up">
-                      <div>{stats.businesses} businesses</div>
-                      <div>{stats.grants} in grants</div>
+                    <div className="absolute left-1/2 top-full z-20 mt-2 w-40 -translate-x-1/2 rounded-lg border border-border bg-background p-2 text-left text-xs shadow-heavy">
+                      <p className="font-medium text-foreground">{stats.businesses} businesses</p>
+                      <p className="text-muted-foreground">{stats.grants} in grants</p>
                     </div>
                   )}
                 </button>
@@ -248,10 +237,12 @@ const HeroSection = () => {
         </div>
       </div>
 
-      {/* Bottom wave decoration */}
-      <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-background via-background/50 to-transparent" />
+      <div className="pointer-events-none absolute bottom-0 left-0 right-0 text-background">
+        <svg viewBox="0 0 1440 120" fill="currentColor" className="w-full" preserveAspectRatio="none">
+          <path d="M0,64L48,69.3C96,75,192,85,288,80C384,75,480,53,576,48C672,43,768,53,864,58.7C960,64,1056,64,1152,58.7C1248,53,1344,43,1392,37.3L1440,32L1440,120L1392,120C1344,120,1248,120,1152,120C1056,120,960,120,864,120C768,120,672,120,576,120C480,120,384,120,288,120C192,120,96,120,48,120L0,120Z" />
+        </svg>
+      </div>
 
-      {/* Success Simulator Modal */}
       <SuccessSimulator isOpen={isSimulatorOpen} onClose={() => setIsSimulatorOpen(false)} />
     </section>
   );
