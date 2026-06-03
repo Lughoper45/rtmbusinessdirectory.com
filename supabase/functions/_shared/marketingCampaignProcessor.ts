@@ -53,7 +53,7 @@ export async function processMarketingCampaigns(
     const { data: enrollments } = await admin
       .from("marketing_campaign_enrollments")
       .select(
-        "id, campaign_id, prospect_id, current_step, next_send_at, marketing_prospects(id, email, contact_name, business_name, city, province, email_status, status)",
+        "id, campaign_id, prospect_id, current_step, next_send_at, marketing_prospects(id, email, contact_name, business_name, city, province, business_id, email_status, status)",
       )
       .eq("campaign_id", campaign.id)
       .is("completed_at", null)
@@ -79,6 +79,7 @@ export async function processMarketingCampaigns(
         business_name: string | null;
         city: string | null;
         province: string | null;
+        business_id: string | null;
         email_status: string;
         status: string;
       } | null;
@@ -127,6 +128,7 @@ export async function processMarketingCampaigns(
           business_name: prospect.business_name,
           city: prospect.city,
           province: prospect.province,
+          business_id: prospect.business_id,
         },
         base,
       );

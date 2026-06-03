@@ -10,6 +10,7 @@ import {
 } from "../_shared/marketingEmailValidation.ts";
 import { buildProspectVars, renderMarketingTemplate } from "../_shared/marketingRenderer.ts";
 import { processMarketingCampaigns } from "../_shared/marketingCampaignProcessor.ts";
+import { processMarketingImport, type ImportRow } from "../_shared/marketingImport.ts";
 import { Resend } from "https://esm.sh/resend@3.1.0";
 
 type Action =
@@ -23,6 +24,8 @@ type Action =
   | "start-campaign"
   | "pause-campaign"
   | "import-rows"
+  | "import-from-directory"
+  | "preview-directory-import"
   | "validate-batch"
   | "list-prospects"
   | "list-enrollments"
@@ -32,43 +35,98 @@ type Action =
 
 const SITE = () => (Deno.env.get("SITE_URL") ?? "https://www.rtmbusinessdirectory.com").replace(/\/$/, "");
 
-async function upsertCrmFromProspect(
-  admin: ReturnType<Awaited<ReturnType<typeof requireAdmin>>["admin"]>,
-  prospect: {
-    email: string;
-    contact_name?: string | null;
-    business_name?: string | null;
-    audience_type: string;
-  },
-): Promise<string | null> {
-  const email = normalizeEmail(prospect.email);
-  const { data: existing } = await admin
-    .from("crm_contacts")
-    .select("id")
-    .eq("email", email)
-    .maybeSingle();
+const CHUNK_SIZE = 75;
 
-  if (existing?.id) {
-    await admin
-      .from("crm_contacts")
-      .update({
-        name: prospect.contact_name ?? undefined,
-        company: prospect.business_name ?? undefined,
-        source: "marketing_import",
-        tags: ["marketing", prospect.audience_type],
-      })
-      .eq("id", existing.id);
-    return existing.id;
+async function buildDirectoryImportRows(
+  admin: ReturnType<Awaited<ReturnType<typeof requireAdmin>>["admin"]>,
+  filters: {
+    claim_status?: string;
+    category?: string;
+    province?: string;
+    city?: string;
+    limit?: number;
+    include_listing_contacts?: boolean;
+    require_email?: boolean;
+  },
+): Promise<ImportRow[]> {
+  const limit = Math.min(Number(filters.limit) || 300, 500);
+  const seen = new Set<string>();
+  const rows: ImportRow[] = [];
+
+  let bq = admin
+    .from("businesses")
+    .select("business_id, name, city, province, category, website, owner_email, owner_name, claim_status")
+    .order("name")
+    .limit(limit);
+
+  const cs = String(filters.claim_status ?? "unclaimed");
+  if (cs && cs !== "all") bq = bq.eq("claim_status", cs);
+  if (filters.province) bq = bq.eq("province", filters.province);
+  if (filters.city) bq = bq.ilike("city", `%${filters.city}%`);
+  if (filters.category) bq = bq.ilike("category", `%${filters.category}%`);
+
+  const { data: businesses, error: bErr } = await bq;
+  if (bErr) throw bErr;
+
+  for (const b of businesses ?? []) {
+    if (b.owner_email) {
+      const e = normalizeEmail(b.owner_email);
+      if (e && !seen.has(e)) {
+        seen.add(e);
+        rows.push({
+          email: e,
+          business_name: b.name ?? "",
+          city: b.city ?? "",
+          province: b.province ?? "",
+          category: b.category ?? "",
+          website: b.website ?? "",
+          contact_name: b.owner_name ?? "",
+          business_id: b.business_id,
+          casl_basis: "website_public",
+        });
+      }
+    }
   }
 
-  const { data: created } = await admin.rpc("upsert_crm_contact", {
-    p_email: email,
-    p_name: prospect.contact_name,
-    p_source: "marketing_import",
-    p_tags: ["marketing", prospect.audience_type],
-  });
+  if (filters.include_listing_contacts !== false) {
+    const bizIds = (businesses ?? []).map((b) => b.business_id);
+    if (bizIds.length) {
+      const { data: contacts } = await admin
+        .from("listing_contacts")
+        .select("email, name, business_id, is_primary, confidence")
+        .in("business_id", bizIds)
+        .not("email", "is", null)
+        .order("is_primary", { ascending: false })
+        .order("confidence", { ascending: false })
+        .limit(limit * 2);
 
-  return (created as string) ?? null;
+      const bizMap = new Map((businesses ?? []).map((b) => [b.business_id, b]));
+
+      for (const c of contacts ?? []) {
+        if (!c.email) continue;
+        const e = normalizeEmail(c.email);
+        if (!e || seen.has(e)) continue;
+        seen.add(e);
+        const b = bizMap.get(c.business_id);
+        rows.push({
+          email: e,
+          contact_name: c.name ?? "",
+          business_name: b?.name ?? "",
+          city: b?.city ?? "",
+          province: b?.province ?? "",
+          category: b?.category ?? "",
+          website: b?.website ?? "",
+          business_id: c.business_id,
+          casl_basis: "website_public",
+        });
+      }
+    }
+  }
+
+  if (filters.require_email) {
+    return rows;
+  }
+  return rows;
 }
 
 Deno.serve(async (req) => {
@@ -226,10 +284,16 @@ Deno.serve(async (req) => {
         .single();
       if (cErr || !campaign) throw cErr ?? new Error("Campaign not found");
 
+      const seqAudience = (campaign as { marketing_sequences?: { audience_type?: string } })
+        .marketing_sequences?.audience_type;
+      const filterAudience = String(body.audience_type ?? seqAudience ?? "");
+
       let q = admin
         .from("marketing_prospects")
-        .select("id, email, email_status, status")
+        .select("id, email, email_status, status, audience_type")
         .in("email_status", ["valid", "role_account"]);
+
+      if (filterAudience) q = q.eq("audience_type", filterAudience);
 
       if (prospectIds?.length) {
         q = q.in("id", prospectIds);
@@ -284,11 +348,111 @@ Deno.serve(async (req) => {
       return jsonResponse(req, { ok: true });
     }
 
+    if (action === "preview-directory-import") {
+      const rows = await buildDirectoryImportRows(admin, {
+        claim_status: String(body.claim_status ?? "unclaimed"),
+        category: body.category ? String(body.category) : undefined,
+        province: body.province ? String(body.province) : undefined,
+        city: body.city ? String(body.city) : undefined,
+        limit: Number(body.limit ?? 300),
+        include_listing_contacts: body.include_listing_contacts !== false,
+        require_email: true,
+      });
+      return jsonResponse(req, { count: rows.length, sample: rows.slice(0, 5) });
+    }
+
+    if (action === "import-from-directory") {
+      const audience_type = String(body.audience_type ?? "directory_owner");
+      const rows = await buildDirectoryImportRows(admin, {
+        claim_status: String(body.claim_status ?? "unclaimed"),
+        category: body.category ? String(body.category) : undefined,
+        province: body.province ? String(body.province) : undefined,
+        city: body.city ? String(body.city) : undefined,
+        limit: Number(body.limit ?? 300),
+        include_listing_contacts: body.include_listing_contacts !== false,
+        require_email: true,
+      });
+
+      if (!rows.length) {
+        return jsonResponse(req, { error: "No businesses with email found for these filters" }, 400);
+      }
+
+      const { data: batch, error: bErr } = await admin
+        .from("marketing_import_batches")
+        .insert({
+          name: String(body.batch_name ?? `Directory ${new Date().toLocaleDateString()}`),
+          source: "directory",
+          row_count: rows.length,
+          status: "processing",
+          created_by: user.id,
+        })
+        .select()
+        .single();
+      if (bErr) throw bErr;
+
+      let totalValid = 0;
+      const merged = {
+        parsed: rows.length,
+        inserted: 0,
+        updated: 0,
+        skipped_no_email: 0,
+        duplicate_unchanged: 0,
+        invalid_syntax: 0,
+        disposable: 0,
+        no_mx: 0,
+        role_account: 0,
+        valid: 0,
+        suppressed: 0,
+        errors: [] as string[],
+      };
+
+      for (let offset = 0; offset < rows.length; offset += CHUNK_SIZE) {
+        const stats = await processMarketingImport(admin, {
+          batchId: batch.id,
+          rows,
+          audience_type,
+          validate_mx: body.validate_mx === true,
+          offset,
+          limit: CHUNK_SIZE,
+        });
+        totalValid += stats.valid;
+        merged.inserted += stats.inserted;
+        merged.updated += stats.updated;
+        merged.skipped_no_email += stats.skipped_no_email;
+        merged.duplicate_unchanged += stats.duplicate_unchanged;
+        merged.invalid_syntax += stats.invalid_syntax;
+        merged.disposable += stats.disposable;
+        merged.no_mx += stats.no_mx;
+        merged.role_account += stats.role_account;
+        merged.valid += stats.valid;
+        merged.suppressed += stats.suppressed;
+        merged.errors.push(...stats.errors);
+      }
+
+      await admin
+        .from("marketing_import_batches")
+        .update({
+          valid_count: totalValid,
+          row_count: rows.length,
+          status: "ready",
+        })
+        .eq("id", batch.id);
+
+      return jsonResponse(req, {
+        batch,
+        stats: merged,
+        total_rows: rows.length,
+        has_more: false,
+        next_offset: null,
+      });
+    }
+
     if (action === "import-rows") {
       const batchName = String(body.batch_name ?? `Import ${new Date().toISOString().slice(0, 10)}`);
       const source = String(body.source ?? "paste");
       const audience_type = String(body.audience_type ?? "deal_partner_prospect");
-      const rows = (body.rows ?? []) as Array<Record<string, string>>;
+      const rows = ((body.rows ?? []) as ImportRow[]).slice(0, 500);
+      const validate_mx = body.validate_mx === true;
 
       const { data: batch, error: bErr } = await admin
         .from("marketing_import_batches")
@@ -303,86 +467,59 @@ Deno.serve(async (req) => {
         .single();
       if (bErr) throw bErr;
 
-      let valid = 0;
-      const inserted: string[] = [];
+      const merged = {
+        parsed: rows.length,
+        inserted: 0,
+        updated: 0,
+        skipped_no_email: 0,
+        duplicate_unchanged: 0,
+        invalid_syntax: 0,
+        disposable: 0,
+        no_mx: 0,
+        role_account: 0,
+        valid: 0,
+        suppressed: 0,
+        errors: [] as string[],
+      };
 
-      for (const row of rows.slice(0, 2000)) {
-        const email = normalizeEmail(String(row.email ?? ""));
-        if (!email) continue;
-
-        const { data: dup } = await admin
-          .from("marketing_prospects")
-          .select("id")
-          .eq("email", email)
-          .maybeSingle();
-
-        let email_status = dup ? "duplicate" : "pending";
-        let email_status_detail: string | null = dup ? "Already in marketing prospects" : null;
-
-        if (!dup) {
-          const v = await validateMarketingEmail(email);
-          email_status = v.status;
-          email_status_detail = v.detail;
-          if (SENDABLE_STATUSES.has(v.status)) valid += 1;
-        }
-
-        const { data: sup } = await admin
-          .from("listing_suppressions")
-          .select("id")
-          .eq("email", email)
-          .maybeSingle();
-        if (sup) {
-          email_status = "suppressed";
-          email_status_detail = "On suppression list";
-        }
-
-        const prospectRow = {
-          batch_id: batch.id,
-          email,
-          contact_name: row.contact_name || row.name || null,
-          business_name: row.business_name || row.business || null,
-          phone: row.phone || null,
-          city: row.city || null,
-          province: row.province || null,
-          category: row.category || null,
-          website: row.website || null,
+      for (let offset = 0; offset < rows.length; offset += CHUNK_SIZE) {
+        const stats = await processMarketingImport(admin, {
+          batchId: batch.id,
+          rows,
           audience_type,
-          casl_basis: String(row.casl_basis ?? "manual_verified"),
-          email_status,
-          email_status_detail,
-          validated_at: new Date().toISOString(),
-          status: email_status === "duplicate" ? "imported" : "validated",
-        };
-
-        const { data: ins, error: iErr } = await admin
-          .from("marketing_prospects")
-          .upsert(prospectRow, { onConflict: "email", ignoreDuplicates: true })
-          .select("id")
-          .maybeSingle();
-
-        if (!iErr && ins?.id) {
-          inserted.push(ins.id);
-          const crmId = await upsertCrmFromProspect(admin, {
-            email,
-            contact_name: prospectRow.contact_name,
-            business_name: prospectRow.business_name,
-            audience_type,
-          });
-          if (crmId) {
-            await admin.from("marketing_prospects").update({ crm_contact_id: crmId }).eq("id", ins.id);
-          }
-        }
+          validate_mx,
+          offset,
+          limit: CHUNK_SIZE,
+        });
+        merged.inserted += stats.inserted;
+        merged.updated += stats.updated;
+        merged.skipped_no_email += stats.skipped_no_email;
+        merged.duplicate_unchanged += stats.duplicate_unchanged;
+        merged.invalid_syntax += stats.invalid_syntax;
+        merged.disposable += stats.disposable;
+        merged.no_mx += stats.no_mx;
+        merged.role_account += stats.role_account;
+        merged.valid += stats.valid;
+        merged.suppressed += stats.suppressed;
+        merged.errors.push(...stats.errors);
       }
 
       await admin
         .from("marketing_import_batches")
-        .update({ valid_count: valid, row_count: rows.length, status: "ready" })
+        .update({
+          valid_count: merged.valid,
+          row_count: rows.length,
+          status: "ready",
+        })
         .eq("id", batch.id);
 
       return jsonResponse(req, {
         batch,
-        inserted: inserted.length,
-        valid,
+        stats: merged,
+        total_rows: rows.length,
+        has_more: false,
+        next_offset: null,
+        validate_mx,
       });
     }
 
@@ -414,14 +551,17 @@ Deno.serve(async (req) => {
     }
 
     if (action === "list-prospects") {
+      const pageLimit = Math.min(Number(body.limit ?? 500), 1000);
       let q = admin
         .from("marketing_prospects")
         .select("*", { count: "exact" })
         .order("created_at", { ascending: false })
-        .limit(200);
+        .limit(pageLimit);
       if (body.batch_id) q = q.eq("batch_id", body.batch_id);
+      if (body.audience_type) q = q.eq("audience_type", body.audience_type);
       if (body.email_status) q = q.eq("email_status", body.email_status);
       const { data, error, count } = await q;
+
       if (error) throw error;
       return jsonResponse(req, { prospects: data, count });
     }

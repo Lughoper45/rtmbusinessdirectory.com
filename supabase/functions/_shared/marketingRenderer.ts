@@ -14,6 +14,7 @@ export function buildProspectVars(
     business_name?: string | null;
     city?: string | null;
     province?: string | null;
+    business_id?: string | null;
   },
   siteBase: string,
 ): MarketingTemplateVars {
@@ -32,7 +33,9 @@ export function buildProspectVars(
     city,
     province,
     email: prospect.email.toLowerCase(),
-    claim_url: `${base}/directory`,
+    claim_url: prospect.business_id
+      ? `${base}/claim?businessId=${encodeURIComponent(prospect.business_id)}`
+      : `${base}/claim`,
     partner_url: `${base}/deals`,
     deals_url: `${base}/deals`,
     grants_url: `${base}/grants`,

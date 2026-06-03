@@ -22,14 +22,20 @@ import {
   Send,
 } from "lucide-react";
 import {
+  AUDIENCE_OPTIONS,
   invokeMarketingAdmin,
+  importRowsAll,
+  parseCsvFileText,
   parsePasteRows,
+  type AudienceId,
+  type ImportStats,
   type MarketingAnalytics,
   type MarketingCampaign,
   type MarketingProspect,
   type MarketingSequence,
   type MarketingTemplate,
 } from "@/services/marketingAdmin";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const VARS_HINT = "{{business_name}}, {{city}}, {{province}}, {{contact_name_greeting}}, {{partner_url}}, {{deals_url}}, {{grants_url}}, {{unsubscribe_url}}";
 
@@ -70,6 +76,16 @@ export default function AdminMarketing() {
   const [pasteText, setPasteText] = useState("");
   const [lastBatchId, setLastBatchId] = useState<string | null>(null);
   const [selectedCampaignId, setSelectedCampaignId] = useState<string>("");
+  const [importAudience, setImportAudience] = useState<AudienceId>("deal_partner_prospect");
+  const [validateMx, setValidateMx] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const [lastImportStats, setLastImportStats] = useState<ImportStats | null>(null);
+  const [dirClaimStatus, setDirClaimStatus] = useState("unclaimed");
+  const [dirProvince, setDirProvince] = useState("");
+  const [dirCity, setDirCity] = useState("");
+  const [dirCategory, setDirCategory] = useState("");
+  const [dirPreviewCount, setDirPreviewCount] = useState<number | null>(null);
+  const [prospectAudienceFilter, setProspectAudienceFilter] = useState<string>("all");
 
   const loadAll = useCallback(async () => {
     setLoading(true);
@@ -78,7 +94,10 @@ export default function AdminMarketing() {
         invokeMarketingAdmin<{ templates: MarketingTemplate[] }>("list-templates"),
         invokeMarketingAdmin<{ sequences: MarketingSequence[] }>("list-sequences"),
         invokeMarketingAdmin<{ campaigns: MarketingCampaign[] }>("list-campaigns"),
-        invokeMarketingAdmin<{ prospects: MarketingProspect[] }>("list-prospects", {}),
+        invokeMarketingAdmin<{ prospects: MarketingProspect[]; count: number }>("list-prospects", {
+          limit: 500,
+          ...(prospectAudienceFilter !== "all" ? { audience_type: prospectAudienceFilter } : {}),
+        }),
         invokeMarketingAdmin<MarketingAnalytics>("get-analytics", {}),
       ]);
       setTemplates(t.templates ?? []);
@@ -94,7 +113,7 @@ export default function AdminMarketing() {
     } finally {
       setLoading(false);
     }
-  }, [newCampaign.sequence_id]);
+  }, [newCampaign.sequence_id, prospectAudienceFilter]);
 
   useEffect(() => {
     void loadAll();
@@ -162,27 +181,111 @@ export default function AdminMarketing() {
     }
   };
 
+  const showImportStats = (stats: ImportStats, total: number) => {
+    setLastImportStats(stats);
+    toast.success(
+      `Processed ${total} rows: ${stats.inserted} new, ${stats.updated} updated, ${stats.valid} sendable. ` +
+        `${stats.invalid_syntax + stats.no_mx + stats.disposable} invalid, ${stats.duplicate_unchanged} unchanged dupes.`,
+      { duration: 8000 },
+    );
+  };
+
   const importPaste = async () => {
     const rows = parsePasteRows(pasteText);
     if (!rows.length) {
-      toast.error("No rows found. Use header: email, business_name, city, province");
+      toast.error("No rows found. Add a header row (email, business_name, …) or one email per line.");
       return;
     }
+    if (rows.length > 500) {
+      toast.error(`Too many rows (${rows.length}). Import max 500 per batch — split your list.`);
+      return;
+    }
+    setImporting(true);
     try {
-      const res = await invokeMarketingAdmin<{ batch: { id: string }; inserted: number; valid: number }>(
-        "import-rows",
-        {
-          batch_name: `Paste ${new Date().toLocaleDateString()}`,
-          source: "paste",
-          rows,
-          audience_type: "deal_partner_prospect",
-        },
-      );
-      setLastBatchId(res.batch?.id ?? null);
-      toast.success(`Imported ${res.inserted} rows (${res.valid} sendable)`);
+      const res = await importRowsAll(rows, {
+        batch_name: `Paste ${new Date().toLocaleDateString()}`,
+        source: "paste",
+        audience_type: importAudience,
+        validate_mx: validateMx,
+      });
+      setLastBatchId(res.batch.id);
+      showImportStats(res.stats, res.total_rows);
       await loadAll();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Import failed");
+    } finally {
+      setImporting(false);
+    }
+  };
+
+  const importCsvFile = async (file: File) => {
+    const text = await file.text();
+    const rows = parseCsvFileText(text);
+    if (!rows.length) {
+      toast.error("CSV has no valid email rows");
+      return;
+    }
+    if (rows.length > 500) {
+      toast.error(`CSV has ${rows.length} rows; max 500 per import.`);
+      return;
+    }
+    setImporting(true);
+    try {
+      const res = await importRowsAll(rows, {
+        batch_name: `CSV ${file.name}`,
+        source: "csv",
+        audience_type: importAudience,
+        validate_mx: validateMx,
+      });
+      setLastBatchId(res.batch.id);
+      showImportStats(res.stats, res.total_rows);
+      await loadAll();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "CSV import failed");
+    } finally {
+      setImporting(false);
+    }
+  };
+
+  const previewDirectory = async () => {
+    try {
+      const res = await invokeMarketingAdmin<{ count: number }>("preview-directory-import", {
+        claim_status: dirClaimStatus,
+        province: dirProvince || undefined,
+        city: dirCity || undefined,
+        category: dirCategory || undefined,
+        limit: 500,
+      });
+      setDirPreviewCount(res.count);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Preview failed");
+    }
+  };
+
+  const importFromDirectory = async () => {
+    setImporting(true);
+    try {
+      const res = await invokeMarketingAdmin<{
+        batch: { id: string };
+        stats: ImportStats;
+        total_rows: number;
+      }>("import-from-directory", {
+        batch_name: `Directory ${importAudience} ${new Date().toLocaleDateString()}`,
+        audience_type: importAudience,
+        claim_status: dirClaimStatus,
+        province: dirProvince || undefined,
+        city: dirCity || undefined,
+        category: dirCategory || undefined,
+        validate_mx: validateMx,
+        limit: 500,
+      });
+      setLastBatchId(res.batch.id);
+      showImportStats(res.stats, res.total_rows);
+      await loadAll();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Directory import failed");
+    } finally {
+      setImporting(false);
     }
   };
 
@@ -307,25 +410,142 @@ export default function AdminMarketing() {
             <TabsContent value="import" className="space-y-4">
               <Card>
                 <CardHeader>
-                  <CardTitle>Paste or import businesses</CardTitle>
+                  <CardTitle>Campaign audience</CardTitle>
                   <CardDescription>
-                    Header row required: email, business_name, city, province (tab or comma separated).
-                    Emails are validated automatically (syntax, MX, disposable domains).
+                    Tags every imported contact so campaigns only enroll matching prospects (claim vs deals vs grants).
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Select value={importAudience} onValueChange={(v) => setImportAudience(v as AudienceId)}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {AUDIENCE_OPTIONS.map((a) => (
+                        <SelectItem key={a.id} value={a.id}>
+                          {a.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    {AUDIENCE_OPTIONS.find((a) => a.id === importAudience)?.description}
+                  </p>
+                  <label className="mt-4 flex items-center gap-2 text-sm">
+                    <Checkbox checked={validateMx} onCheckedChange={(c) => setValidateMx(c === true)} />
+                    Full MX check (slower; off = syntax + disposable only)
+                  </label>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Paste contacts</CardTitle>
+                  <CardDescription>
+                    Header: email, business_name, city, province — or one email per line. Parsed:{" "}
+                    {pasteText.trim() ? parsePasteRows(pasteText).length : 0} rows.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <Textarea
                     className="min-h-[200px] font-mono text-sm"
-                    placeholder={"email\tbusiness_name\tcity\tprovince\nowner@cafe.ca\tMaple Cafe\tToronto\tON"}
+                    placeholder={"email\tbusiness_name\tcity\tprovince\nowner@cafe.ca\tMaple Cafe\tToronto\tON\n\nOr one email per line without a header."}
                     value={pasteText}
                     onChange={(e) => setPasteText(e.target.value)}
                   />
-                  <Button onClick={() => void importPaste()}>
-                    <Upload className="h-4 w-4 mr-2" />
-                    Import &amp; validate
+                  <Button disabled={importing} onClick={() => void importPaste()}>
+                    {importing ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Upload className="h-4 w-4 mr-2" />}
+                    Import paste
                   </Button>
                 </CardContent>
               </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Upload CSV file</CardTitle>
+                  <CardDescription>Same columns as paste (.csv or .txt).</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Input
+                    type="file"
+                    accept=".csv,.txt,.tsv"
+                    disabled={importing}
+                    onChange={(e) => {
+                      const f = e.target.files?.[0];
+                      if (f) void importCsvFile(f);
+                      e.target.value = "";
+                    }}
+                  />
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>From directory listings</CardTitle>
+                  <CardDescription>
+                    Pull owner_email and enriched listing_contacts from businesses in your database.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="grid gap-4 md:grid-cols-2">
+                  <div>
+                    <Label>Claim status</Label>
+                    <Select value={dirClaimStatus} onValueChange={setDirClaimStatus}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="unclaimed">Unclaimed only</SelectItem>
+                        <SelectItem value="invited">Invited</SelectItem>
+                        <SelectItem value="all">All with email</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label>Province (optional)</Label>
+                    <Input value={dirProvince} onChange={(e) => setDirProvince(e.target.value)} placeholder="ON" />
+                  </div>
+                  <div>
+                    <Label>City contains (optional)</Label>
+                    <Input value={dirCity} onChange={(e) => setDirCity(e.target.value)} placeholder="Toronto" />
+                  </div>
+                  <div>
+                    <Label>Category contains (optional)</Label>
+                    <Input value={dirCategory} onChange={(e) => setDirCategory(e.target.value)} placeholder="Restaurant" />
+                  </div>
+                  <div className="md:col-span-2 flex flex-wrap gap-2">
+                    <Button variant="outline" onClick={() => void previewDirectory()}>
+                      Preview count
+                    </Button>
+                    {dirPreviewCount !== null && (
+                      <span className="text-sm self-center text-muted-foreground">
+                        ~{dirPreviewCount} emails found
+                      </span>
+                    )}
+                    <Button disabled={importing} onClick={() => void importFromDirectory()}>
+                      {importing ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Upload className="h-4 w-4 mr-2" />}
+                      Import from directory
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {lastImportStats && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Last import breakdown</CardTitle>
+                  </CardHeader>
+                  <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
+                    <div>New: {lastImportStats.inserted}</div>
+                    <div>Updated: {lastImportStats.updated}</div>
+                    <div>Sendable: {lastImportStats.valid}</div>
+                    <div>Invalid: {lastImportStats.invalid_syntax + lastImportStats.no_mx + lastImportStats.disposable}</div>
+                    <div>Suppressed: {lastImportStats.suppressed}</div>
+                    <div>Unchanged dupes: {lastImportStats.duplicate_unchanged}</div>
+                    <div>Role inboxes: {lastImportStats.role_account}</div>
+                    <div>No email: {lastImportStats.skipped_no_email}</div>
+                  </CardContent>
+                </Card>
+              )}
             </TabsContent>
 
             <TabsContent value="campaigns" className="space-y-4">
@@ -354,11 +574,18 @@ export default function AdminMarketing() {
                         <SelectValue placeholder="Select sequence" />
                       </SelectTrigger>
                       <SelectContent>
-                        {sequences.map((s) => (
-                          <SelectItem key={s.id} value={s.id}>
-                            {s.name}
-                          </SelectItem>
-                        ))}
+                        {sequences
+                          .filter(
+                            (s) =>
+                              !importAudience ||
+                              s.audience_type === importAudience ||
+                              s.audience_type === "dual",
+                          )
+                          .map((s) => (
+                            <SelectItem key={s.id} value={s.id}>
+                              {s.name} ({s.audience_type})
+                            </SelectItem>
+                          ))}
                       </SelectContent>
                     </Select>
                   </div>
@@ -581,26 +808,39 @@ export default function AdminMarketing() {
             <TabsContent value="prospects">
               <Card>
                 <CardHeader>
-                  <CardTitle>Prospects ({prospects.length})</CardTitle>
+                  <CardTitle>Prospects ({prospects.length} shown)</CardTitle>
                   <CardDescription>Email validation runs on import. Only valid / role_account enroll when campaign starts.</CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="space-y-4">
+                  <Select value={prospectAudienceFilter} onValueChange={setProspectAudienceFilter}>
+                    <SelectTrigger className="max-w-md">
+                      <SelectValue placeholder="Filter audience" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All audiences</SelectItem>
+                      {AUDIENCE_OPTIONS.map((a) => (
+                        <SelectItem key={a.id} value={a.id}>
+                          {a.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <Table>
                     <TableHeader>
                       <TableRow>
                         <TableHead>Email</TableHead>
                         <TableHead>Business</TableHead>
-                        <TableHead>City</TableHead>
+                        <TableHead>Audience</TableHead>
                         <TableHead>Validation</TableHead>
                         <TableHead>Status</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {prospects.slice(0, 100).map((p) => (
+                      {prospects.map((p) => (
                         <TableRow key={p.id}>
                           <TableCell>{p.email}</TableCell>
                           <TableCell>{p.business_name}</TableCell>
-                          <TableCell>{p.city}</TableCell>
+                          <TableCell className="text-xs">{p.audience_type}</TableCell>
                           <TableCell>
                             <Badge variant={statusColor(p.email_status)}>{p.email_status}</Badge>
                           </TableCell>
