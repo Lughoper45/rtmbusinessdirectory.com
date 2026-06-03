@@ -48,6 +48,25 @@ npx supabase functions deploy send-claim-email --project-ref kajwpmyloxaqeciyndw
 
 ## 4. Cron (daily) — runs all automations
 
+**Do not use** `ALTER DATABASE postgres SET app.ops_cron_secret` on hosted Supabase (permission denied `42501`).
+
+Store the same random string in **two places**:
+
+1. **Edge Functions → Secrets:** `OPS_CRON_SECRET`
+2. **Supabase Vault** (SQL editor, once):
+
+```sql
+select vault.create_secret(
+  '<paste the same OPS_CRON_SECRET value>',
+  'ops_cron_secret',
+  'Cron auth header for ops-dispatcher'
+);
+```
+
+Apply migration `20260606120000_ops_dispatcher_cron_vault.sql` (`supabase db push`) so `pg_cron` reads Vault instead of `current_setting('app.ops_cron_secret')`.
+
+Manual test (same header the cron job sends):
+
 ```http
 POST https://kajwpmyloxaqeciyndwf.supabase.co/functions/v1/ops-dispatcher
 x-ops-cron-secret: <OPS_CRON_SECRET>

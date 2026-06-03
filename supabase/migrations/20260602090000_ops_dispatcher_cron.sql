@@ -10,10 +10,9 @@ select cron.unschedule('ops-dispatcher-daily') where exists (
   select 1 from cron.job where jobname = 'ops-dispatcher-daily'
 );
 
--- The secret is read from a database-level app setting so it is never
--- stored in the migration SQL itself.  Set it once via:
---   ALTER DATABASE postgres SET app.ops_cron_secret = '<your-secret>';
--- or via the Supabase SQL editor before running this migration.
+-- DEPRECATED on hosted Supabase: ALTER DATABASE SET app.ops_cron_secret is permission denied.
+-- Use migration 20260606120000_ops_dispatcher_cron_vault.sql + Vault secret ops_cron_secret.
+-- Until that migration runs, this job used current_setting('app.ops_cron_secret', true) (often empty).
 select cron.schedule(
   'ops-dispatcher-daily',
   '0 9 * * *',

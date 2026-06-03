@@ -95,11 +95,14 @@ supabase functions deploy marketing-admin-bff
 supabase functions deploy resend-webhook
 supabase functions deploy ops-dispatcher
 
-# 3. Secrets (Supabase)
+# 3. Secrets (Supabase Edge) + Vault for pg_cron
 RESEND_API_KEY=...
-OPS_CRON_SECRET=...
+OPS_CRON_SECRET=...   # Edge Functions secret
+# SQL editor (once) — same value as OPS_CRON_SECRET:
+# select vault.create_secret('<OPS_CRON_SECRET>', 'ops_cron_secret', 'Cron auth for ops-dispatcher');
 MARKETING_DAILY_SEND_CAP=50
 RESEND_WEBHOOK_SECRET=<random>   # optional but recommended
+# Do NOT use ALTER DATABASE SET app.ops_cron_secret (permission denied on hosted Supabase).
 
 # 4. Resend dashboard → Webhooks
 # URL: https://kajwpmyloxaqeciyndwf.supabase.co/functions/v1/resend-webhook?secret=<RESEND_WEBHOOK_SECRET>
