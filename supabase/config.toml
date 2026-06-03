@@ -102,3 +102,9 @@ verify_jwt = false
 
 [functions.membership-email-trigger]
 verify_jwt = false
+
+[functions.marketing-admin-bff]
+verify_jwt = false
+
+[functions.resend-webhook]
+verify_jwt = false

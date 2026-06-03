@@ -16,10 +16,12 @@ import {
   processPostClaimNurture,
 } from "../_shared/nurtureScheduler.ts";
 import { processGrantLifecycleNurture } from "../_shared/grantLifecycleNurture.ts";
+import { processMarketingCampaigns } from "../_shared/marketingCampaignProcessor.ts";
 import { publishToSocialChannels } from "../_shared/socialPublish.ts";
 
 const CRON_SECRET = Deno.env.get("OPS_CRON_SECRET");
 const DAILY_SEND_CAP = Number(Deno.env.get("LISTING_DAILY_SEND_CAP") || "50");
+const MARKETING_DAILY_SEND_CAP = Number(Deno.env.get("MARKETING_DAILY_SEND_CAP") || "50");
 
 function profilePath(biz: {
   business_id: string;
@@ -314,12 +316,14 @@ Deno.serve(async (req) => {
     let postClaimNurture: string[] = [];
     let listingViewsNurture: string[] = [];
     let grantLifecycleNurture: Record<string, string[]> = {};
+    let marketingCampaign: { sent: string[]; errors: string[] } = { sent: [], errors: [] };
     if (resend) {
       reminders = await processReminders(admin, resend);
       checklistNurture = await processChecklistNurture(admin, resend);
       postClaimNurture = await processPostClaimNurture(admin, resend);
       listingViewsNurture = await processListingViewsNurture(admin, resend);
       grantLifecycleNurture = await processGrantLifecycleNurture(admin, resend);
+      marketingCampaign = await processMarketingCampaigns(admin, resend, MARKETING_DAILY_SEND_CAP);
     }
 
     const { data: approved } = await admin
@@ -354,6 +358,7 @@ Deno.serve(async (req) => {
       postClaimNurture,
       listingViewsNurture,
       grantLifecycleNurture,
+      marketingCampaign,
     });
   } catch (e) {
     return jsonResponse(
