@@ -4,18 +4,15 @@ import { useNavigate } from "react-router-dom";
 import type { User } from "@supabase/supabase-js";
 import {
   ArrowRight,
-  BadgeDollarSign,
   CalendarClock,
   Car,
   Check,
   Clock3,
   Crown,
   Globe2,
-  Handshake,
   HeartPulse,
   Mail,
   MapPin,
-  Megaphone,
   Phone,
   ShieldCheck,
   ShoppingBag,
@@ -61,9 +58,9 @@ const introBenefits = [
 ];
 
 const affiliateIntro = [
-  { title: "Optional", description: "Share RTM only with people who would benefit from the membership.", icon: Handshake },
-  { title: "Clear", description: `Direct referrals can earn ${AFFILIATE_DIRECT_COMMISSION_LABEL}.`, icon: Megaphone },
-  { title: "Separate", description: "Full affiliate details stay on the affiliate page.", icon: BadgeDollarSign },
+  { title: "Save Locally", description: `Show your RTM card at partner stores and save ${DISCOUNT_RANGE_LABEL} on everyday purchases.`, icon: ShoppingBag },
+  { title: "Earn Passively", description: `Share your referral link and earn ${AFFILIATE_DIRECT_COMMISSION_LABEL} for every person who joins through you.`, icon: HandCoins },
+  { title: "Track Seamlessly", description: "Monitor savings, referrals, and affiliate earnings in one RTM dashboard.", icon: TrendingUp },
 ];
 
 const stats = [
@@ -87,16 +84,16 @@ const solutions = [
 
 const howItWorks = [
   {
-    title: "Join for $100",
-    description: "Create your account and pay the annual RTM membership fee.",
+    title: "Activate",
+    description: "Pay your $100/year membership fee and receive your digital RTM Member Card instantly.",
   },
   {
-    title: "Use your card",
-    description: `Show your digital RTM Member Card at participating stores and save ${DISCOUNT_RANGE_LABEL}.`,
+    title: "Save & Share",
+    description: `Use your card at partner stores to save ${DISCOUNT_RANGE_LABEL}, and optionally share your referral link to earn commissions.`,
   },
   {
-    title: "Get backup",
-    description: "After 90 days of active membership, apply for community support if something unexpected hits.",
+    title: "Earn & Track",
+    description: "Monitor your savings, referrals, and affiliate earnings from your RTM member dashboard.",
   },
 ];
 
@@ -249,11 +246,11 @@ const Membership = () => {
                   <Sparkles className="mr-2 h-4 w-4" />
                   For RTM members
                 </Badge>
-                <h1 className="mt-6 text-5xl font-black leading-[0.98] tracking-tight text-white md:text-7xl">
-                  Free to explore · {MEMBERSHIP_PRICE_LABEL} when you submit
+                <h1 className="mt-6 text-5xl font-black leading-[1.05] tracking-tight text-white md:text-7xl">
+                  Unlock Local Savings.<br />Drive Community Growth.
                 </h1>
                 <p className="mt-6 max-w-2xl text-lg font-medium leading-8 text-white/86 md:text-xl">
-                  Browse grants and build your profile for free. Activate your RTM Submission Passport to submit with advisor support, unlock member savings, and access community aid after the waiting period.
+                  Join the RTM Network for {MEMBERSHIP_PRICE_LABEL}/year to access exclusive discounts across Canada, earn direct referral commissions, and support local businesses.
                 </p>
 
                 <div className="mt-8 grid gap-3">
@@ -278,11 +275,11 @@ const Membership = () => {
 
                 <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                   <Button variant="heroWhite" size="xl" onClick={() => scrollTo("plans")}>
-                    Get your Submission Passport
+                    Get Started — {MEMBERSHIP_PRICE_LABEL}/year
                     <ArrowRight className="h-5 w-5" />
                   </Button>
-                  <Button variant="heroOutline" size="xl" onClick={() => navigate("/affiliate")}>
-                    Become an Affiliate
+                  <Button variant="heroOutline" size="xl" onClick={() => navigate("/deals")}>
+                    Explore Member Deals
                   </Button>
                 </div>
               </div>
@@ -301,12 +298,12 @@ const Membership = () => {
             <div className="container mx-auto max-w-[1280px] px-6">
               <div className="grid gap-4 lg:grid-cols-[0.85fr_1.15fr] lg:items-center">
                 <div>
-                  <div className="text-sm font-black uppercase tracking-[0.16em] text-primary">Earn with us</div>
+                  <div className="text-sm font-black uppercase tracking-[0.16em] text-primary">One membership, three ways to win</div>
                   <h2 className="mt-2 text-3xl font-black tracking-tight text-[#06233f] md:text-5xl">
-                    Optional referral earnings
+                    Save. Earn. Track.
                   </h2>
                   <p className="mt-3 max-w-2xl text-muted-foreground">
-                    Referrals are optional and should support the membership value. Full affiliate terms and dashboard details live on the affiliate page.
+                    Every RTM membership comes with immediate savings, optional referral income, and a single dashboard to track it all.
                   </p>
                 </div>
 
@@ -747,11 +744,11 @@ const Membership = () => {
                           <div className="grid gap-3 rounded-3xl bg-muted/50 p-4 text-sm text-muted-foreground">
                             <div className="flex items-center gap-2">
                               <ShieldCheck className="h-4 w-4 text-primary" />
-                              Checkout remains tied to RTM membership fulfillment.
+                              Secure checkout — your digital card is ready the same day.
                             </div>
                             <div className="flex items-center gap-2">
                               <CalendarClock className="h-4 w-4 text-primary" />
-                              Annual billing keeps the page aligned with the current product model.
+                              Annual plan — renews once a year, cancel any time.
                             </div>
                           </div>
                         </CardContent>

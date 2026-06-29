@@ -188,13 +188,6 @@ const Navbar = () => {
           <div className="container mx-auto flex h-[76px] max-w-[1440px] items-center justify-between px-6">
             <Link to="/" className="flex items-center gap-3">
               <img src="/rtm-logo.png" alt="RTM Global Canada" className="h-10 w-auto" />
-              <div className="hidden lg:block">
-                <div className="flex items-center gap-2">
-                  <div className="text-sm font-semibold uppercase tracking-[0.2em] text-primary">RTM Global Canada</div>
-                  <span className="text-lg" title="Proudly Canadian">🍁</span>
-                </div>
-                <div className="text-xs text-muted-foreground">Deals, directory, and growth tools</div>
-              </div>
             </Link>
 
             <div className="hidden items-center gap-8 lg:flex">
