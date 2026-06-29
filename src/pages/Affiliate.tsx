@@ -9,12 +9,15 @@ import {
   ClipboardCopy,
   Globe2,
   HandCoins,
+  KeyRound,
+  Megaphone,
   Rocket,
   ShieldCheck,
   Sparkles,
   Target,
   TrendingUp,
   Users,
+  Wallet,
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -44,6 +47,7 @@ interface AffiliateReferral {
 
 const proofStats = [
   { value: "30%", label: "Direct commission" },
+  { value: "10%", label: "Second-level override" },
   { value: "$100", label: "Annual membership" },
   { value: DISCOUNT_RANGE_LABEL, label: "Member discounts" },
 ];
@@ -57,14 +61,17 @@ const affiliateBenefits = [
 
 const audiences = [
   {
+    icon: Users,
     title: "Affiliate partners",
     description: "People who can introduce RTM membership and business enrollment to their local network.",
   },
   {
+    icon: Globe2,
     title: "Business partners",
     description: "Local operators who want more visibility while supporting customers through RTM discounts.",
   },
   {
+    icon: ShieldCheck,
     title: "Community builders",
     description: "Members who believe local commerce grows faster when customers, businesses, and partners work together.",
   },
@@ -72,38 +79,34 @@ const audiences = [
 
 const steps = [
   {
-    title: "Join RTM",
-    description: `Become an RTM member for ${MEMBERSHIP_PRICE_LABEL} and unlock the same customer benefits you promote.`,
+    icon: KeyRound,
+    title: "Activate Your Code",
+    description: "Get your custom affiliate link and real-time dashboard in one click.",
   },
   {
-    title: "Share the program",
-    description: "Invite customers, members, and businesses into the RTM Business Directory community.",
+    icon: Megaphone,
+    title: "Share & Promote",
+    description: "Invite customers, groups, and local businesses to join RTM and start saving.",
   },
   {
-    title: "Enroll new members",
-    description: "Help people save 5% to 50% at participating businesses and support local commerce.",
-  },
-  {
-    title: "Earn 30%",
-    description: "Receive commission on tracked qualified members you directly refer into RTM.",
+    icon: Wallet,
+    title: "Watch It Grow",
+    description: "Track direct payouts and second-level overrides live from your dashboard.",
   },
 ];
 
 const faqs = [
   {
-    question: "Who is the RTM affiliate program for?",
-    answer:
-      "It is for affiliates, business partners, local connectors, and community builders who can help RTM reach more members and businesses.",
+    question: "What do I actually earn?",
+    answer: `30% direct commission on every new member you refer, plus 10% on second-level referrals your recruits bring in.`,
   },
   {
-    question: "What do I actually earn?",
-    answer:
-      "The flyer offer is 30% commission paid on every new member you refer and every business you enroll in the RTM Business Directory Discount Program.",
+    question: "Who is this for?",
+    answer: "Affiliates, business partners, local connectors, and community builders who can help RTM reach more members and businesses.",
   },
   {
     question: "What does a member receive?",
-    answer:
-      "Members pay $100/year and unlock exclusive discounts, mutual aid access after 90 days of active membership, and a community focused on local savings.",
+    answer: `Members pay ${MEMBERSHIP_PRICE_LABEL} and unlock exclusive 5-50% local discounts, mutual aid access after 90 days, and a community focused on local savings.`,
   },
   {
     question: "Where is RTM based?",
@@ -117,6 +120,7 @@ const Affiliate = () => {
   const [affiliate, setAffiliate] = useState<AffiliateSummary | null>(null);
   const [referrals, setReferrals] = useState<AffiliateReferral[]>([]);
   const [isCreatingAffiliate, setIsCreatingAffiliate] = useState(false);
+  const [calculatorMembers, setCalculatorMembers] = useState(25);
 
   useEffect(() => {
     void loadPage();
@@ -176,6 +180,8 @@ const Affiliate = () => {
 
   const shareUrl = affiliate?.referral_code ? `${window.location.origin}/ref/${affiliate.referral_code}` : null;
 
+  const estimatedEarnings = calculatorMembers * 30;
+
   const handleCopyLink = async () => {
     if (!shareUrl) {
       toast.error("Referral code not available yet.");
@@ -231,10 +237,10 @@ const Affiliate = () => {
   return (
     <>
       <Helmet>
-        <title>RTM Affiliate Program | Optional Referral Earnings</title>
+        <title>RTM Affiliate Program | Earn 30% Recurring Commission</title>
         <meta
           name="description"
-          content="Become an RTM Affiliate, share a savings-first membership, and track optional direct referral commission."
+          content="Earn 30% recurring commission sharing RTM memberships. Promote local savings, track earnings live, and help your community grow."
         />
       </Helmet>
 
@@ -249,21 +255,18 @@ const Affiliate = () => {
                 <div className="max-w-3xl">
                   <Badge className="border-[#97c93d]/40 bg-[#97c93d] px-4 py-2 text-sm font-black uppercase tracking-[0.12em] text-[#06233f]">
                     <Sparkles className="mr-2 h-4 w-4" />
-                    For affiliates & business partners
+                    Partner program
                   </Badge>
                   <h1 className="mt-6 text-4xl font-black leading-[1.03] tracking-tight md:text-6xl">
-                    Earn direct commission by sharing RTM responsibly.
+                    Earn 30% recurring commission helping local businesses grow
                   </h1>
                   <p className="mt-6 max-w-2xl text-lg text-white/80 md:text-xl">
-                    Share RTM with people who would benefit from local business discovery and member savings. Earn 30% direct commission on qualified new members you refer.
-                  </p>
-                  <p className="mt-4 max-w-2xl text-base font-semibold text-[#b4df55] md:text-lg">
-                    The program works best when savings and local value come first. Referral income is optional.
+                    Turn your network into a revenue stream. Promote RTM memberships, unlock 5-50% savings for others, and keep 30% of every signup — plus 10% on second-level referrals.
                   </p>
 
-                  <div className="mt-10 grid gap-4 sm:grid-cols-3">
+                  <div className="mt-10 grid gap-4 sm:grid-cols-4">
                     {proofStats.map((item) => (
-                      <div key={item.label} className="rounded-lg border border-white/12 bg-white/10 px-5 py-5 backdrop-blur">
+                      <div key={item.label} className="rounded-lg border border-white/12 bg-white/10 px-4 py-5 backdrop-blur">
                         <div className="text-3xl font-black text-[#b4df55]">{item.value}</div>
                         <div className="mt-1 text-sm uppercase tracking-[0.16em] text-white/65">{item.label}</div>
                       </div>
@@ -273,7 +276,7 @@ const Affiliate = () => {
                   <div className="mt-10 flex flex-col gap-4 sm:flex-row">
                     <Button variant="heroWhite" size="xl" asChild>
                       <Link to={user ? "/dashboard" : "/auth"}>
-                        {user ? "Open Dashboard" : "Sign In to Start"}
+                        Become an RTM Partner
                         <ArrowRight className="h-5 w-5" />
                       </Link>
                     </Button>
@@ -287,10 +290,6 @@ const Affiliate = () => {
                       </Button>
                     )}
                   </div>
-
-                  <p className="mt-5 text-sm text-white/65">
-                    {SITE_CONTACT.officeLabel}: {SITE_CONTACT.officeAddress}
-                  </p>
                 </div>
 
                 <div className="overflow-hidden rounded-lg border border-white/15 bg-white p-2 shadow-heavy">
@@ -304,69 +303,56 @@ const Affiliate = () => {
             </div>
           </section>
 
-          <section className="bg-zinc-950 py-10 text-white">
-            <div className="container mx-auto max-w-[1280px] px-6">
-              <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
-                {dashboardCards.map((card) => {
-                  const Icon = card.icon;
-
-                  return (
-                    <div key={card.label} className="rounded-3xl border border-white/10 bg-white/5 p-6">
-                      <Icon className="h-7 w-7 text-emerald-300" />
-                      <div className="mt-4 text-sm uppercase tracking-[0.14em] text-white/55">{card.label}</div>
-                      <div className="mt-2 text-3xl font-black">{card.value}</div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </section>
-
           <section className="bg-stone-50 py-20 md:py-24">
             <div className="container mx-auto max-w-[1280px] px-6">
               <div className="mx-auto max-w-3xl text-center">
                 <Badge variant="outline" className="border-primary/20 bg-primary/5 text-primary">
-                  What you actually earn
+                  Payout structure
                 </Badge>
-                  <h2 className="mt-4 text-3xl font-black tracking-tight md:text-5xl">
-                  Share RTM with clear expectations.
+                <h2 className="mt-4 text-3xl font-black tracking-tight md:text-5xl">
+                  Three ways you earn
                 </h2>
                 <p className="mt-4 text-lg text-muted-foreground">
-                  The affiliate page explains earnings clearly while keeping the main RTM promise focused on directory discovery and member savings.
+                  A multi-tiered recurring revenue model built around local business savings.
                 </p>
               </div>
 
-              <div className="mt-12 grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
+              <div className="mt-12 grid gap-6 md:grid-cols-3">
                 <Card className="border-primary/20 bg-primary/5 shadow-medium">
-                  <CardHeader>
-                    <CardTitle className="text-2xl">What you share</CardTitle>
-                    <CardDescription>A {MEMBERSHIP_PRICE_LABEL} membership with discounts, aid eligibility after 90 days, and a community-first business directory.</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <ul className="space-y-4">
-                      {affiliateBenefits.map((item) => (
-                        <li key={item} className="flex items-start gap-3 text-muted-foreground">
-                          <div className="mt-0.5 rounded-full bg-primary/10 p-1 text-primary">
-                            <Check className="h-4 w-4" />
-                          </div>
-                          <span>{item}</span>
-                        </li>
-                      ))}
-                    </ul>
+                  <CardContent className="p-8 text-center">
+                    <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
+                      <span className="text-3xl font-black text-primary">30%</span>
+                    </div>
+                    <h3 className="mt-5 text-2xl font-bold">Direct commission</h3>
+                    <p className="mt-3 text-muted-foreground">
+                      Earned on every direct member signup you refer. Recurring on renewals.
+                    </p>
                   </CardContent>
                 </Card>
 
-                <div className="grid gap-6 sm:grid-cols-3">
-                  {audiences.map((item) => (
-                    <Card key={item.title} className="border-border/70 shadow-medium">
-                      <CardContent className="p-8">
-                        <Users className="h-8 w-8 text-primary" />
-                        <h3 className="mt-5 text-2xl font-bold">{item.title}</h3>
-                        <p className="mt-3 text-muted-foreground">{item.description}</p>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
+                <Card className="border-primary/20 bg-primary/5 shadow-medium">
+                  <CardContent className="p-8 text-center">
+                    <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
+                      <span className="text-3xl font-black text-primary">10%</span>
+                    </div>
+                    <h3 className="mt-5 text-2xl font-bold">Second-level override</h3>
+                    <p className="mt-3 text-muted-foreground">
+                      Earned when your referrals bring in new members — commission on their referrals too.
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card className="border-primary/20 bg-primary/5 shadow-medium">
+                  <CardContent className="p-8 text-center">
+                    <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
+                      <span className="text-3xl font-black text-primary">70%</span>
+                    </div>
+                    <h3 className="mt-5 text-2xl font-bold">Community pool</h3>
+                    <p className="mt-3 text-muted-foreground">
+                      Membership revenue feeds the Member Benefit Pool — perfect for churches and community groups.
+                    </p>
+                  </CardContent>
+                </Card>
               </div>
             </div>
           </section>
@@ -377,90 +363,191 @@ const Affiliate = () => {
                 <Badge variant="outline" className="border-primary/20 bg-primary/5 text-primary">
                   How it works
                 </Badge>
-                <h2 className="mt-4 text-3xl font-black tracking-tight md:text-5xl">How it works</h2>
+                <h2 className="mt-4 text-3xl font-black tracking-tight md:text-5xl">Your path to recurring earnings</h2>
                 <p className="mt-4 text-lg text-muted-foreground">
-                  Join once, get your member card and affiliate link in one step, then share it however you like.
+                  Join once, get your member card and affiliate link, then share it however you like.
                 </p>
               </div>
 
-              <div className="mt-12 grid gap-6 md:grid-cols-2 xl:grid-cols-4">
-                {steps.map((step, index) => (
-                  <Card key={step.title} className="border-border/70 shadow-medium">
-                    <CardContent className="p-8">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[linear-gradient(135deg,hsl(152_69%_45%)_0%,hsl(352_82%_49%)_100%)] text-lg font-black text-white">
-                        {index + 1}
+              <div className="mt-12 grid gap-8 md:grid-cols-3">
+                {steps.map((step, index) => {
+                  const Icon = step.icon;
+
+                  return (
+                    <div key={step.title} className="relative text-center">
+                      <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[linear-gradient(135deg,hsl(152_69%_45%)_0%,hsl(352_82%_49%)_100%)] text-white shadow-lg">
+                        <Icon className="h-7 w-7" />
                       </div>
-                      <h3 className="mt-5 text-2xl font-bold">{step.title}</h3>
+                      {index < steps.length - 1 && (
+                        <div className="absolute left-[calc(50%+40px)] top-8 hidden h-0.5 w-[calc(100%-80px)] bg-gradient-to-r from-emerald-500 to-rose-500 md:block" />
+                      )}
+                      <h3 className="mt-6 text-2xl font-bold">{step.title}</h3>
                       <p className="mt-3 text-muted-foreground">{step.description}</p>
-                    </CardContent>
-                  </Card>
-                ))}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </section>
 
           <section className="bg-[linear-gradient(135deg,hsl(222_47%_11%)_0%,hsl(217_33%_17%)_100%)] py-20 text-white md:py-24">
             <div className="container mx-auto max-w-[1280px] px-6">
-              <div className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr]">
+              <div className="mx-auto max-w-3xl text-center">
+                <Badge className="border-[#97c93d]/40 bg-[#97c93d] px-4 py-2 text-sm font-black uppercase tracking-[0.12em] text-[#06233f]">
+                  <Wallet className="mr-2 h-4 w-4" />
+                  Earnings calculator
+                </Badge>
+                <h2 className="mt-4 text-3xl font-black tracking-tight md:text-5xl">
+                  See what you could earn
+                </h2>
+                <p className="mt-4 text-lg text-white/80">
+                  Slide to estimate your annual commission based on members referred.
+                </p>
+              </div>
+
+              <div className="mx-auto mt-12 max-w-2xl">
                 <Card className="border-white/10 bg-white/5 text-white shadow-heavy">
-                  <CardHeader>
-                    <CardTitle className="text-3xl">Affiliate positioning</CardTitle>
-                    <CardDescription className="text-white/65">
-                      Earn while helping RTM grow stronger together.
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-5 text-white/80">
-                    <div className="rounded-3xl border border-white/10 bg-white/5 p-5">
-                      <div className="flex items-center gap-3 text-lg font-semibold text-white">
-                        <Rocket className="h-5 w-5 text-emerald-300" />
-                        A new member joins
-                      </div>
-                      <p className="mt-2 text-sm">
-                        Members pay $100/year to unlock exclusive discounts, community impact, and mutual aid access after 90 active days.
-                      </p>
+                  <CardContent className="p-8">
+                    <div className="text-center">
+                      <div className="text-sm uppercase tracking-[0.14em] text-white/55">Members referred</div>
+                      <div className="mt-2 text-6xl font-black text-[#b4df55]">{calculatorMembers}</div>
                     </div>
-                    <div className="rounded-3xl border border-white/10 bg-white/5 p-5">
-                      <div className="flex items-center gap-3 text-lg font-semibold text-white">
-                        <ShieldCheck className="h-5 w-5 text-emerald-300" />
-                        A business joins the discount program
+                    <div className="mt-8">
+                      <input
+                        type="range"
+                        min={1}
+                        max={200}
+                        value={calculatorMembers}
+                        onChange={(e) => setCalculatorMembers(Number(e.target.value))}
+                        className="w-full cursor-pointer accent-[#97c93d]"
+                      />
+                      <div className="mt-2 flex justify-between text-sm text-white/55">
+                        <span>1</span>
+                        <span>50</span>
+                        <span>100</span>
+                        <span>150</span>
+                        <span>200</span>
                       </div>
-                      <p className="mt-2 text-sm">
-                        Businesses gain directory visibility and a reason for RTM members to discover, visit, and support them.
-                      </p>
                     </div>
-                    <div className="rounded-3xl border border-white/10 bg-white/5 p-5">
-                      <div className="flex items-center gap-3 text-lg font-semibold text-white">
-                        <Globe2 className="h-5 w-5 text-emerald-300" />
-                        You strengthen the network
+                    <div className="mt-8 rounded-3xl border border-[#97c93d]/30 bg-[#97c93d]/10 p-6 text-center">
+                      <div className="text-sm uppercase tracking-[0.14em] text-[#b4df55]">Your annual direct earnings</div>
+                      <div className="mt-2 text-5xl font-black text-white">
+                        ${estimatedEarnings.toLocaleString()}
                       </div>
-                      <p className="mt-2 text-sm">
-                        Affiliates earn direct commission while RTM keeps the public message focused on real savings and local business discovery.
+                      <p className="mt-2 text-sm text-white/60">
+                        Based on 30% commission of ${MEMBERSHIP_PRICE_LABEL} per member
                       </p>
                     </div>
                   </CardContent>
                 </Card>
+              </div>
+            </div>
+          </section>
+
+          <section className="bg-stone-50 py-20 md:py-24">
+            <div className="container mx-auto max-w-[1280px] px-6">
+              <div className="grid gap-8 lg:grid-cols-2">
+                <div>
+                  <Badge variant="outline" className="border-primary/20 bg-primary/5 text-primary">
+                    For organizations
+                  </Badge>
+                  <h2 className="mt-4 text-3xl font-black tracking-tight md:text-5xl">
+                    Built for churches, non-profits & community leaders
+                  </h2>
+                  <p className="mt-4 text-lg text-muted-foreground">
+                    Looking for a sustainable way to fundraise? Drive signups through your organization to unlock reliable, recurring commissions while helping your members save on everyday local expenses.
+                  </p>
+                  <ul className="mt-8 space-y-4">
+                    {[
+                      "70% of membership revenue feeds your community benefit pool",
+                      "Recurring commissions support ongoing programs and initiatives",
+                      "Members save 5-50% at local businesses year-round",
+                    ].map((item) => (
+                      <li key={item} className="flex items-start gap-3 text-muted-foreground">
+                        <div className="mt-0.5 rounded-full bg-primary/10 p-1 text-primary">
+                          <Check className="h-4 w-4" />
+                        </div>
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <Button variant="hero" size="lg" className="mt-8" asChild>
+                    <Link to={user ? "/dashboard" : "/auth"}>
+                      Start Your Organization
+                      <ArrowRight className="ml-2 h-5 w-5" />
+                    </Link>
+                  </Button>
+                </div>
 
                 <div className="grid gap-6">
-                  <Card className="border-white/10 bg-white text-foreground shadow-heavy">
+                  {audiences.map((item) => {
+                    const Icon = item.icon;
+
+                    return (
+                      <Card key={item.title} className="border-border/70 shadow-medium">
+                        <CardContent className="flex items-start gap-5 p-6">
+                          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                            <Icon className="h-6 w-6 text-primary" />
+                          </div>
+                          <div>
+                            <h3 className="text-xl font-bold">{item.title}</h3>
+                            <p className="mt-1 text-muted-foreground">{item.description}</p>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {user && affiliate && (
+            <section className="bg-zinc-950 py-10 text-white">
+              <div className="container mx-auto max-w-[1280px] px-6">
+                <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+                  {dashboardCards.map((card) => {
+                    const Icon = card.icon;
+
+                    return (
+                      <div key={card.label} className="rounded-3xl border border-white/10 bg-white/5 p-6">
+                        <Icon className="h-7 w-7 text-emerald-300" />
+                        <div className="mt-4 text-sm uppercase tracking-[0.14em] text-white/55">{card.label}</div>
+                        <div className="mt-2 text-3xl font-black">{card.value}</div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </section>
+          )}
+
+          {user && affiliate && (
+            <section className="bg-[linear-gradient(135deg,hsl(222_47%_11%)_0%,hsl(217_33%_17%)_100%)] py-20 text-white md:py-24">
+              <div className="container mx-auto max-w-[1280px] px-6">
+                <div className="grid gap-8 lg:grid-cols-[1fr_1fr]">
+                  <Card className="border-white/10 bg-white/5 text-white shadow-heavy">
                     <CardHeader>
-                      <CardTitle>Recent referral activity</CardTitle>
-                      <CardDescription>Latest tracked conversions in the current affiliate data model.</CardDescription>
+                      <CardTitle className="text-3xl">Your referral activity</CardTitle>
+                      <CardDescription className="text-white/65">
+                        Latest tracked conversions in your affiliate account.
+                      </CardDescription>
                     </CardHeader>
                     <CardContent>
                       {referrals.length === 0 ? (
-                        <div className="rounded-2xl bg-muted/40 p-6 text-sm text-muted-foreground">
-                          No referrals have been recorded yet. Share your link after activation to start tracking referrals.
+                        <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-sm text-white/60">
+                          No referrals yet. Share your link after activation to start tracking.
                         </div>
                       ) : (
                         <div className="space-y-3">
                           {referrals.map((referral) => (
-                            <div key={referral.id} className="flex items-center justify-between rounded-2xl border border-border/70 bg-background p-4">
+                            <div key={referral.id} className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 p-4">
                               <div>
-                                <div className="font-medium text-foreground">{referral.membership_tier ?? "Referral"}</div>
-                                <div className="text-sm text-muted-foreground">{new Date(referral.created_at).toLocaleDateString()}</div>
+                                <div className="font-medium text-white">{referral.membership_tier ?? "Referral"}</div>
+                                <div className="text-sm text-white/60">{new Date(referral.created_at).toLocaleDateString()}</div>
                               </div>
                               <div className="text-right">
-                                <div className="font-semibold text-foreground">${(referral.commission_amount ?? 0).toFixed(2)}</div>
+                                <div className="font-semibold text-white">${(referral.commission_amount ?? 0).toFixed(2)}</div>
                                 <Badge variant={referral.commission_paid ? "default" : "secondary"}>
                                   {referral.commission_paid ? "Paid" : "Pending"}
                                 </Badge>
@@ -471,42 +558,33 @@ const Affiliate = () => {
                       )}
                     </CardContent>
                     <CardFooter className="pt-0">
-                      <div className="grid w-full gap-4 rounded-3xl bg-muted/50 p-5 text-sm text-muted-foreground sm:grid-cols-2">
+                      <div className="grid w-full gap-4 rounded-3xl border border-white/10 bg-white/5 p-5 text-sm text-white/60 sm:grid-cols-2">
                         <div>
-                          <div className="font-semibold text-foreground">Paid referrals</div>
-                          <div className="mt-1 text-2xl font-black text-foreground">{paidReferrals}</div>
+                          <div className="font-semibold text-white">Paid referrals</div>
+                          <div className="mt-1 text-2xl font-black text-white">{paidReferrals}</div>
                         </div>
                         <div>
-                          <div className="font-semibold text-foreground">Pending referral value</div>
-                          <div className="mt-1 text-2xl font-black text-foreground">${pendingValue.toFixed(2)}</div>
+                          <div className="font-semibold text-white">Pending referral value</div>
+                          <div className="mt-1 text-2xl font-black text-white">${pendingValue.toFixed(2)}</div>
                         </div>
                       </div>
                     </CardFooter>
                   </Card>
 
-                  <Card className="border-primary/15 bg-primary/5 shadow-medium">
-                    <CardContent className="flex flex-col gap-4 p-8 md:flex-row md:items-center md:justify-between">
+                  <Card className="border-white/10 bg-white/5 text-white shadow-heavy">
+                    <CardContent className="flex flex-col justify-center gap-6 p-8">
                       <div>
-                        <h3 className="text-2xl font-bold text-foreground">
-                          {affiliate ? "Your affiliate account is ready to use" : "Activate your affiliate account"}
-                        </h3>
-                        <p className="mt-2 text-muted-foreground">
-                          {affiliate
-                            ? "Your next step is sharing your referral link with people who would genuinely benefit from RTM."
-                            : "Create your affiliate profile to unlock your referral code, track conversions, and start earning when people join."}
+                        <h3 className="text-2xl font-bold">Your affiliate account is ready</h3>
+                        <p className="mt-2 text-white/65">
+                          Share your referral link with people who would genuinely benefit from RTM.
                         </p>
                       </div>
                       <div className="flex flex-col gap-3 sm:flex-row">
-                        {!affiliate ? (
-                          <Button variant="hero" size="lg" onClick={() => void handleCreateAffiliate()} disabled={isCreatingAffiliate}>
-                            {isCreatingAffiliate ? "Activating..." : "Activate Now"}
-                          </Button>
-                        ) : (
-                          <Button variant="hero" size="lg" onClick={() => void handleCopyLink()}>
-                            Copy My Link
-                          </Button>
-                        )}
-                        <Button variant="outline" size="lg" onClick={() => navigate("/membership")}>
+                        <Button variant="hero" size="lg" onClick={() => void handleCopyLink()}>
+                          <ClipboardCopy className="mr-2 h-5 w-5" />
+                          Copy My Link
+                        </Button>
+                        <Button variant="heroOutline" size="lg" onClick={() => navigate("/membership")}>
                           View Membership Page
                         </Button>
                       </div>
@@ -514,8 +592,29 @@ const Affiliate = () => {
                   </Card>
                 </div>
               </div>
-            </div>
-          </section>
+            </section>
+          )}
+
+          {user && !affiliate && (
+            <section className="bg-[linear-gradient(135deg,hsl(222_47%_11%)_0%,hsl(217_33%_17%)_100%)] py-20 text-white md:py-24">
+              <div className="container mx-auto max-w-[1280px] px-6">
+                <Card className="mx-auto max-w-2xl border-white/10 bg-white/5 text-white shadow-heavy">
+                  <CardContent className="flex flex-col items-center gap-6 p-8 text-center">
+                    <Rocket className="h-12 w-12 text-[#b4df55]" />
+                    <div>
+                      <h3 className="text-3xl font-bold">Activate your affiliate account</h3>
+                      <p className="mt-2 text-white/65">
+                        Create your affiliate profile to unlock your referral code, track conversions, and start earning when people join.
+                      </p>
+                    </div>
+                    <Button variant="hero" size="xl" onClick={() => void handleCreateAffiliate()} disabled={isCreatingAffiliate}>
+                      {isCreatingAffiliate ? "Activating..." : "Activate Now"}
+                    </Button>
+                  </CardContent>
+                </Card>
+              </div>
+            </section>
+          )}
 
           <section className="bg-stone-50 py-20 md:py-24">
             <div className="container mx-auto max-w-[960px] px-6">
@@ -523,7 +622,7 @@ const Affiliate = () => {
                 <Badge variant="outline" className="border-primary/20 bg-primary/5 text-primary">
                   FAQ
                 </Badge>
-                <h2 className="mt-4 text-3xl font-black tracking-tight md:text-5xl">Affiliate questions people ask before joining</h2>
+                <h2 className="mt-4 text-3xl font-black tracking-tight md:text-5xl">Common questions</h2>
               </div>
 
               <div className="mt-12 grid gap-4">
@@ -541,7 +640,7 @@ const Affiliate = () => {
 
           <section className="bg-[linear-gradient(135deg,hsl(152_69%_45%)_0%,hsl(352_82%_49%)_100%)] py-20 text-white">
             <div className="container mx-auto max-w-[1280px] px-6 text-center">
-              <h2 className="text-3xl font-black tracking-tight md:text-5xl">Become an RTM Affiliate</h2>
+              <h2 className="text-3xl font-black tracking-tight md:text-5xl">Become an RTM Partner</h2>
               <p className="mx-auto mt-4 max-w-3xl text-lg text-white/85 md:text-xl">
                 Join for $100/year. Get your member card and your affiliate link in one step.
               </p>
